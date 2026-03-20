@@ -294,16 +294,15 @@ def compute_mohho_allocation(
 
 # ── Helpers ──────────────────────────────────────────────────
 def _fmt(n: int) -> str:
-    """Format integer: dot thousands (Mexican format)."""
+    """Format integer with comma thousands separator."""
     if n == 0:
         return "0"
-    return f"{int(n):,}".replace(",", ".")
+    return f"{int(n):,}"
 
 
 def _fmtd(x: float, d: int = 2) -> str:
-    """Format float: comma decimal, dot thousands (Mexican format)."""
-    s = f"{x:,.{d}f}"
-    return s.replace(",", "TEMP").replace(".", ",").replace("TEMP", ".")
+    """Format float with comma thousands and dot decimal."""
+    return f"{x:,.{d}f}"
 
 
 def _find_knee(pareto: list[tuple[float, float]]) -> tuple[float, float]:
@@ -365,7 +364,6 @@ def _plotly_layout(**kw: Any) -> dict[str, Any]:
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Inter, sans-serif", color=SMOKE, size=12),
-        separators=",.",
         margin=dict(l=60, r=30, t=50, b=50),
     )
     base.update(kw)
@@ -793,7 +791,8 @@ def _tab_country(data: dict, pareto: list, knee: tuple) -> None:
     ))
     fig2.update_layout(**_plotly_layout(
         xaxis=dict(title="\u0394 Visas (MOHHO \u2212 FIFO)", zeroline=True,
-                   zerolinecolor='rgba(255,255,255,0.3)', **_GRID),
+                   zerolinecolor='rgba(255,255,255,0.3)',
+                   gridcolor=GRID_COLOR),
         yaxis=dict(autorange='reversed'),
         height=max(450, len(countries) * 30),
         margin=dict(l=140, r=80, t=30, b=50),
