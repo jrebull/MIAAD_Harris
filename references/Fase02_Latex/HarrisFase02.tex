@@ -403,7 +403,7 @@ Para hacer el problema computacionalmente tractable sin perder su esencia, se mo
 \rowcolor{tablehead}
 \textcolor{white}{\textbf{Sistema real}} & \textcolor{white}{\textbf{Modelo}} & \textcolor{white}{\textbf{Justificación}} \\
 \midrule
-$\sim$200 países de carga & $C = 10$ países representativos & Captura la disparidad real \\
+$\sim$200 países de carga & $C = 21$ bloques de países & Captura la disparidad real \\
 \rowcolor{gray!8}
 $\sim$1,8M solicitantes & $G$ grupos (cohorte país-categoría) & Reduce dimensionalidad \\
 Años fiscales múltiples & 1 año fiscal ($t = 1$) & Claridad del modelo \\
@@ -413,10 +413,10 @@ Fechas de prioridad individuales & Fecha promedio por grupo & Agregación cohere
 \end{tabular}}
 \end{table}
 
-Los 10 países seleccionados capturan los cuatro comportamientos fundamentales del sistema: sobredemanda extrema (India), sobredemanda moderada (China), demanda equilibrada (Filipinas, México, Corea del Sur) y subdemanda (Brasil, Canadá, Reino Unido, Nigeria, Resto del Mundo agrupado).
+Los 21 bloques de países seleccionados capturan los comportamientos fundamentales del sistema: sobredemanda extrema (India), sobredemanda moderada (China, Filipinas, México), demanda equilibrada (Afganistán, Irak, Corea del Sur, Pakistán, Irán, Taiwán) y subdemanda (Brasil, Canadá, Reino Unido, Nigeria, Japón, Bangladesh, Colombia, Alemania, Vietnam, Etiopía, Resto del Mundo agrupado). La expansión a 21 bloques permite capturar con mayor precisión las interacciones entre límites por país y por categoría que generan desperdicio de visas en el sistema FIFO.
 
 \begin{yellowbox}
-\textbf{Tratamiento de <<Resto del Mundo>> en R2.} El grupo <<Resto del Mundo>> agrega $\sim$190 países. En el sistema real, cada uno tiene su propio tope del 7\%. Aplicar un solo $P_c = 25.620$ a este grupo sería una infrarrepresentación grave de su capacidad de absorción. Por ello, para <<Resto del Mundo>> se define un tope agregado: $P_{\text{RdM}} = V - \sum_{c \neq \text{RdM}} \min(n_c, P_c)$, es decir, las visas restantes después de satisfacer la demanda (acotada por $P_c$) de los 9 países explícitos. Esto refleja que el conjunto de países pequeños puede absorber colectivamente las visas que los países sobredemandados no pueden recibir por el tope del 7\%.
+\textbf{Tratamiento de <<Resto del Mundo>> en R2.} El grupo <<Resto del Mundo>> agrega $\sim$190 países. En el sistema real, cada uno tiene su propio tope del 7\%. Aplicar un solo $P_c = 25.620$ a este grupo sería una infrarrepresentación grave de su capacidad de absorción. Por ello, para <<Resto del Mundo>> se define un tope agregado: $P_{\text{RdM}} = V - \sum_{c \neq \text{RdM}} \min(n_c, P_c)$, es decir, las visas restantes después de satisfacer la demanda (acotada por $P_c$) de los 20 países explícitos. Esto refleja que el conjunto de países pequeños puede absorber colectivamente las visas que los países sobredemandados no pueden recibir por el tope del 7\%.
 \end{yellowbox}
 
 % ==========================================================
@@ -437,10 +437,10 @@ Los 10 países seleccionados capturan los cuatro comportamientos fundamentales d
 \rowcolor{tablehead}
 \textcolor{white}{\textbf{Símbolo}} & \textcolor{white}{\textbf{Nombre}} & \textcolor{white}{\textbf{Definición}} \\
 \midrule
-$\mathcal{C}$ & Países & $\{1, 2, \ldots, C\}$ con $C = 10$ países representativos \\
+$\mathcal{C}$ & Países & $\{1, 2, \ldots, C\}$ con $C = 21$ bloques de países \\
 \rowcolor{gray!8}
 $\mathcal{J}$ & Categorías & $\{1, 2, 3, 4, 5\}$ correspondientes a EB-1 $\ldots$ EB-5 \\
-$\mathcal{G}$ & Grupos & $\{1, 2, \ldots, G\}$ donde $G = C \times |\mathcal{J}| = 50$ cohortes país-categoría \\
+$\mathcal{G}$ & Grupos & $\{1, 2, \ldots, G\}$ donde $G = C \times |\mathcal{J}| = 105$ cohortes país-categoría \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -507,7 +507,7 @@ x_g \in \mathbb{Z}^{+}_0 \quad : \quad \text{número de visas asignadas al grupo
 \end{equation}
 
 \vspace{0.3em}
-El vector de decisión es $\mathbf{x} = (x_1, x_2, \ldots, x_G) \in \mathbb{Z}^{G}_{+}$, con $G = 50$ componentes.
+El vector de decisión es $\mathbf{x} = (x_1, x_2, \ldots, x_G) \in \mathbb{Z}^{G}_{+}$, con $G = 105$ componentes.
 \end{formulabox}
 
 \begin{notebox}
@@ -1044,7 +1044,7 @@ $K_j^{\text{eff}}$ & Cálculo propio basado en reglas INA de spillover & \parenc
 
 \begin{table}[H]
 \centering
-\caption{Muestra de datos reales para los 10 países representativos (categoría EB-2).}
+\caption{Muestra de datos reales para los 21 bloques de países (categoría EB-2).}
 \label{tab:datos_reales}
 \renewcommand{\arraystretch}{1.3}
 \adjustbox{max width=\linewidth}{%
