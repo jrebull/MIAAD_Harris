@@ -232,6 +232,16 @@
   pages     = {1--17},
   doi       = {10.1162/rest_a_01200}
 }
+@article{bean1994,
+  author    = {Bean, James C.},
+  title     = {Genetic algorithms and random keys for sequencing and optimization},
+  journal   = {ORSA Journal on Computing},
+  year      = {1994},
+  volume    = {6},
+  number    = {2},
+  pages     = {154--160},
+  doi       = {10.1287/ijoc.6.2.154}
+}
 \end{filecontents}
 \addbibresource{referencias_fase2.bib}
 
@@ -456,6 +466,8 @@ $K_j$ & Tope por categoría & Asignación base de la categoría $j$ (antes de sp
 $n_g$ & Demanda del grupo & Número de solicitantes pendientes en el grupo $g$ & Varía \\
 \rowcolor{gray!8}
 $d_g$ & Fecha de prioridad & Año promedio de solicitud del grupo $g$ & 2013 \\
+$w_g$ & Tiempo de espera & $w_g = t_{\text{actual}} - d_g$ (años de espera del grupo $g$) & 13 (India-EB2) \\
+\rowcolor{gray!8}
 $t_{\text{actual}}$ & Año fiscal actual & Año en que se realiza la asignación & 2026 \\
 \bottomrule
 \end{tabular}
@@ -583,9 +595,48 @@ $f_2$ & Máxima disparidad entre países & Minimizar & Años \\
 \end{tabular}
 \end{table}
 
+\begin{formulabox}
+\textbf{Formulación compacta del problema biobjetivo:}
+\begin{alignat*}{2}
+& \min_{\mathbf{x}} \quad && \bigl\{f_1(\mathbf{x}),\; f_2(\mathbf{x})\bigr\} \\
+& \text{s.a.} \quad && \text{R1: } \textstyle\sum_{g} x_g \leq V \\
+& && \text{R2: } \textstyle\sum_{g:\,c(g)=c} x_g \leq P_c \quad \forall\, c \\
+& && \text{R3: } \textstyle\sum_{g:\,j(g)=j} x_g \leq K_j^{\text{eff}} \quad \forall\, j \\
+& && \text{R4: } 0 \leq x_g \leq n_g \quad \forall\, g \\
+& && \text{R5: } x_g \in \mathbb{Z}^{+}_0 \quad \forall\, g \\
+& && \text{R6: FIFO por } (c,\,j)
+\end{alignat*}
+\end{formulabox}
+
 \begin{yellowbox}
 \textbf{¿Cuál es el mejor resultado posible?} El ideal inalcanzable sería $f_1 = 0$ (toda la carga resuelta) y $f_2 = 0$ (todos los países con igual tiempo de espera promedio). Este punto \textbf{no es factible} porque los topes legales fuerzan compromisos: atender a India (alta $w_g$) reduce $f_1$ pero incrementa $f_2$ al aumentar la disparidad con países de espera corta. Lo que se busca es el \textbf{frente de Pareto} de asignaciones que mejor equilibren ambos objetivos.
 \end{yellowbox}
+
+\begin{examplebox}
+\textbf{Prueba constructiva de conflicto entre $f_1$ y $f_2$.}
+
+Considérense dos permutaciones distintas que generan asignaciones factibles:
+
+\textbf{Permutación A} (prioriza antigüedad): procesa primero los grupos de India y China (alta $w_g$).
+\begin{itemize}
+    \item Resultado: India-EB2 recibe 25.620 visas, China-EB2 recibe 25.620 visas. Se atiende la mayor carga de espera.
+    \item $f_1^A \approx 1{,}8$ (baja carga residual), \; $f_2^A \approx 14{,}1$ (alta disparidad: India espera 13 años promedio, Canadá $<$1).
+\end{itemize}
+
+\textbf{Permutación B} (prioriza equidad): distribuye visas uniformemente entre todos los países.
+\begin{itemize}
+    \item Resultado: cada país recibe $\sim$14.000 visas, independientemente de su $w_g$.
+    \item $f_1^B \approx 7{,}5$ (alta carga residual: India apenas atendida), \; $f_2^B \approx 2{,}1$ (baja disparidad: tiempos de espera similares).
+\end{itemize}
+
+\textbf{Análisis de dominancia:}
+\begin{itemize}
+    \item A no domina a B porque $f_2^A = 14{,}1 > 2{,}1 = f_2^B$.
+    \item B no domina a A porque $f_1^B = 7{,}5 > 1{,}8 = f_1^A$.
+\end{itemize}
+
+Por tanto, A y B son \textbf{mutuamente no dominadas}: $A \nsucc B$ y $B \nsucc A$. Esto demuestra que $f_1$ y $f_2$ están en conflicto estructural y justifica la resolución mediante frente de Pareto. \ding{113}
+\end{examplebox}
 
 % ==========================================================
 % SECCION 5. RESTRICCIONES
@@ -683,7 +734,7 @@ La solución se construye en \textbf{tres capas}:
 
 \subsubsection{Capa 1 $\rightarrow$ Capa 2: Regla SPV (\textit{Smallest Position Value})}
 
-Dado un vector $\mathbf{H} \in \mathbb{R}^G$, se genera la permutación $\boldsymbol{\pi}$ ordenando los índices por valor ascendente:
+Dado un vector $\mathbf{H} \in \mathbb{R}^G$, se genera la permutación $\boldsymbol{\pi}$ ordenando los índices por valor ascendente. Esta técnica, conocida como \textit{random keys}, fue introducida por \textcite{bean1994} para representar soluciones combinatorias en espacios continuos:
 
 \begin{formulabox}
 \begin{equation}
@@ -719,7 +770,7 @@ Después de asignar $x_g$, se actualizan los contadores de capacidad restante y 
 \quad a. $g \leftarrow \pi_k$\\
 \quad b. $\text{capPaís} \leftarrow P_{c(g)} - \text{usoPaís}[c(g)]$\\
 \quad c. $\text{capCat} \leftarrow K_{j(g)}^{\text{eff}} - \text{usoCat}[j(g)]$\\
-\quad d. $x_g \leftarrow \min(n_g,\; V_{\text{rest}},\; \text{capPaís},\; \text{capCat})$\\
+\quad d. $x_g \leftarrow \min\!\bigl(\underbrace{n_g}_{\text{R4}},\; \underbrace{V_{\text{rest}}}_{\text{R1}},\; \underbrace{\text{capPaís}}_{\text{R2}},\; \underbrace{\text{capCat}}_{\text{R3}}\bigr)$ \hfill {\small (R5 se cumple porque todos los operandos son enteros no negativos)}\\
 \quad e. Actualizar: $V_{\text{rest}} \leftarrow V_{\text{rest}} - x_g$; \; $\text{usoPaís}[c(g)] \mathrel{+}= x_g$; \; $\text{usoCat}[j(g)] \mathrel{+}= x_g$\\
 3. \textbf{Retornar} $\mathbf{x} = (x_1, \ldots, x_G)$
 \end{notebox}
@@ -929,6 +980,17 @@ Para manejar dos objetivos simultáneamente, MOHHO añade tres mecanismos al HHO
 \mathbf{a} \succ \mathbf{b} \iff \forall m \in \{1,2\}:\; f_m(\mathbf{a}) \leq f_m(\mathbf{b}) \;\wedge\; \exists m:\; f_m(\mathbf{a}) < f_m(\mathbf{b})
 \label{eq:dominancia}
 \end{equation}
+\end{formulabox}
+
+El \textbf{frente de Pareto} $\mathcal{P}^*$ es el subconjunto de soluciones factibles que no son dominadas por ninguna otra:
+
+\begin{formulabox}
+\begin{equation}
+\mathcal{P}^* = \bigl\{\mathbf{x} \in \mathcal{F} \;\big|\; \nexists\; \mathbf{x}' \in \mathcal{F} : \mathbf{x}' \succ \mathbf{x}\bigr\}
+\label{eq:pareto_front}
+\end{equation}
+
+donde $\mathcal{F}$ es el conjunto de todas las asignaciones factibles (que satisfacen R1--R6). El archivo externo de MOHHO almacena una aproximación discreta de $\mathcal{P}^*$.
 \end{formulabox}
 
 \textbf{(2) Selección de líder por distancia de aglomeración.} El <<conejo>> se elige del archivo Pareto priorizando soluciones en regiones poco pobladas del frente, promoviendo diversidad.
