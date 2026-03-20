@@ -726,8 +726,14 @@ def _tab_allocation(data: dict, pareto: list, baseline: tuple) -> None:
         st.dataframe(df_demand, use_container_width=True)
 
         st.markdown("**Fechas de prioridad (Visa Bulletin)**")
-        df_dates = pd.DataFrame(data["date_matrix"],
-                                index=countries, columns=categories)
+        date_strs = []
+        for i in range(len(countries)):
+            row = []
+            for j in range(len(categories)):
+                d = data["date_matrix"][i][j]
+                row.append("Current" if d >= 2026 else str(d))
+            date_strs.append(row)
+        df_dates = pd.DataFrame(date_strs, index=countries, columns=categories)
         st.dataframe(df_dates, use_container_width=True)
 
 
