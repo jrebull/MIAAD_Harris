@@ -6,7 +6,7 @@ References:
     - f2: Maximum disparity between countries (minimize)
 """
 
-from src.config import T_ACTUAL
+from src.config import T_ACTUAL, V
 from src.data import build_groups, compute_spillover, compute_country_caps
 
 
@@ -25,7 +25,7 @@ class VisaProblem:
         self.groups = build_groups()
         self.category_caps = compute_spillover(self.groups)
         self.country_caps = compute_country_caps(self.groups)
-        self.total_visas = 140_000
+        self.total_visas = V
         self.total_demand = sum(g["n"] for g in self.groups)
 
         self._groups_by_country: dict[str, list[dict]] = {}

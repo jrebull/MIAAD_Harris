@@ -586,12 +586,12 @@ El sistema actual logra una carga de espera moderada ($f_1 = 8{,}09$) porque pri
 
 \subsection{Frente de Pareto combinado}
 
-Tras las 30 corridas independientes, se combinaron todos los archivos finales y se filtraron las soluciones dominadas. El \textbf{frente de Pareto combinado} contiene \textbf{54 soluciones no dominadas}, que representan la mejor aproximación obtenida al frente de Pareto real del problema.
+Tras las 30 corridas independientes, se combinaron todos los archivos finales y se filtraron las soluciones dominadas. El \textbf{frente de Pareto combinado} contiene \textbf{66 soluciones no dominadas}, que representan la mejor aproximación obtenida al frente de Pareto real del problema.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{pareto_front.png}
-    \caption{Frente de Pareto combinado (54 soluciones no dominadas) de las 30 corridas independientes de MOHHO. El eje horizontal corresponde a $f_1$ (carga de espera no atendida) y el eje vertical a $f_2$ (máxima disparidad entre países). Se incluye el punto del sistema FIFO como referencia.}
+    \caption{Frente de Pareto combinado (66 soluciones no dominadas) de las 30 corridas independientes de MOHHO. El eje horizontal corresponde a $f_1$ (carga de espera no atendida) y el eje vertical a $f_2$ (máxima disparidad entre países). Se incluye el punto del sistema FIFO como referencia.}
     \label{fig:pareto}
 \end{figure}
 
@@ -609,7 +609,7 @@ La Figura~\ref{fig:pareto} muestra la forma convexa del frente, característica 
 \midrule
 Mejor en $f_1$ (mínima carga de espera) & 8,0459 & 12,0000 \\
 \rowcolor{gray!8}
-Mejor en $f_2$ (máxima equidad) & 8,3006 & 2,8815 \\
+Mejor en $f_2$ (máxima equidad) & 8,3086 & 2,9115 \\
 Sistema FIFO (baseline) & 8,0854 & 13,0000 \\
 \bottomrule
 \end{tabular}
@@ -642,13 +642,13 @@ La Figura~\ref{fig:convergence} muestra que el hipervolumen se estabiliza aproxi
 \rowcolor{tablehead}
 \textcolor{white}{\textbf{Estadístico}} & \textcolor{white}{\textbf{Valor}} \\
 \midrule
-Media & 10,9919 \\
+Media & 24,3721 \\
 \rowcolor{gray!8}
-Desviación estándar & 0,2342 \\
-Mínimo & 10,5823 \\
+Desviación estándar & 0,1859 \\
+Mínimo & 23,9495 \\
 \rowcolor{gray!8}
-Máximo & 11,4320 \\
-Coeficiente de variación & 2,13\% \\
+Máximo & 24,7072 \\
+Coeficiente de variación & 0,76\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -656,11 +656,11 @@ Coeficiente de variación & 2,13\% \\
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{hv_boxplot.png}
-    \caption{Diagrama de caja del hipervolumen (HV) de las 30 corridas. La mediana (línea central) y la media (rombo) son cercanas, indicando distribución simétrica. El coeficiente de variación de 2{,}13\% confirma la estabilidad del algoritmo.}
+    \caption{Diagrama de caja del hipervolumen (HV) de las 30 corridas. La mediana (línea central) y la media (rombo) son cercanas, indicando distribución simétrica. El coeficiente de variación de 0{,}76\% confirma la estabilidad del algoritmo.}
     \label{fig:hv_box}
 \end{figure}
 
-El coeficiente de variación del 2{,}13\% ($\sigma / \mu = 0{,}2342 / 10{,}9919$) indica que MOHHO produce resultados consistentes entre corridas. La diferencia entre el HV mínimo (10{,}5823) y máximo (11{,}4320) es de menos de una unidad, lo que confirma la robustez del método.
+El coeficiente de variación del 0{,}76\% ($\sigma / \mu = 0{,}1859 / 24{,}3721$) indica que MOHHO produce resultados consistentes entre corridas. La diferencia entre el HV mínimo (23{,}9495) y máximo (24{,}7072) es de menos de una unidad, lo que confirma la robustez del método.
 
 \subsection{Mapa de asignación de visas}
 
@@ -702,7 +702,7 @@ La Figura~\ref{fig:heatmap} permite visualizar \textbf{el entregable final}: la 
 Sistema FIFO actual & 8,0854 & 13,0000 & Baseline \\
 \rowcolor{gray!8}
 Mejor $f_1$ (MOHHO) & 8,0459 & 12,0000 & Domina al FIFO \\
-Mejor $f_2$ (MOHHO) & 8,3006 & 2,8815 & Equidad radical \\
+Mejor $f_2$ (MOHHO) & 8,3086 & 2,9115 & Equidad radical \\
 \rowcolor{gray!8}
 Compromiso MOHHO & $\approx$8,10 & $\approx$7,00 & Balance intermedio \\
 \bottomrule
@@ -722,7 +722,7 @@ Esto demuestra que existen asignaciones que mejoran simultáneamente tanto la ef
 
 \subsection{Escenarios de política pública}
 
-El frente de Pareto ofrece 54 asignaciones no dominadas que representan un abanico de opciones para el tomador de decisiones. Se destacan tres escenarios tipo:
+El frente de Pareto ofrece 66 asignaciones no dominadas que representan un abanico de opciones para el tomador de decisiones. Se destacan tres escenarios tipo:
 
 \begin{examplebox}
 \textbf{Escenario 1 --- Priorizar eficiencia ($f_1$ mínimo):}\\
@@ -732,8 +732,8 @@ Se concentran las visas en los grupos con mayor tiempo de espera acumulado (prin
 
 \begin{examplebox}
 \textbf{Escenario 2 --- Priorizar equidad ($f_2$ mínimo):}\\
-$f_1 = 8{,}3006$, $f_2 = 2{,}8815$ años.\\
-Se distribuyen las visas de forma que todos los países tengan tiempos de espera similares. La disparidad máxima se reduce de 13{,}00 a 2{,}88 años, pero la carga de espera global aumenta ligeramente (de 8{,}09 a 8{,}30). Este escenario es coherente con las propuestas de reforma de topes por país \parencite{fwd2024}.
+$f_1 = 8{,}3086$, $f_2 = 2{,}9115$ años.\\
+Se distribuyen las visas de forma que todos los países tengan tiempos de espera similares. La disparidad máxima se reduce de 13{,}00 a 2{,}91 años, pero la carga de espera global aumenta ligeramente (de 8{,}09 a 8{,}31). Este escenario es coherente con las propuestas de reforma de topes por país \parencite{fwd2024}.
 \end{examplebox}
 
 \begin{examplebox}
@@ -756,7 +756,7 @@ Los resultados confirman la hipótesis planteada en la Fase~02: existe un \textb
 \begin{itemize}
     \item \textbf{Causa estructural:} India y China concentran más del 80\% de la demanda total, con tiempos de espera de 10--13 años. Los topes por país ($P_c = 25.620$) impiden satisfacer toda su demanda. Cualquier reasignación que reduzca la disparidad (distribuyendo visas a países con menor espera) necesariamente deja más carga sin atender en los países de alta demanda.
 
-    \item \textbf{Magnitud del trade-off:} Pasar de la mejor solución en $f_1$ ($8{,}0459$) a la mejor en $f_2$ ($8{,}3006$) implica un incremento de solo 0{,}2547 en $f_1$ (3{,}16\%), pero una reducción de $f_2$ de 12{,}00 a 2{,}88 años (76\%). La relación es \textbf{fuertemente asimétrica}: se gana mucha equidad con poca pérdida de eficiencia.
+    \item \textbf{Magnitud del trade-off:} Pasar de la mejor solución en $f_1$ ($8{,}0459$) a la mejor en $f_2$ ($8{,}3086$) implica un incremento de solo 0{,}2627 en $f_1$ (3{,}26\%), pero una reducción de $f_2$ de 12{,}00 a 2{,}91 años (76\%). La relación es \textbf{fuertemente asimétrica}: se gana mucha equidad con poca pérdida de eficiencia.
 \end{itemize}
 
 \begin{yellowbox}
@@ -765,7 +765,7 @@ Los resultados confirman la hipótesis planteada en la Fase~02: existe un \textb
 
 \subsection{Robustez del algoritmo}
 
-La estabilidad del hipervolumen ($\text{HV} = 10{,}9919 \pm 0{,}2342$, coeficiente de variación 2{,}13\%) indica que MOHHO produce resultados consistentes. La convergencia antes de la iteración 300 sugiere que los parámetros seleccionados son adecuados para este problema. La consistencia entre corridas permite confiar en que el frente combinado de 54 soluciones es una buena aproximación al frente de Pareto verdadero.
+La estabilidad del hipervolumen ($\text{HV} = 24{,}3721 \pm 0{,}1859$, coeficiente de variación 0{,}76\%) indica que MOHHO produce resultados consistentes. La convergencia antes de la iteración 300 sugiere que los parámetros seleccionados son adecuados para este problema. La consistencia entre corridas permite confiar en que el frente combinado de 66 soluciones es una buena aproximación al frente de Pareto verdadero.
 
 \subsection{Validez del modelo}
 
@@ -800,7 +800,7 @@ Los resultados de este proyecto tienen relevancia directa para el debate sobre l
 
     \item \textbf{La equidad tiene un costo moderado:} Reducir la disparidad entre países de 13{,}00 a $\approx$7{,}00 años requiere un aumento de solo $\approx$0{,}02 en $f_1$ (menos del 0{,}3\%), lo que sugiere que mejoras significativas en equidad son factibles sin sacrificar eficiencia.
 
-    \item \textbf{Herramienta de apoyo a la decisión:} El frente de Pareto con 54 soluciones no dominadas proporciona un abanico cuantificado de opciones que permite al tomador de decisiones visualizar explícitamente las consecuencias de priorizar eficiencia vs.\ equidad.
+    \item \textbf{Herramienta de apoyo a la decisión:} El frente de Pareto con 66 soluciones no dominadas proporciona un abanico cuantificado de opciones que permite al tomador de decisiones visualizar explícitamente las consecuencias de priorizar eficiencia vs.\ equidad.
 
     \item \textbf{Reforma de topes por país:} Los resultados son consistentes con las propuestas legislativas de eliminar o flexibilizar los topes del 7\% por país \parencite{fwd2024}, mostrando que la redistribución de visas puede mejorar la equidad sin generar un colapso en la gestión del backlog.
 \end{enumerate}
@@ -815,17 +815,17 @@ Los resultados de este proyecto tienen relevancia directa para el debate sobre l
 Este documento presenta la implementación y los resultados experimentales del algoritmo Multi-Objective Harris Hawks Optimization (MOHHO) aplicado al problema de asignación de \textit{Green Cards} de empleo en Estados Unidos. Las principales conclusiones son:
 
 \begin{enumerate}
-    \item \textbf{El modelo biobjetivo captura un conflicto real.} Las 54 soluciones no dominadas del frente de Pareto combinado confirman que existe un trade-off genuino entre minimizar la carga de espera ($f_1$) y minimizar la disparidad entre países ($f_2$). La prueba de conflicto con permutaciones concretas (G2) y los resultados experimentales son consistentes.
+    \item \textbf{El modelo biobjetivo captura un conflicto real.} Las 66 soluciones no dominadas del frente de Pareto combinado confirman que existe un trade-off genuino entre minimizar la carga de espera ($f_1$) y minimizar la disparidad entre países ($f_2$). La prueba de conflicto con permutaciones concretas (G2) y los resultados experimentales son consistentes.
 
     \item \textbf{MOHHO supera al sistema FIFO vigente.} Se encontró al menos una solución que domina estrictamente al baseline FIFO ($f_1 = 8{,}0459 < 8{,}0854$ y $f_2 = 12{,}0000 < 13{,}0000$). El sistema actual no es Pareto-óptimo.
 
-    \item \textbf{El trade-off es asimétrico a favor de la equidad.} Es posible reducir la disparidad de 13{,}00 a 2{,}88 años con un incremento de solo 2{,}66\% en la carga de espera ($f_1$: de 8{,}0459 a 8{,}3006). Esto sugiere que pequeñas concesiones en eficiencia pueden generar mejoras sustanciales en equidad.
+    \item \textbf{El trade-off es asimétrico a favor de la equidad.} Es posible reducir la disparidad de 13{,}00 a 2{,}91 años con un incremento de solo 3{,}26\% en la carga de espera ($f_1$: de 8{,}0459 a 8{,}3086). Esto sugiere que pequeñas concesiones en eficiencia pueden generar mejoras sustanciales en equidad.
 
-    \item \textbf{El algoritmo es robusto y reproducible.} Las 30 corridas independientes produjeron un hipervolumen medio de $\text{HV} = 10{,}9919 \pm 0{,}2342$ (CV = 2{,}13\%), con convergencia antes de la iteración 300 de las 500 totales.
+    \item \textbf{El algoritmo es robusto y reproducible.} Las 30 corridas independientes produjeron un hipervolumen medio de $\text{HV} = 24{,}3721 \pm 0{,}1859$ (CV = 0{,}76\%), con convergencia antes de la iteración 300 de las 500 totales.
 
     \item \textbf{Las correcciones al modelo (G1--G6) fortalecen la formulación.} La formulación compacta, la prueba de conflicto, la definición formal del frente de Pareto, la inclusión de $w_g$ en la tabla de parámetros, la cita de SPV \parencite{bean1994} y la precisión del decodificador elevan el rigor del trabajo respecto a la Fase~02.
 
-    \item \textbf{El frente de Pareto es una herramienta de apoyo a la decisión.} Las 54 soluciones no dominadas ofrecen al tomador de decisiones un abanico cuantificado de escenarios, desde la priorización de eficiencia ($f_1 = 8{,}05$, $f_2 = 12{,}00$) hasta la equidad radical ($f_1 = 8{,}30$, $f_2 = 2{,}88$), permitiendo una elección informada basada en preferencias de política pública.
+    \item \textbf{El frente de Pareto es una herramienta de apoyo a la decisión.} Las 66 soluciones no dominadas ofrecen al tomador de decisiones un abanico cuantificado de escenarios, desde la priorización de eficiencia ($f_1 = 8{,}05$, $f_2 = 12{,}00$) hasta la equidad radical ($f_1 = 8{,}31$, $f_2 = 2{,}91$), permitiendo una elección informada basada en preferencias de política pública.
 \end{enumerate}
 
 \begin{resultbox}

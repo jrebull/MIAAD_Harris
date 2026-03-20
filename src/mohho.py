@@ -12,6 +12,8 @@ References:
     - HarrisFase02.tex, Section 8
 """
 
+from typing import Callable
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -25,9 +27,15 @@ from src.hho import (
     op1_exploration_random, op2_exploration_mean,
     op3_soft_siege, op4_hard_siege,
     op5_soft_siege_levy, op6_hard_siege_levy,
-    clip_bounds,
 )
 from src.problem import VisaProblem
+
+# Fixed reference point for hypervolume (worst plausible f1, f2 + margin).
+# f1 theoretical max ~ 8.5, f2 theoretical max ~ 14 (from FIFO baseline).
+HV_REF_POINT: tuple[float, float] = (10.0, 16.0)
+
+# Cap for replacing inf in crowding distance roulette selection
+CD_INF_REPLACEMENT: float = 1e6
 
 
 def dominates(a: tuple[float, float], b: tuple[float, float]) -> bool:
@@ -96,13 +104,32 @@ def select_leader(
         Position vector of the selected leader.
     """
     cd = crowding_distance(archive_fitnesses)
-    cd_finite = [d if d != float("inf") else 1e12 for d in cd]
+    cd_finite = [d if d != float("inf") else CD_INF_REPLACEMENT for d in cd]
     total = sum(cd_finite)
     if total == 0:
         return archive_positions[rng.integers(len(archive_positions))]
     probs = np.array(cd_finite) / total
     idx = rng.choice(len(archive_positions), p=probs)
     return archive_positions[idx]
+
+
+def _is_duplicate(
+    new_fit: tuple[float, float],
+    archive_fitnesses: list[tuple[float, float]],
+) -> bool:
+    """Check if a fitness tuple already exists in the archive.
+
+    Args:
+        new_fit: Candidate fitness.
+        archive_fitnesses: Existing archive fitnesses.
+
+    Returns:
+        True if a near-duplicate exists.
+    """
+    for af in archive_fitnesses:
+        if abs(af[0] - new_fit[0]) < 1e-12 and abs(af[1] - new_fit[1]) < 1e-12:
+            return True
+    return False
 
 
 def update_archive(
@@ -114,8 +141,9 @@ def update_archive(
 ) -> None:
     """Update the Pareto archive with a new solution (in-place).
 
-    Inserts new solution if non-dominated. Removes solutions it dominates.
-    If archive exceeds max_size, removes the most crowded solution.
+    Inserts new solution if non-dominated and not a duplicate.
+    Removes solutions it dominates. If archive exceeds max_size,
+    removes the most crowded solution.
 
     Args:
         archive_positions: List of position vectors (modified in-place).
@@ -124,6 +152,9 @@ def update_archive(
         new_fit: New candidate fitness.
         max_size: Maximum archive size.
     """
+    if _is_duplicate(new_fit, archive_fitnesses):
+        return
+
     dominated_by_new = []
     for i, af in enumerate(archive_fitnesses):
         if dominates(af, new_fit):
@@ -140,13 +171,27 @@ def update_archive(
 
     if len(archive_positions) > max_size:
         cd = crowding_distance(archive_fitnesses)
-        min_cd_idx = min(
-            (i for i in range(len(cd)) if cd[i] != float("inf")),
-            key=lambda i: cd[i],
-            default=0,
-        )
+        # Find the most crowded non-boundary solution to remove
+        finite_indices = [i for i in range(len(cd)) if cd[i] != float("inf")]
+        if finite_indices:
+            min_cd_idx = min(finite_indices, key=lambda i: cd[i])
+        else:
+            # All inf: remove random non-extreme
+            min_cd_idx = rng_fallback_idx(len(archive_positions))
         archive_positions.pop(min_cd_idx)
         archive_fitnesses.pop(min_cd_idx)
+
+
+def rng_fallback_idx(n: int) -> int:
+    """Return the middle index as fallback when all CDs are infinite.
+
+    Args:
+        n: Number of archive members.
+
+    Returns:
+        Middle index.
+    """
+    return n // 2
 
 
 def evaluate_hawk(
@@ -168,13 +213,222 @@ def evaluate_hawk(
     return alloc, fitness
 
 
+def _greedy_select_levy(
+    xi: NDArray[np.float64],
+    fit_i: tuple[float, float],
+    y: NDArray[np.float64],
+    z: NDArray[np.float64],
+    problem: VisaProblem,
+) -> tuple[NDArray[np.float64], tuple[float, float]] | None:
+    """Greedy selection for Lévy operators (Ops 5-6).
+
+    Try Y first: adopt if Y dominates X_i.
+    Otherwise try Z: adopt if Z dominates X_i.
+    Otherwise keep X_i (return None).
+
+    Args:
+        xi: Current hawk position.
+        fit_i: Current hawk fitness.
+        y: First candidate (Y).
+        z: Second candidate (Z).
+        problem: VisaProblem instance.
+
+    Returns:
+        Tuple of (selected_position, fitness) or None if neither is better.
+    """
+    _, fit_y = evaluate_hawk(y, problem)
+    if dominates(fit_y, fit_i):
+        return y, fit_y
+
+    _, fit_z = evaluate_hawk(z, problem)
+    if dominates(fit_z, fit_i):
+        return z, fit_z
+
+    return None
+
+
+def _step_hawk(
+    i: int,
+    population: NDArray[np.float64],
+    fitnesses: list[tuple[float, float]],
+    archive_positions: list[NDArray[np.float64]],
+    archive_fitnesses: list[tuple[float, float]],
+    x_mean: NDArray[np.float64],
+    t: int,
+    max_iter: int,
+    pop_size: int,
+    archive_size: int,
+    problem: VisaProblem,
+    rng: np.random.Generator,
+) -> None:
+    """Process one hawk in the MOHHO iteration (in-place update).
+
+    Args:
+        i: Hawk index.
+        population: Population matrix (modified in-place).
+        fitnesses: Population fitnesses (modified in-place).
+        archive_positions: Pareto archive positions (modified in-place).
+        archive_fitnesses: Pareto archive fitnesses (modified in-place).
+        x_mean: Mean population position.
+        t: Current iteration.
+        max_iter: Max iterations.
+        pop_size: Population size.
+        archive_size: Max archive size.
+        problem: VisaProblem instance.
+        rng: Random generator.
+    """
+    e = escape_energy(t, max_iter, rng)
+    abs_e = abs(e)
+    x_rabbit = select_leader(archive_positions, archive_fitnesses, rng)
+
+    if abs_e >= 1:
+        new_pos = _exploration_step(population, i, x_rabbit, x_mean, pop_size, rng)
+        _accept_and_archive(
+            i, new_pos, population, fitnesses,
+            archive_positions, archive_fitnesses, archive_size, problem)
+    elif rng.random() >= 0.5:
+        new_pos = _siege_step(population[i], x_rabbit, e, abs_e, rng)
+        _accept_and_archive(
+            i, new_pos, population, fitnesses,
+            archive_positions, archive_fitnesses, archive_size, problem)
+    else:
+        _levy_step(
+            i, population, fitnesses, x_rabbit, x_mean, e, abs_e,
+            archive_positions, archive_fitnesses, archive_size, problem, rng)
+
+
+def _exploration_step(
+    population: NDArray[np.float64],
+    i: int,
+    x_rabbit: NDArray[np.float64],
+    x_mean: NDArray[np.float64],
+    pop_size: int,
+    rng: np.random.Generator,
+) -> NDArray[np.float64]:
+    """Execute exploration operator (Op1 or Op2).
+
+    Args:
+        population: Population matrix.
+        i: Current hawk index.
+        x_rabbit: Leader position.
+        x_mean: Mean position.
+        pop_size: Population size.
+        rng: Random generator.
+
+    Returns:
+        New position vector.
+    """
+    if rng.random() >= 0.5:
+        rand_idx = rng.integers(pop_size)
+        return op1_exploration_random(population[i], population[rand_idx], rng)
+    return op2_exploration_mean(population[i], x_rabbit, x_mean, rng)
+
+
+def _siege_step(
+    xi: NDArray[np.float64],
+    x_rabbit: NDArray[np.float64],
+    e: float,
+    abs_e: float,
+    rng: np.random.Generator,
+) -> NDArray[np.float64]:
+    """Execute siege operator (Op3 or Op4).
+
+    Args:
+        xi: Current hawk position.
+        x_rabbit: Leader position.
+        e: Escape energy.
+        abs_e: Absolute escape energy.
+        rng: Random generator.
+
+    Returns:
+        New position vector.
+    """
+    if abs_e >= 0.5:
+        return op3_soft_siege(xi, x_rabbit, e, rng)
+    return op4_hard_siege(xi, x_rabbit, e, rng)
+
+
+def _levy_step(
+    i: int,
+    population: NDArray[np.float64],
+    fitnesses: list[tuple[float, float]],
+    x_rabbit: NDArray[np.float64],
+    x_mean: NDArray[np.float64],
+    e: float,
+    abs_e: float,
+    archive_positions: list[NDArray[np.float64]],
+    archive_fitnesses: list[tuple[float, float]],
+    archive_size: int,
+    problem: VisaProblem,
+    rng: np.random.Generator,
+) -> None:
+    """Execute Lévy operator (Op5 or Op6) with greedy selection (in-place).
+
+    Args:
+        i: Hawk index.
+        population: Population matrix (modified in-place).
+        fitnesses: Fitnesses list (modified in-place).
+        x_rabbit: Leader position.
+        x_mean: Mean position.
+        e: Escape energy.
+        abs_e: Absolute escape energy.
+        archive_positions: Archive positions (modified in-place).
+        archive_fitnesses: Archive fitnesses (modified in-place).
+        archive_size: Max archive size.
+        problem: VisaProblem instance.
+        rng: Random generator.
+    """
+    if abs_e >= 0.5:
+        y, z = op5_soft_siege_levy(population[i], x_rabbit, e, rng)
+    else:
+        y, z = op6_hard_siege_levy(population[i], x_rabbit, e, x_mean, rng)
+
+    result = _greedy_select_levy(population[i], fitnesses[i], y, z, problem)
+    if result is not None:
+        new_pos, fit_new = result
+        population[i] = new_pos
+        fitnesses[i] = fit_new
+        update_archive(archive_positions, archive_fitnesses,
+                       new_pos, fit_new, archive_size)
+
+
+def _accept_and_archive(
+    i: int,
+    new_pos: NDArray[np.float64],
+    population: NDArray[np.float64],
+    fitnesses: list[tuple[float, float]],
+    archive_positions: list[NDArray[np.float64]],
+    archive_fitnesses: list[tuple[float, float]],
+    archive_size: int,
+    problem: VisaProblem,
+) -> None:
+    """Evaluate, accept if dominating, and update archive (in-place).
+
+    Args:
+        i: Hawk index.
+        new_pos: Candidate position.
+        population: Population matrix (modified in-place).
+        fitnesses: Fitnesses list (modified in-place).
+        archive_positions: Archive positions (modified in-place).
+        archive_fitnesses: Archive fitnesses (modified in-place).
+        archive_size: Max archive size.
+        problem: VisaProblem instance.
+    """
+    _, fit_new = evaluate_hawk(new_pos, problem)
+    if dominates(fit_new, fitnesses[i]):
+        population[i] = new_pos
+        fitnesses[i] = fit_new
+    update_archive(archive_positions, archive_fitnesses,
+                   new_pos, fit_new, archive_size)
+
+
 def run_mohho(
     problem: VisaProblem,
     seed: int,
     pop_size: int = POPULATION_SIZE,
     max_iter: int = MAX_ITERATIONS,
     archive_size: int = ARCHIVE_SIZE,
-    callback=None,
+    callback: Callable[[int, list[tuple[float, float]]], None] | None = None,
 ) -> tuple[list[NDArray[np.float64]], list[tuple[float, float]], list[float]]:
     """Run the MOHHO algorithm.
 
@@ -193,7 +447,7 @@ def run_mohho(
     dim = NUM_GROUPS
 
     population = rng.uniform(LB, UB, size=(pop_size, dim))
-    fitnesses = []
+    fitnesses: list[tuple[float, float]] = []
     for i in range(pop_size):
         _, fit = evaluate_hawk(population[i], problem)
         fitnesses.append(fit)
@@ -208,71 +462,12 @@ def run_mohho(
 
     for t in range(max_iter):
         x_mean = np.mean(population, axis=0)
-
         for i in range(pop_size):
-            e = escape_energy(t, max_iter, rng)
-            abs_e = abs(e)
-
-            x_rabbit = select_leader(archive_positions, archive_fitnesses, rng)
-
-            if abs_e >= 1:
-                q = rng.random()
-                if q >= 0.5:
-                    rand_idx = rng.integers(pop_size)
-                    new_pos = op1_exploration_random(population[i], population[rand_idx], rng)
-                else:
-                    new_pos = op2_exploration_mean(population[i], x_rabbit, x_mean, rng)
-            else:
-                r = rng.random()
-                if r >= 0.5:
-                    if abs_e >= 0.5:
-                        new_pos = op3_soft_siege(population[i], x_rabbit, e, rng)
-                    else:
-                        new_pos = op4_hard_siege(population[i], x_rabbit, e, rng)
-                else:
-                    if abs_e >= 0.5:
-                        y, z = op5_soft_siege_levy(population[i], x_rabbit, e, rng)
-                        _, fit_y = evaluate_hawk(y, problem)
-                        if dominates(fit_y, fitnesses[i]) or (not dominates(fitnesses[i], fit_y)):
-                            new_pos = y
-                            _, new_fit = fit_y, fit_y
-                        else:
-                            _, fit_z = evaluate_hawk(z, problem)
-                            if dominates(fit_z, fitnesses[i]) or (not dominates(fitnesses[i], fit_z)):
-                                new_pos = z
-                            else:
-                                continue
-                        _, fit_new = evaluate_hawk(new_pos, problem)
-                        fitnesses[i] = fit_new
-                        population[i] = new_pos
-                        update_archive(archive_positions, archive_fitnesses,
-                                       new_pos, fit_new, archive_size)
-                        continue
-                    else:
-                        y, z = op6_hard_siege_levy(population[i], x_rabbit, e, x_mean, rng)
-                        _, fit_y = evaluate_hawk(y, problem)
-                        if dominates(fit_y, fitnesses[i]) or (not dominates(fitnesses[i], fit_y)):
-                            new_pos = y
-                        else:
-                            _, fit_z = evaluate_hawk(z, problem)
-                            if dominates(fit_z, fitnesses[i]) or (not dominates(fitnesses[i], fit_z)):
-                                new_pos = z
-                            else:
-                                continue
-                        _, fit_new = evaluate_hawk(new_pos, problem)
-                        fitnesses[i] = fit_new
-                        population[i] = new_pos
-                        update_archive(archive_positions, archive_fitnesses,
-                                       new_pos, fit_new, archive_size)
-                        continue
-
-            _, fit_new = evaluate_hawk(new_pos, problem)
-            if dominates(fit_new, fitnesses[i]) or (not dominates(fitnesses[i], fit_new)):
-                population[i] = new_pos
-                fitnesses[i] = fit_new
-
-            update_archive(archive_positions, archive_fitnesses,
-                           new_pos, fit_new, archive_size)
+            _step_hawk(
+                i, population, fitnesses,
+                archive_positions, archive_fitnesses,
+                x_mean, t, max_iter, pop_size, archive_size,
+                problem, rng)
 
         hv = compute_hypervolume(archive_fitnesses)
         hv_history.append(hv)
@@ -287,13 +482,11 @@ def compute_hypervolume(
     fitnesses: list[tuple[float, float]],
     ref_point: tuple[float, float] | None = None,
 ) -> float:
-    """Compute 2D hypervolume indicator.
-
-    Uses a simple sweep-line algorithm for 2 objectives.
+    """Compute 2D hypervolume indicator using sweep-line.
 
     Args:
         fitnesses: List of (f1, f2) non-dominated points.
-        ref_point: Reference point. If None, uses (max_f1*1.1, max_f2*1.1).
+        ref_point: Reference point. Defaults to HV_REF_POINT (fixed).
 
     Returns:
         Hypervolume value.
@@ -302,9 +495,7 @@ def compute_hypervolume(
         return 0.0
 
     if ref_point is None:
-        max_f1 = max(f[0] for f in fitnesses)
-        max_f2 = max(f[1] for f in fitnesses)
-        ref_point = (max_f1 * 1.1 + 0.1, max_f2 * 1.1 + 0.1)
+        ref_point = HV_REF_POINT
 
     sorted_pts = sorted(fitnesses, key=lambda p: p[0])
 
@@ -313,9 +504,9 @@ def compute_hypervolume(
 
     for f1, f2 in sorted_pts:
         if f1 < ref_point[0] and f2 < ref_point[1]:
-            width = ref_point[0] - f1
             height = prev_f2 - f2
             if height > 0:
+                width = ref_point[0] - f1
                 hv += width * height
                 prev_f2 = f2
 

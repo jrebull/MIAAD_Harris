@@ -167,7 +167,7 @@ def op5_soft_siege_levy(
     x_rabbit: NDArray[np.float64],
     energy: float,
     rng: np.random.Generator,
-) -> NDArray[np.float64]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """Operator 5: Soft siege with Lévy (r < 0.5, |E| >= 0.5).
 
     Y = X_rabbit - E * |J * X_rabbit - X_i|
@@ -199,7 +199,7 @@ def op6_hard_siege_levy(
     energy: float,
     x_mean: NDArray[np.float64],
     rng: np.random.Generator,
-) -> NDArray[np.float64]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """Operator 6: Hard siege with Lévy (r < 0.5, |E| < 0.5).
 
     Y = X_rabbit - E * |J * X_rabbit - X_mean|
