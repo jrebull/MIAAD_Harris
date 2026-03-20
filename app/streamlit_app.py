@@ -429,7 +429,7 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
             if (!start) start = ts;
             const p = Math.min((ts - start) / dur, 1);
             const eased = 1 - Math.pow(1 - p, 3);
-            el.textContent = Math.floor(eased * end).toLocaleString('de-DE');
+            el.textContent = Math.floor(eased * end).toLocaleString('en-US');
             if (p < 1) requestAnimationFrame(step);
         }}
         requestAnimationFrame(step);
