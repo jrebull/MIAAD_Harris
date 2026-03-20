@@ -31,14 +31,19 @@ UB: float = 1.0                     # Upper bound of continuous space
 BETA_LEVY: float = 1.5              # Lévy flight parameter
 
 # --- Derived constants ---
-NUM_COUNTRIES: int = 10
+NUM_COUNTRIES: int = 21
 NUM_CATEGORIES: int = 5
-NUM_GROUPS: int = NUM_COUNTRIES * NUM_CATEGORIES  # G = 50
+NUM_GROUPS: int = NUM_COUNTRIES * NUM_CATEGORIES  # G = 105
 
 # --- Country list (ordered) ---
 COUNTRIES: list[str] = [
-    "India", "China", "Filipinas", "Mexico", "Corea del Sur",
-    "Brasil", "Canada", "Reino Unido", "Nigeria", "Resto del Mundo",
+    "India", "China", "Filipinas", "Mexico",
+    "Afganistan", "Irak",
+    "Corea del Sur", "Pakistan", "Iran", "Taiwan",
+    "Brasil", "Canada", "Reino Unido", "Nigeria",
+    "Japon", "Bangladesh", "Colombia", "Alemania",
+    "Vietnam", "Etiopia",
+    "Resto del Mundo",
 ]
 
 CATEGORIES: list[str] = ["EB-1", "EB-2", "EB-3", "EB-4", "EB-5"]

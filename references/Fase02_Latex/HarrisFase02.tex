@@ -8,6 +8,7 @@
 \usepackage{mathpazo}          % Palatino para texto y matemáticas
 \usepackage{textcomp}
 \usepackage{microtype}
+\usepackage{adjustbox}
 
 % --- 2. GEOMETRÍA ---
 \usepackage[margin=2.5cm, headheight=14pt]{geometry}
@@ -38,7 +39,7 @@
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\small\textsc{Optimización Inteligente --- Fase 2}}
-\fancyhead[R]{\small\textsc{MIAAD \textcolor{uacjgray}{\textbullet} UACJ}}
+\fancyhead[R]{\small\textsc{MIAAD} \textcolor{uacjgray}{$\bullet$} \textsc{UACJ}}
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
@@ -329,7 +330,7 @@
 
 Durante las presentaciones de la Fase 1, el profesor Porras Alaniz formuló observaciones transversales a todos los equipos que revelan los puntos críticos para la Fase 2. Esta sección responde \textbf{directamente} cada hallazgo antes de desarrollar el modelo, estableciendo que el documento completo se construye como respuesta a estas preguntas.
 
-\subsection{Hallazgo 1: <<\,¿Cómo es la codificación de la solución?\,>>}
+\subsection{\texorpdfstring{Hallazgo 1: <<\,¿Cómo es la codificación de la solución?\,>>}{Hallazgo 1: ¿Cómo es la codificación de la solución?}}
 
 \begin{answerbox}
 \textbf{Respuesta:} Cada solución candidata (halcón) es un \textbf{vector de $G$ números reales}, donde $G$ es el número de grupos país-categoría. Mediante la regla SPV (\textit{Smallest Position Value}), este vector se convierte en una \textbf{permutación} que define el orden de prioridad para asignar visas. Un \textbf{decodificador greedy} procesa los grupos en ese orden y asigna visas respetando todas las restricciones, garantizando que toda solución decodificada sea factible.
@@ -337,7 +338,7 @@ Durante las presentaciones de la Fase 1, el profesor Porras Alaniz formuló obse
 Ver Sección~\ref{sec:codificacion} para el detalle completo y un ejemplo numérico.
 \end{answerbox}
 
-\subsection{Hallazgo 2: <<\,¿Qué le entregas al usuario?\,>>}
+\subsection{\texorpdfstring{Hallazgo 2: <<\,¿Qué le entregas al usuario?\,>>}{Hallazgo 2: ¿Qué le entregas al usuario?}}
 
 \begin{answerbox}
 \textbf{Respuesta:} Al usuario (tomador de decisiones del Departamento de Estado) se le entrega una \textbf{tabla de asignación de visas}: una matriz $\mathbf{A}[c][j]$ que indica cuántas visas se asignan a cada combinación país $c$ -- categoría $j$ en el año fiscal. Adicionalmente, se presenta un \textbf{frente de Pareto} con múltiples asignaciones no dominadas que representan diferentes compromisos entre carga de espera no atendida ($f_1$) y equidad entre países ($f_2$), permitiendo seleccionar el escenario preferido.
@@ -345,7 +346,7 @@ Ver Sección~\ref{sec:codificacion} para el detalle completo y un ejemplo numér
 Ver Sección~\ref{sec:entregable} para el ejemplo concreto del entregable.
 \end{answerbox}
 
-\subsection{Hallazgo 3: <<\,El algoritmo modifica valores de objetivos, no genera una planificación\,>>}
+\subsection{\texorpdfstring{Hallazgo 3: <<\,El algoritmo modifica valores de objetivos, no genera una planificación\,>>}{Hallazgo 3: El algoritmo modifica valores de objetivos, no genera una planificación}}
 
 \begin{answerbox}
 \textbf{Respuesta:} HHO opera sobre vectores continuos (posiciones de halcones), pero \textbf{nunca modifica directamente} los valores de $f_1$ o $f_2$. Los operadores de HHO mueven las posiciones de los halcones en $\mathbb{R}^G$; la regla SPV convierte cada posición en una permutación; el decodificador greedy traduce la permutación en una asignación concreta de visas; y \textbf{solo entonces} se calculan los dos objetivos sobre esa asignación. La cadena es: vector continuo $\rightarrow$ permutación $\rightarrow$ asignación $\rightarrow$ evaluación de fitness.
@@ -353,7 +354,7 @@ Ver Sección~\ref{sec:entregable} para el ejemplo concreto del entregable.
 Ver Sección~\ref{sec:integracion} para el flujo completo.
 \end{answerbox}
 
-\subsection{Hallazgo 4: <<\,¿Cómo estimas el tiempo de espera a priori?\,>>}
+\subsection{\texorpdfstring{Hallazgo 4: <<\,¿Cómo estimas el tiempo de espera a priori?\,>>}{Hallazgo 4: ¿Cómo estimas el tiempo de espera a priori?}}
 
 \begin{answerbox}
 \textbf{Respuesta:} El tiempo de espera \textbf{no se estima a priori}: se \textbf{calcula a posteriori} a partir de la asignación generada por el decodificador. Para cada grupo $g$ al que se le asignan $x_g$ visas en el año fiscal $t$, el tiempo de espera es la diferencia entre $t$ y la fecha de prioridad $d_g$ del grupo. Es un dato \textbf{derivado} de la asignación, no un \textit{input} del modelo.
@@ -361,7 +362,7 @@ Ver Sección~\ref{sec:integracion} para el flujo completo.
 Ver Ecuación~\ref{eq:obj1_fase2} en la Sección~\ref{sec:objetivos}.
 \end{answerbox}
 
-\subsection{Hallazgo 5: <<\,Confusión entre operadores de la metaheurística y modelo del problema\,>>}
+\subsection{\texorpdfstring{Hallazgo 5: <<\,Confusión entre operadores de la metaheurística y modelo del problema\,>>}{Hallazgo 5: Confusión entre operadores de la metaheurística y modelo del problema}}
 
 \begin{answerbox}
 \textbf{Respuesta:} Este documento se enfoca \textbf{exclusivamente} en el modelo del problema: función objetivo, variables, restricciones, codificación y evaluación de fitness. Los operadores de HHO (Operadores 1--6) fueron descritos en la Fase 1 y \textbf{no se repiten aquí}. La Sección~\ref{sec:integracion} vincula ambos mundos de manera breve y precisa, sin confundir el modelo del problema con los operadores de búsqueda.
@@ -396,19 +397,20 @@ Para hacer el problema computacionalmente tractable sin perder su esencia, se mo
 \caption{Simplificaciones del modelo respecto al sistema real.}
 \label{tab:simplificaciones}
 \renewcommand{\arraystretch}{1.3}
-\begin{tabular}{p{5cm}p{5cm}p{3cm}}
+\adjustbox{max width=\linewidth}{%
+\begin{tabular}{lll}
 \toprule
 \rowcolor{tablehead}
 \textcolor{white}{\textbf{Sistema real}} & \textcolor{white}{\textbf{Modelo}} & \textcolor{white}{\textbf{Justificación}} \\
 \midrule
 $\sim$200 países de carga & $C = 10$ países representativos & Captura la disparidad real \\
 \rowcolor{gray!8}
-$\sim$1,8M solicitantes individuales & $G$ grupos (cohorte país-categoría) & Reduce dimensionalidad \\
+$\sim$1,8M solicitantes & $G$ grupos (cohorte país-categoría) & Reduce dimensionalidad \\
 Años fiscales múltiples & 1 año fiscal ($t = 1$) & Claridad del modelo \\
 \rowcolor{gray!8}
 Fechas de prioridad individuales & Fecha promedio por grupo & Agregación coherente \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 Los 10 países seleccionados capturan los cuatro comportamientos fundamentales del sistema: sobredemanda extrema (India), sobredemanda moderada (China), demanda equilibrada (Filipinas, México, Corea del Sur) y subdemanda (Brasil, Canadá, Reino Unido, Nigeria, Resto del Mundo agrupado).
@@ -452,6 +454,7 @@ Cada grupo $g \in \mathcal{G}$ está univocamente asociado a un país $c(g) \in 
 \caption{Parámetros del modelo.}
 \label{tab:parametros}
 \renewcommand{\arraystretch}{1.4}
+\adjustbox{max width=\linewidth}{%
 \begin{tabular}{clp{6cm}l}
 \toprule
 \rowcolor{tablehead}
@@ -470,7 +473,7 @@ $w_g$ & Tiempo de espera & $w_g = t_{\text{actual}} - d_g$ (años de espera del 
 \rowcolor{gray!8}
 $t_{\text{actual}}$ & Año fiscal actual & Año en que se realiza la asignación & 2026 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \begin{table}[H]
@@ -649,22 +652,23 @@ Por tanto, A y B son \textbf{mutuamente no dominadas}: $A \nsucc B$ y $B \nsucc 
 \caption{Sistema completo de restricciones.}
 \label{tab:restricciones_f2}
 \renewcommand{\arraystretch}{1.8}
-\begin{tabular}{clp{5.5cm}c}
+\adjustbox{max width=\linewidth}{%
+\begin{tabular}{clp{4.8cm}c}
 \toprule
 \rowcolor{tablehead}
 \textcolor{white}{\textbf{ID}} & \textcolor{white}{\textbf{Expresión}} & \textcolor{white}{\textbf{Interpretación}} & \textcolor{white}{\textbf{Tipo}} \\
 \midrule
 R1 & $\displaystyle\sum_{g \in \mathcal{G}} x_g \leq V$ & No se pueden emitir más de 140.000 visas EB en el año fiscal. & Capacidad \\
 \rowcolor{gray!8}
-R2 & $\displaystyle\sum_{\substack{g:\\ c(g)=c}} x_g \leq P_c \;\;\; \forall c \in \mathcal{C}$ & Ningún país puede recibir más del 7\% del total (25.620 visas). & Equidad legal \\
-R3 & $\displaystyle\sum_{\substack{g:\\ j(g)=j}} x_g \leq K_j^{\text{eff}} \;\;\; \forall j \in \mathcal{J}$ & Cada categoría EB tiene un tope (ajustado por \textit{spillover}). & Categoría \\
+R2 & $\displaystyle\sum_{\substack{g:\\ c(g)=c}} x_g \leq P_c \;\; \forall c \in \mathcal{C}$ & Ningún país recibe más del 7\,\% del total (25.620 visas). & Equidad legal \\
+R3 & $\displaystyle\sum_{\substack{g:\\ j(g)=j}} x_g \leq K_j^{\text{eff}} \;\; \forall j \in \mathcal{J}$ & Cada categoría EB tiene un tope (ajustado por \textit{spillover}). & Categoría \\
 \rowcolor{gray!8}
-R4 & $0 \leq x_g \leq n_g \;\;\; \forall g \in \mathcal{G}$ & No se pueden asignar más visas de las que el grupo tiene solicitantes. & Demanda \\
-R5 & $x_g \in \mathbb{Z}^{+}_0 \;\;\; \forall g \in \mathcal{G}$ & Las visas son indivisibles: valores enteros no negativos. & Integralidad \\
+R4 & $0 \leq x_g \leq n_g \;\; \forall g \in \mathcal{G}$ & No se asignan más visas de las que el grupo tiene solicitantes. & Demanda \\
+R5 & $x_g \in \mathbb{Z}^{+}_0 \;\; \forall g \in \mathcal{G}$ & Las visas son indivisibles: valores enteros no negativos. & Integralidad \\
 \rowcolor{gray!8}
-R6 & FIFO por $(c, j)$ & Dentro de un mismo país-categoría, se procesa primero al grupo con fecha de prioridad más antigua. & Precedencia \\
+R6 & FIFO por $(c, j)$ & Dentro de un mismo país-categoría, se procesa primero la fecha de prioridad más antigua. & Precedencia \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \begin{yellowbox}
@@ -732,7 +736,7 @@ La solución se construye en \textbf{tres capas}:
 \end{tabular}
 \end{table}
 
-\subsubsection{Capa 1 $\rightarrow$ Capa 2: Regla SPV (\textit{Smallest Position Value})}
+\subsubsection{\texorpdfstring{Capa 1 $\rightarrow$ Capa 2: Regla SPV (\textit{Smallest Position Value})}{Capa 1 → Capa 2: Regla SPV (Smallest Position Value)}}
 
 Dado un vector $\mathbf{H} \in \mathbb{R}^G$, se genera la permutación $\boldsymbol{\pi}$ ordenando los índices por valor ascendente. Esta técnica, conocida como \textit{random keys}, fue introducida por \textcite{bean1994} para representar soluciones combinatorias en espacios continuos:
 
@@ -745,14 +749,16 @@ Dado un vector $\mathbf{H} \in \mathbb{R}^G$, se genera la permutación $\boldsy
 En caso de empate ($h_i = h_j$), se desempata por índice menor primero (convención estable). En la práctica, la probabilidad de empate exacto en $\mathbb{R}$ es cero.
 \end{formulabox}
 
-\subsubsection{Capa 2 $\rightarrow$ Capa 3: Decodificador Greedy}
+\subsubsection{\texorpdfstring{Capa 2 $\rightarrow$ Capa 3: Decodificador Greedy}{Capa 2 → Capa 3: Decodificador Greedy}}
 
 El decodificador procesa los grupos en el orden dado por $\boldsymbol{\pi}$ y asigna a cada grupo el máximo número de visas posible sin violar ninguna restricción:
 
 \begin{formulabox}
 Para cada $k = 1, 2, \ldots, G$, sea $g = \pi_k$:
 \begin{equation}
+\adjustbox{max width=\linewidth}{$\displaystyle
 x_g = \min\!\Big(\underbrace{n_g}_{\text{R4: demanda}},\;\; \underbrace{V_{\text{restante}}}_{\text{R1: tope anual}},\;\; \underbrace{P_{c(g)} - \textstyle\sum_{\substack{g':\, c(g')=c(g)\\ g' \text{ ya asignado}}} x_{g'}}_{\text{R2: tope país}},\;\; \underbrace{K_{j(g)}^{\text{eff}} - \textstyle\sum_{\substack{g':\, j(g')=j(g)\\ g' \text{ ya asignado}}} x_{g'}}_{\text{R3: tope categoría}}\Big)
+$}
 \label{eq:decoder}
 \end{equation}
 \end{formulabox}
@@ -818,6 +824,7 @@ Esto significa: procesar primero India-EB3, luego China-EB3, luego Canadá-EB3, 
 \textbf{Capa 3: Decodificación greedy.}
 
 \begin{examplebox}
+\adjustbox{max width=\linewidth}{%
 \begin{tabular}{cllcccc}
 \toprule
 \rowcolor{tablehead}
@@ -828,12 +835,12 @@ Esto significa: procesar primero India-EB3, luego China-EB3, luego Canadá-EB3, 
 2 & $g=4$ & China-EB3 & 15 & 15 & 55 & Demanda (R4) \\
 3 & $g=6$ & Canadá-EB3 & 5 & 5 & 50 & R3 y R4 (empate a 5) \\
 \rowcolor{gray!8}
-4 & $g=1$ & India-EB2 & 40 & 20 & 30 & Tope país India: $50-30=20$ (R2) \\
+4 & $g=1$ & India-EB2 & 40 & 20 & 30 & Tope país: $50\!-\!30\!=\!20$ (R2) \\
 5 & $g=5$ & Canadá-EB2 & 10 & 10 & 20 & Demanda (R4) \\
 \rowcolor{gray!8}
 6 & $g=3$ & China-EB2 & 20 & 20 & 0 & R1, R3 y R4 (empate a 20) \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 
 \vspace{0.5em}
 \textbf{Resultado:} $\mathbf{x} = (20, 30, 20, 15, 10, 5)$. Total: 100 visas asignadas.
@@ -843,11 +850,19 @@ Esto significa: procesar primero India-EB3, luego China-EB3, luego Canadá-EB3, 
 
 \textbf{Cálculo de $f_1$ (carga no atendida):} Con $N_{\text{total}} = 40+30+20+15+10+5 = 120$:
 
-$$f_1 = \frac{(40\!-\!20) \times 13 + (30\!-\!30) \times 16 + (20\!-\!20) \times 7 + (15\!-\!15) \times 6 + (10\!-\!10) \times 1 + (5\!-\!5) \times 2}{120} = \frac{260}{120} = 2{,}17 \text{ años}$$
+\begin{align*}
+f_1 &= \frac{(40\!-\!20){\cdot}13 + (30\!-\!30){\cdot}16 + (20\!-\!20){\cdot}7 + (15\!-\!15){\cdot}6 + (10\!-\!10){\cdot}1 + (5\!-\!5){\cdot}2}{120} \\
+    &= \frac{260}{120} = 2{,}17 \text{ años}
+\end{align*}
 
 Solo India-EB2 contribuye al numerador: 20 solicitantes no atendidos $\times$ 13 años de espera = 260 persona-años. Los demás grupos fueron completamente atendidos por el decodificador.
 
-\textbf{Cálculo de $f_2$ (disparidad):} $\bar{W}_{\text{India}} = \frac{20 \times 13 + 30 \times 16}{50} = 14{,}8$; \; $\bar{W}_{\text{China}} = \frac{20 \times 7 + 15 \times 6}{35} = 6{,}57$; \; $\bar{W}_{\text{Canadá}} = \frac{10 \times 1 + 5 \times 2}{15} = 1{,}33$.
+\textbf{Cálculo de $f_2$ (disparidad):}
+\begin{align*}
+\bar{W}_{\text{India}} &= \tfrac{20 \times 13 + 30 \times 16}{50} = 14{,}8 \\
+\bar{W}_{\text{China}} &= \tfrac{20 \times 7 + 15 \times 6}{35} = 6{,}57 \\
+\bar{W}_{\text{Canadá}} &= \tfrac{10 \times 1 + 5 \times 2}{15} = 1{,}33
+\end{align*}
 
 $$f_2 = \max(|14{,}8 - 6{,}57|,\; |14{,}8 - 1{,}33|,\; |6{,}57 - 1{,}33|) = |14{,}8 - 1{,}33| = 13{,}47 \text{ años}$$
 
@@ -1011,6 +1026,7 @@ Los parámetros del modelo se alimentan de fuentes oficiales del gobierno estado
 \caption{Fuentes de datos para los parámetros del modelo.}
 \label{tab:fuentes}
 \renewcommand{\arraystretch}{1.4}
+\adjustbox{max width=\linewidth}{%
 \begin{tabular}{lp{6cm}l}
 \toprule
 \rowcolor{tablehead}
@@ -1023,7 +1039,7 @@ $n_g$ (demanda) & USCIS Annual Report, colas por país-categoría & \parencite{u
 \rowcolor{gray!8}
 $K_j^{\text{eff}}$ & Cálculo propio basado en reglas INA de spillover & \parencite{fwd2024} \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \begin{table}[H]
@@ -1031,6 +1047,7 @@ $K_j^{\text{eff}}$ & Cálculo propio basado en reglas INA de spillover & \parenc
 \caption{Muestra de datos reales para los 10 países representativos (categoría EB-2).}
 \label{tab:datos_reales}
 \renewcommand{\arraystretch}{1.3}
+\adjustbox{max width=\linewidth}{%
 \begin{tabular}{lccc}
 \toprule
 \rowcolor{tablehead}
@@ -1052,7 +1069,7 @@ Nigeria & Corriente & $<$1 & $\sim$4.000 \\
 \rowcolor{gray!8}
 Resto del Mundo & Corriente & $<$1 & $\sim$300.000 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \begin{yellowbox}
@@ -1072,20 +1089,21 @@ Para confirmar que el modelo es internamente consistente, se presenta una verifi
 \caption{Verificación de coherencia del modelo contra la rúbrica.}
 \label{tab:coherencia}
 \renewcommand{\arraystretch}{1.5}
-\begin{tabular}{cp{4.5cm}p{6cm}c}
+\adjustbox{max width=\linewidth}{%
+\begin{tabular}{clll}
 \toprule
 \rowcolor{tablehead}
 \textcolor{white}{\textbf{\#}} & \textcolor{white}{\textbf{Criterio}} & \textcolor{white}{\textbf{Dónde se cubre}} & \textcolor{white}{\textbf{OK}} \\
 \midrule
-1 & Definición formal del problema & Secciones 3 (notación), 4 (objetivos), 5 (restricciones) & \textcolor{sectiongreen}{\ding{51}} \\
+1 & Definición formal del problema & Secciones 3, 4 y 5 & \textcolor{sectiongreen}{\ding{51}} \\
 \rowcolor{gray!8}
-2 & Formulación matemática & Ecuaciones \ref{eq:variable}--\ref{eq:dominancia}: objetivos, restricciones, spillover, SPV, decodificador y dominancia & \textcolor{sectiongreen}{\ding{51}} \\
-3 & Integración con metaheurística & Sección \ref{sec:integracion}: flujo SPV $\rightarrow$ decodificador $\rightarrow$ fitness & \textcolor{sectiongreen}{\ding{51}} \\
+2 & Formulación matemática & Ecs.\ \ref{eq:variable}--\ref{eq:dominancia}: objetivos, restricciones, SPV y decodificador & \textcolor{sectiongreen}{\ding{51}} \\
+3 & Integración con metaheurística & Sección \ref{sec:integracion}: SPV $\to$ decodificador $\to$ fitness & \textcolor{sectiongreen}{\ding{51}} \\
 \rowcolor{gray!8}
-4 & Coherencia del planteamiento & Esta sección: objetivos $\leftrightarrow$ fitness $\leftrightarrow$ entregable sin contradicciones & \textcolor{sectiongreen}{\ding{51}} \\
-5 & Dominio conceptual & Respuestas directas en Sección 1; ejemplo completo en Sección \ref{sec:ejemplo} & \textcolor{sectiongreen}{\ding{51}} \\
+4 & Coherencia del planteamiento & Objetivos $\leftrightarrow$ fitness $\leftrightarrow$ entregable sin contradicciones & \textcolor{sectiongreen}{\ding{51}} \\
+5 & Dominio conceptual & Sección 1 y ejemplo completo en Sección \ref{sec:ejemplo} & \textcolor{sectiongreen}{\ding{51}} \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \textbf{Prueba de consistencia:} Lo que $f_1$ minimiza (carga de espera no atendida) es exactamente lo que calcula el fitness del individuo decodificado: $(n_g - x_g) \cdot w_g$ sumado y normalizado. Lo que $f_2$ minimiza (disparidad) se calcula sobre la misma asignación $\mathbf{x}$. Lo que se le entrega al usuario (tabla de asignación) es el producto directo de la decodificación. La eliminación de $f_3$ se justifica matemáticamente (Sección 4.3). No hay desconexión entre modelo, fitness y entregable.

@@ -82,13 +82,14 @@ def test_feasibility_random_permutations():
 
 
 def test_feasibility_full_problem():
-    """Check 10,000 random permutations on the full 50-group problem."""
+    """Check 10,000 random permutations on the full problem."""
     from src.problem import VisaProblem
+    from src.config import NUM_GROUPS
     problem = VisaProblem()
     rng = np.random.default_rng(123)
 
     for _ in range(10_000):
-        hawk = rng.uniform(0, 1, size=50)
+        hawk = rng.uniform(0, 1, size=NUM_GROUPS)
         perm = spv(hawk)
         x = decode(perm, problem.groups, problem.total_visas,
                    problem.country_caps, problem.category_caps)

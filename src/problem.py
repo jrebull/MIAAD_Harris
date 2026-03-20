@@ -6,15 +6,34 @@ References:
     - f2: Maximum disparity between countries (minimize)
 """
 
+from typing import Protocol, runtime_checkable
+
 from src.config import T_ACTUAL, V
 from src.data import build_groups, compute_spillover, compute_country_caps
+
+
+@runtime_checkable
+class OptimizationProblem(Protocol):
+    """Protocol for bi-objective optimization problems (SOLID-D)."""
+
+    groups: list[dict]
+    total_visas: int
+    country_caps: dict[str, int]
+    category_caps: dict[str, int]
+    total_demand: int
+
+    def evaluate(self, x: dict[int, int]) -> tuple[float, float]: ...
+    def f1(self, x: dict[int, int]) -> float: ...
+    def f2(self, x: dict[int, int]) -> float: ...
 
 
 class VisaProblem:
     """Encapsulates the bi-objective visa allocation problem.
 
+    Implements the OptimizationProblem protocol.
+
     Attributes:
-        groups: List of G=50 group dicts.
+        groups: List of G group dicts.
         country_caps: Per-country visa caps.
         category_caps: Effective category caps after spillover.
         total_visas: V = 140,000.
@@ -22,11 +41,11 @@ class VisaProblem:
     """
 
     def __init__(self) -> None:
-        self.groups = build_groups()
-        self.category_caps = compute_spillover(self.groups)
-        self.country_caps = compute_country_caps(self.groups)
-        self.total_visas = V
-        self.total_demand = sum(g["n"] for g in self.groups)
+        self.groups: list[dict] = build_groups()
+        self.category_caps: dict[str, int] = compute_spillover(self.groups)
+        self.country_caps: dict[str, int] = compute_country_caps(self.groups)
+        self.total_visas: int = V
+        self.total_demand: int = sum(g["n"] for g in self.groups)
 
         self._groups_by_country: dict[str, list[dict]] = {}
         for g in self.groups:

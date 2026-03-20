@@ -31,12 +31,12 @@ def test_baseline_feasibility():
 
 
 def test_baseline_f1_f2_values():
-    """Baseline should produce f1≈8.0854, f2=13.0 (from experiments)."""
+    """Baseline should produce f1≈7.21, f2≈12.64 (21-country data)."""
     problem = VisaProblem()
     _, (f1, f2) = run_baseline(problem)
 
-    assert abs(f1 - 8.0854) < 0.01, f"Expected f1≈8.0854, got {f1:.4f}"
-    assert abs(f2 - 13.0) < 0.01, f"Expected f2≈13.0, got {f2:.4f}"
+    assert abs(f1 - 7.2138) < 0.01, f"Expected f1≈7.2138, got {f1:.4f}"
+    assert abs(f2 - 12.6377) < 0.01, f"Expected f2≈12.6377, got {f2:.4f}"
 
 
 def test_baseline_reproducible():

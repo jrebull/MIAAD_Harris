@@ -82,12 +82,13 @@ def test_f1_direction():
 
 
 def test_f1_direction_full_problem():
-    """Direction check on the full 50-group problem using production code."""
+    """Direction check on the full problem using production code."""
     from src.decoder import spv
+    from src.config import NUM_GROUPS
 
     problem = VisaProblem()
 
-    hawk_india_first = np.ones(50)
+    hawk_india_first = np.ones(NUM_GROUPS)
     for g in problem.groups:
         if g["country"] == "India":
             hawk_india_first[g["index"]] = 0.0
@@ -96,7 +97,7 @@ def test_f1_direction_full_problem():
                   problem.country_caps, problem.category_caps)
     f1_if = problem.f1(x_if)
 
-    hawk_india_last = np.zeros(50)
+    hawk_india_last = np.zeros(NUM_GROUPS)
     for g in problem.groups:
         if g["country"] == "India":
             hawk_india_last[g["index"]] = 1.0
@@ -114,8 +115,9 @@ def test_production_f1_matches_manual():
     """Verify VisaProblem.f1 against manual calculation on full problem."""
     problem = VisaProblem()
     from src.decoder import spv
+    from src.config import NUM_GROUPS
 
-    hawk = np.linspace(0, 1, 50)
+    hawk = np.linspace(0, 1, NUM_GROUPS)
     perm = spv(hawk)
     x = decode(perm, problem.groups, problem.total_visas,
                problem.country_caps, problem.category_caps)
@@ -131,8 +133,9 @@ def test_production_f2_matches_manual():
     """Verify VisaProblem.f2 against manual calculation on full problem."""
     problem = VisaProblem()
     from src.decoder import spv
+    from src.config import NUM_GROUPS
 
-    hawk = np.linspace(0, 1, 50)
+    hawk = np.linspace(0, 1, NUM_GROUPS)
     perm = spv(hawk)
     x = decode(perm, problem.groups, problem.total_visas,
                problem.country_caps, problem.category_caps)
