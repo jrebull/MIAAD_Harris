@@ -1,0 +1,39 @@
+{
+  "archive_sensitivity": {
+    "seed": 42,
+    "archive_100": {
+      "solutions": 100,
+      "hv": 1687422.2,
+      "saturated": true
+    },
+    "archive_200": {
+      "solutions": 200,
+      "hv": 1687846.5,
+      "saturated": true
+    },
+    "archive_500": {
+      "solutions": 211,
+      "hv": 1687802.32,
+      "saturated": false
+    },
+    "hv_delta_100_vs_200": "0.03%",
+    "hv_delta_100_vs_500": "0.02%",
+    "conclusion": "Natural front has ~211 solutions per run. Archive 100 captures same quality (HV delta < 0.03%). Crowding-distance pruning is effective."
+  },
+  "convergence_analysis": {
+    "final_hv": 1751430.44,
+    "iter_95pct": 9,
+    "iter_99pct": 134,
+    "hv_iter_300": 1744379.5,
+    "hv_gain_300_to_500": "0.40%",
+    "conclusion": "99% of final HV reached by iteration 134. Last 200 iterations contribute < 0.5%."
+  },
+  "f1_range_analysis": {
+    "f1_range": 0.3464,
+    "f2_range": 9.9356,
+    "f3_range": 17105,
+    "f1_normalized_width": 0.0346,
+    "f2_normalized_width": 0.6217,
+    "conclusion": "f1 is 28x narrower than f2 in relative terms. The greedy decoder structurally constrains f1 variability because visa demand >> supply forces most permutations to similar unserved-load outcomes."
+  }
+}

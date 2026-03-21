@@ -811,6 +811,76 @@ El enfoque MOHHO aplicado a la asignación de Green Cards constituye una contrib
     \item \textbf{30 corridas independientes con análisis estadístico:} Protocolo estándar para reportar resultados de metaheurísticas estocásticas.
 \end{itemize}
 
+\subsection{Análisis de sensibilidad}
+
+Se realizaron tres análisis de sensibilidad para evaluar la robustez de los parámetros del algoritmo y las características estructurales del problema.
+
+\subsubsection{Tamaño de archivo}
+
+Las 30 corridas estándar saturan el archivo en $|A| = 100$. Para verificar si esto limita la calidad del frente, se ejecutó la misma corrida (semilla 42) con tres configuraciones:
+
+\begin{table}[H]
+\centering
+\caption{Sensibilidad al tamaño de archivo (misma semilla, mismos parámetros).}
+\label{tab:archive_sens}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{lccc}
+\toprule
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Archivo}} & \textcolor{white}{\textbf{Soluciones}} & \textcolor{white}{\textbf{HV}} & \textcolor{white}{\textbf{$\Delta$HV vs 100}} \\
+\midrule
+$|A| = 100$ & 100 (saturado) & 1.687.422 & --- \\
+\rowcolor{gray!8}
+$|A| = 200$ & 200 (saturado) & 1.687.847 & +0{,}03\% \\
+$|A| = 500$ & 211 (natural) & 1.687.802 & +0{,}02\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{answerbox}
+\textbf{Hallazgo:} Con $|A| = 500$ (sin poda), el frente natural contiene $\sim$211 soluciones no dominadas por corrida. La diferencia de HV entre $|A| = 100$ y $|A| = 500$ es inferior al 0{,}03\%, lo que confirma que la poda por \textit{crowding distance} elimina soluciones redundantes sin pérdida de calidad. El parámetro $|A| = 100$ es adecuado para este problema.
+\end{answerbox}
+
+\subsubsection{Convergencia: iteraciones necesarias}
+
+Se analizó la curva de convergencia promedio (30 corridas) para determinar cuántas iteraciones son realmente necesarias:
+
+\begin{itemize}
+    \item \textbf{95\% del HV final:} alcanzado en la iteración 9.
+    \item \textbf{99\% del HV final:} alcanzado en la iteración 134.
+    \item \textbf{Ganancia iteraciones 300--500:} $+7.051$ unidades de HV ($+$0{,}40\%).
+\end{itemize}
+
+\begin{yellowbox}
+\textbf{Conclusión.} Las últimas 200 iteraciones (300--500) aportan menos del 0{,}5\% del HV total. El algoritmo converge efectivamente antes de la iteración 150. Las 500 iteraciones configuradas proporcionan un margen de seguridad amplio, pero un futuro usuario podría reducir a $T = 200$ sin pérdida significativa de calidad.
+\end{yellowbox}
+
+\subsubsection{Rigidez de $f_1$: efecto del decodificador greedy}
+
+El rango de $f_1$ en el frente combinado es notablemente estrecho comparado con los otros objetivos:
+
+\begin{table}[H]
+\centering
+\caption{Rangos de los tres objetivos en el frente de Pareto combinado (371 soluciones).}
+\label{tab:obj_ranges}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{lccc}
+\toprule
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Objetivo}} & \textcolor{white}{\textbf{Mínimo}} & \textcolor{white}{\textbf{Máximo}} & \textcolor{white}{\textbf{Rango}} \\
+\midrule
+$f_1$ (carga de espera) & 7,186 & 7,532 & 0,346 años \\
+\rowcolor{gray!8}
+$f_2$ (disparidad) & 2,064 & 12,000 & 9,936 años \\
+$f_3$ (desperdicio) & 0 & 17.105 & 17.105 visas \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{answerbox}
+\textbf{Interpretación.} La estrechez de $f_1$ (rango de 0{,}35 años, vs.\ 9{,}94 años para $f_2$) es una consecuencia \textbf{estructural} del problema, no una limitación del algoritmo. La demanda total ($>$900.000 peticiones) excede ampliamente las 140.000 visas, de modo que cualquier permutación procesada por el decodificador greedy deja un volumen de carga no atendida similar. La variabilidad de $f_1$ proviene exclusivamente de qué grupos reciben las últimas visas residuales. En contraste, $f_2$ y $f_3$ dependen de \textit{cómo} se distribuyen las visas entre países y categorías, lo que ofrece mayor espacio de diseño al algoritmo.
+\end{answerbox}
+
 \subsection{Implicaciones de política pública}
 
 Los resultados de este proyecto tienen relevancia directa para el debate sobre la reforma del sistema de inmigración basado en empleo en Estados Unidos:
