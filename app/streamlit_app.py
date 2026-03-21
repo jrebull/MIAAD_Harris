@@ -102,8 +102,8 @@ THEMES: dict[str, dict[str, str]] = {
         "card_bg": "rgba(0,0,0,0.03)", "card_border": "rgba(0,0,0,0.08)",
         "card_hover_shadow": "rgba(0,60,166,0.12)",
         "accent1": "#003CA6", "accent2": "#B8860B", "accent3": "#00895E",
-        "danger": "#D32F2F", "info_bg": "rgba(0,60,166,0.06)",
-        "tab_bg": "rgba(0,0,0,0.03)", "tab_text": "#5A6577",
+        "danger": "#D32F2F", "info_bg": "rgba(0,60,166,0.1)",
+        "tab_bg": "rgba(0,0,0,0.04)", "tab_text": "#2d3748",
         "tab_active": "#003CA6", "tab_active_text": "#ffffff",
         "grid": "rgba(0,0,0,0.06)", "zeroline": "rgba(0,0,0,0.1)",
         "table_head": "rgba(0,60,166,0.1)", "table_border": "rgba(0,0,0,0.06)",
@@ -111,9 +111,9 @@ THEMES: dict[str, dict[str, str]] = {
         "gloss_bg": "rgba(0,0,0,0.02)", "gloss_border": "rgba(0,0,0,0.06)",
         "tag_bg": "rgba(0,60,166,0.1)", "tag_text": "#003CA6",
         "scroll_track": "#F5F7FA", "scroll_thumb": "#003CA6",
-        "callout_bg": "rgba(211,47,47,0.06)",
+        "callout_bg": "rgba(211,47,47,0.08)",
         "plotly_font": "#1a1a2e", "plotly_bg": "rgba(0,0,0,0)",
-        "hero_grad_start": "#B8860B", "hero_grad_end": "#00895E",
+        "hero_grad_start": "#7a5600", "hero_grad_end": "#005e3a",
         "sidebar_metric_bg": "rgba(0,0,0,0.03)",
         "real_tag": "#00895E", "est_tag": "#B8860B", "calc_tag": "#003CA6",
     },
@@ -699,7 +699,8 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
 def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
                 sel_point: tuple, sel_label: str,
                 sel_used: int, total_visas: int,
-                best_f1_point: tuple, best_f2_point: tuple) -> None:
+                best_f1_point: tuple, best_f2_point: tuple,
+                data: dict = None) -> None:
     t = _get_theme()
 
     st.markdown('<div class="section-title">Frente de Pareto Interactivo</div>',
@@ -729,28 +730,51 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
 
     # Selected solution card
     sel_pct = sel_used * 100 // total_visas
+    # Pareto solution index (1-based)
+    sol_idx = None
+    for i, p in enumerate(sorted_p):
+        if abs(p[0] - sel_point[0]) < 1e-6 and abs(p[1] - sel_point[1]) < 1e-6:
+            sol_idx = i + 1
+            break
+    sol_txt = f"Solucion #{sol_idx} de {len(pareto)}" if sol_idx else "FIFO (baseline)"
+    # Gap vs FIFO
+    fifo_f1, fifo_f2 = baseline
+    if sel_point != baseline:
+        gap_f1 = ((sel_point[0] - fifo_f1) / fifo_f1) * 100
+        gap_f2 = ((sel_point[1] - fifo_f2) / fifo_f2) * 100
+        gap_txt = (f"vs FIFO: f\u2081 {gap_f1:+.1f}% | f\u2082 {gap_f2:+.1f}%")
+    else:
+        gap_txt = "Sistema actual sin optimizar"
     st.markdown(f"""
     <div class="metric-card" style="border-color:{t['accent2']}4D;margin-bottom:1rem;">
         <div style="display:flex;justify-content:center;align-items:center;gap:2.5rem;flex-wrap:wrap;">
-            <div>
+            <div style="text-align:center;">
                 <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
-                    Escenario activo: {sel_label}</div>
-                <div style="font-family:'JetBrains Mono';font-size:2rem;color:{t['accent2']};font-weight:700;">
-                    {_fmt(sel_used)} visas</div>
-                <div style="font-size:0.8rem;color:{t['text_subtle']};">
-                    de {_fmt(total_visas)} disponibles ({sel_pct}%)</div>
+                    Escenario: {sel_label}</div>
+                <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent2']};font-weight:700;">
+                    {_fmt(sel_used)}</div>
+                <div style="font-size:0.75rem;color:{t['text_subtle']};">
+                    de {_fmt(total_visas)} visas EB asignadas ({sel_pct}%)</div>
+                <div style="font-size:0.65rem;color:{t['text_muted']};margin-top:4px;">
+                    {sol_txt}</div>
             </div>
             <div style="text-align:center;">
                 <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">f\u2081 espera</div>
-                <div style="font-family:'JetBrains Mono';font-size:1.4rem;color:{t['accent1']};font-weight:700;">
+                <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent1']};font-weight:700;">
                     {_fmtd(sel_point[0])}</div>
+                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:160px;line-height:1.3;">
+                    carga de espera no atendida ponderada</div>
             </div>
             <div style="text-align:center;">
                 <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">f\u2082 disparidad</div>
-                <div style="font-family:'JetBrains Mono';font-size:1.4rem;color:{t['accent3']};font-weight:700;">
+                <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent3']};font-weight:700;">
                     {_fmtd(sel_point[1])}</div>
+                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:160px;line-height:1.3;">
+                    brecha max de espera entre pa\u00edses</div>
             </div>
         </div>
+        <div style="text-align:center;margin-top:8px;font-size:0.75rem;color:{t['accent3']};font-weight:600;">
+            {gap_txt}</div>
     </div>""", unsafe_allow_html=True)
 
     fig = go.Figure()
@@ -840,37 +864,59 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
     v_knee = pareto_visas.get(knee, total_visas)
     v_f2 = pareto_visas.get(best_f2_point, total_visas)
 
+    _card_style = (
+        "font-family:'JetBrains Mono';font-weight:700;font-size:1.1rem;"
+    )
+    _lbl_style = (
+        f"font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;"
+    )
+
+    hints = {
+        "Mejor Humanitario": (
+            "Minimiza la carga de espera global (f\u2081): prioriza asignar visas "
+            "a los grupos que llevan mas a\u00f1os esperando, aunque aumente la "
+            "diferencia entre paises."
+        ),
+        "Equilibrio (Knee Point)": (
+            "Punto de maxima curvatura del frente de Pareto: el mejor compromiso "
+            "entre reducir espera y reducir disparidad sin sacrificar "
+            "desproporcionadamente ninguno de los dos objetivos."
+        ),
+        "Mejor Equidad": (
+            "Minimiza la disparidad entre paises (f\u2082): busca que la espera "
+            "ponderada sea lo mas parecida posible entre todos los paises, "
+            "reduciendo la brecha entre los mas y menos favorecidos."
+        ),
+    }
+
     col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
-                Mejor Humanitario</div>
-            <div style="font-family:'JetBrains Mono';font-size:1.3rem;color:{t['accent1']};font-weight:700;">
-                {_fmtd(best_f1_point[0])} / {_fmtd(best_f1_point[1])} a\u00f1os</div>
-            <div style="font-size:0.8rem;color:{t['text']};margin-top:4px;">
-                <strong>{_fmt(v_f1)}</strong> visas ({v_f1 * 100 // total_visas}%)</div>
-        </div>""", unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card" style="border-color:{t['accent2']}4D;">
-            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
-                Equilibrio (Knee Point)</div>
-            <div style="font-family:'JetBrains Mono';font-size:1.3rem;color:{t['accent2']};font-weight:700;">
-                {_fmtd(knee[0])} / {_fmtd(knee[1])} a\u00f1os</div>
-            <div style="font-size:0.8rem;color:{t['text']};margin-top:4px;">
-                <strong>{_fmt(v_knee)}</strong> visas ({v_knee * 100 // total_visas}%)</div>
-        </div>""", unsafe_allow_html=True)
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
-                Mejor Equidad</div>
-            <div style="font-family:'JetBrains Mono';font-size:1.3rem;color:{t['accent3']};font-weight:700;">
-                {_fmtd(best_f2_point[0])} / {_fmtd(best_f2_point[1])} a\u00f1os</div>
-            <div style="font-size:0.8rem;color:{t['text']};margin-top:4px;">
-                <strong>{_fmt(v_f2)}</strong> visas ({v_f2 * 100 // total_visas}%)</div>
-        </div>""", unsafe_allow_html=True)
+    for col, title, color, pt, v_val, border in [
+        (col1, "Mejor Humanitario", t['accent1'], best_f1_point, v_f1, ""),
+        (col2, "Equilibrio (Knee Point)", t['accent2'], knee, v_knee,
+         f"border-color:{t['accent2']}4D;"),
+        (col3, "Mejor Equidad", t['accent3'], best_f2_point, v_f2, ""),
+    ]:
+        with col:
+            st.markdown(f"""
+            <div class="metric-card" style="{border}text-align:center;">
+                <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+                    {title}</div>
+                <div style="display:flex;justify-content:center;gap:1.2rem;margin:8px 0 4px;">
+                    <div>
+                        <div style="{_lbl_style}">f\u2081 espera</div>
+                        <div style="{_card_style}color:{color};">{_fmtd(pt[0])} a\u00f1os</div>
+                    </div>
+                    <div>
+                        <div style="{_lbl_style}">f\u2082 disparidad</div>
+                        <div style="{_card_style}color:{color};">{_fmtd(pt[1])} a\u00f1os</div>
+                    </div>
+                </div>
+                <div style="font-size:0.8rem;color:{t['text']};margin-top:4px;">
+                    <strong>{_fmt(v_val)}</strong> visas ({v_val * 100 // total_visas}%)</div>
+                <div style="font-size:0.7rem;color:{t['text_subtle']};margin-top:8px;
+                    font-style:italic;line-height:1.35;padding:0 4px;">
+                    {hints[title]}</div>
+            </div>""", unsafe_allow_html=True)
 
     # Visas por solucion chart
     st.markdown('<div class="section-title">Visas Otorgadas por Solucion del Frente</div>',
@@ -904,6 +950,109 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
         margin=dict(l=60, r=30, t=40, b=50),
     ))
     st.plotly_chart(fig_v, use_container_width=True, config={"displayModeBar": False})
+
+    # ── Tabla de las 88 soluciones Pareto ──
+    with st.expander("Ver las 88 soluciones del frente de Pareto"):
+        st.markdown(f"""
+        <div class="info-box">
+            <strong>¿Por que 88 soluciones?</strong> El algoritmo MOHHO explora miles de asignaciones
+            posibles. De todas ellas, solo 88 son <em>no dominadas</em>: ninguna otra solucion
+            es mejor en ambos objetivos a la vez. Forman el <em>frente de Pareto</em> — el conjunto
+            de mejores compromisos posibles entre minimizar la espera (f\u2081) y minimizar la
+            disparidad entre paises (f\u2082). Moverse a lo largo del frente implica siempre un
+            trade-off: mejorar un objetivo empeora el otro.
+        </div>""", unsafe_allow_html=True)
+
+        # Build table data
+        rows = []
+        for i, p in enumerate(sorted_p):
+            v = pareto_visas.get(p, total_visas)
+            gap_f1_pct = ((p[0] - fifo_f1) / fifo_f1) * 100
+            gap_f2_pct = ((p[1] - fifo_f2) / fifo_f2) * 100
+            # Tag special solutions
+            tag = ""
+            if abs(p[0] - best_f1_point[0]) < 1e-6 and abs(p[1] - best_f1_point[1]) < 1e-6:
+                tag = "Humanitario"
+            elif abs(p[0] - knee[0]) < 1e-6 and abs(p[1] - knee[1]) < 1e-6:
+                tag = "Equilibrio"
+            elif abs(p[0] - best_f2_point[0]) < 1e-6 and abs(p[1] - best_f2_point[1]) < 1e-6:
+                tag = "Equidad"
+            rows.append({
+                "#": i + 1,
+                "f\u2081 espera": round(p[0], 4),
+                "f\u2082 disparidad": round(p[1], 4),
+                "Visas": v,
+                "% visas": f"{v * 100 // total_visas}%",
+                "\u0394f\u2081 vs FIFO": f"{gap_f1_pct:+.1f}%",
+                "\u0394f\u2082 vs FIFO": f"{gap_f2_pct:+.1f}%",
+                "Escenario": tag,
+            })
+        df_pareto = pd.DataFrame(rows)
+        st.dataframe(df_pareto, use_container_width=True, height=400)
+
+    # ── Tiempo de espera por pais: 4 escenarios vs FIFO ──
+    if data is not None:
+        st.markdown('<div class="section-title">Tiempo de Espera Ponderado por Pais — 4 Escenarios</div>',
+                    unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="info-box">
+            W<sub>c</sub> = promedio ponderado de espera de las visas asignadas a cada pais.
+            Compara como cada escenario redistribuye la carga de espera frente al sistema FIFO actual.
+        </div>""", unsafe_allow_html=True)
+
+        countries = data["countries"]
+        wait_arr = np.array(data["wait_matrix"])  # shape (nc, nj)
+
+        def _wc_from_matrix(mat):
+            """Compute weighted avg wait W_c per country from allocation matrix."""
+            mat_arr = np.array(mat)
+            wc = {}
+            for i, c in enumerate(countries):
+                assigned = mat_arr[i].sum()
+                if assigned > 0:
+                    wc[c] = float((mat_arr[i] * wait_arr[i]).sum() / assigned)
+                else:
+                    wc[c] = float(wait_arr[i].max())
+            return wc
+
+        # Compute W_c for all 4 scenarios
+        scenarios_wc = [
+            ("FIFO", _wc_from_matrix(data["fifo_matrix"])),
+        ]
+        for label, point in [("Humanitario", best_f1_point),
+                             ("Equilibrio", knee),
+                             ("Equidad", best_f2_point)]:
+            mat, _, _ = compute_mohho_allocation(point[0], point[1])
+            scenarios_wc.append((label, _wc_from_matrix(mat)))
+
+        # Sort countries by FIFO wait (highest first)
+        fifo_wc = scenarios_wc[0][1]
+        sorted_countries = sorted(countries, key=lambda c: fifo_wc[c], reverse=True)
+        display_countries = [f"{_flag(c)} {c}" for c in sorted_countries]
+
+        scenario_colors = [t['danger'], t['accent1'], t['accent2'], t['accent3']]
+
+        fig_wc = go.Figure()
+        for idx, (name, wc) in enumerate(scenarios_wc):
+            vals = [round(wc[c], 2) for c in sorted_countries]
+            fig_wc.add_trace(go.Bar(
+                y=display_countries, x=vals, orientation='h',
+                name=name, marker_color=scenario_colors[idx], opacity=0.85,
+                hovertemplate=f'<b>%{{y}}</b><br>{name}: %{{x:.1f}} a\u00f1os<extra></extra>',
+            ))
+
+        fig_wc.update_layout(**_plotly_layout(
+            title=dict(text="W\u2099 — Espera ponderada por pais (a\u00f1os)",
+                       font=dict(size=14)),
+            barmode='group',
+            xaxis=dict(title="A\u00f1os de espera ponderada (W\u2099)", **_grid()),
+            yaxis=dict(autorange='reversed'),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                        bgcolor="rgba(0,0,0,0.3)", font=dict(size=10)),
+            height=max(600, len(countries) * 45),
+            margin=dict(l=160, r=30, t=60, b=50),
+        ))
+        st.plotly_chart(fig_wc, use_container_width=True, config={"displayModeBar": False})
 
 
 # ── Tab 3: Asignacion ────────────────────────────────────────
@@ -963,13 +1112,26 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
          f"FIFO \u2014 {_fmt(data['fifo_used'])} visas (f\u2082={_fmtd(baseline[1])}a)", _build_hover(fifo_arr)),
     ]:
         with col:
+            # Per-cell font color: dark on bright (high values), white on dark (low values)
+            mat_max = mat.max() if mat.max() > 0 else 1
+            cell_colors = [
+                ['#0a0a1a' if v / mat_max > 0.45 else '#ffffff' for v in row]
+                for row in mat
+            ]
             fig = go.Figure(go.Heatmap(
                 z=mat, x=cat_labels, y=countries,
                 colorscale='Viridis', showscale=True,
-                text=[[_fmt(int(v)) for v in row] for row in mat],
-                texttemplate="%{text}", textfont=dict(size=8, color='white'),
                 hovertext=hover, hoverinfo='text',
             ))
+            # Per-cell annotations with adaptive text color
+            for i, country in enumerate(countries):
+                for j in range(len(categories)):
+                    fig.add_annotation(
+                        x=cat_labels[j], y=country,
+                        text=_fmt(int(mat[i][j])),
+                        showarrow=False,
+                        font=dict(size=8, color=cell_colors[i][j]),
+                    )
             fig.update_layout(**_plotly_layout(
                 title=dict(text=title, font=dict(size=13, color=t['accent2'])),
                 height=650, margin=dict(l=110, r=20, t=50, b=80),
@@ -1755,6 +1917,13 @@ def main() -> None:
         sel_point = scenario_map[scenario]
         is_fifo = (scenario == scenario_labels[3])
 
+        # Short labels for display
+        _short_labels = {
+            scenario_labels[0]: "Humanitario",
+            scenario_labels[1]: "Equilibrio (Knee)",
+            scenario_labels[2]: "Equidad",
+            scenario_labels[3]: "FIFO",
+        }
         if is_fifo:
             sel_matrix = data["fifo_matrix"]
             sel_fit = data["fifo_fit"]
@@ -1763,7 +1932,7 @@ def main() -> None:
         else:
             sel_matrix, sel_fit, sel_used = compute_mohho_allocation(
                 sel_point[0], sel_point[1])
-            sel_label = "MOHHO"
+            sel_label = _short_labels[scenario]
 
         st.divider()
         st.markdown("### Escenario activo")
@@ -1851,7 +2020,7 @@ def main() -> None:
         _tab_problem(data, summary, pareto, baseline)
     with tab2:
         _tab_pareto(pareto, baseline, knee, sel_point, sel_label,
-                    sel_used, data["total_visas"], best_f1, best_f2)
+                    sel_used, data["total_visas"], best_f1, best_f2, data)
     with tab3:
         _tab_allocation(data, sel_matrix, sel_fit, sel_used, sel_label, baseline)
     with tab4:
