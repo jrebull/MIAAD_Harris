@@ -1658,36 +1658,38 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
     diff_arr = mohho_arr - fifo_arr
     vabs = max(abs(int(diff_arr.min())), abs(int(diff_arr.max()))) or 1
 
-    # Diverging colorscale: muted red → neutral → muted teal (theme-friendly)
+    # Diverging colorscale: saturated red → dark neutral → saturated blue-green
+    # Uses opaque colors that work on any background (dark or light themes)
     diff_colorscale = [
-        [0.0, "#b45555"],
-        [0.3, "#c98a8a"],
-        [0.45, "#d4b5b5"],
-        [0.5, t['card_bg']],
-        [0.55, "#a8c8b8"],
-        [0.7, "#7aab94"],
-        [1.0, "#4a8f6e"],
+        [0.0, "#c0392b"],
+        [0.2, "#d4644a"],
+        [0.4, "#8b7355"],
+        [0.5, "#555555"],
+        [0.6, "#4a7a6a"],
+        [0.8, "#2a9d8f"],
+        [1.0, "#1a7a6d"],
     ]
-    # Adaptive text color: contrast on saturated cells, muted on neutral
+    # Text color: always white on saturated ends, light gray on neutral middle
     diff_max = max(abs(diff_arr.min()), abs(diff_arr.max())) or 1
     diff_cell_colors = [
-        [t['text'] if abs(v) / diff_max > 0.15 else t['text_muted']
+        ["#ffffff" if abs(v) / diff_max > 0.2 else "#cccccc"
          for v in row]
         for row in diff_arr
     ]
     fig_diff = go.Figure(go.Heatmap(
         z=diff_arr, x=cat_labels, y=countries,
         colorscale=diff_colorscale, zmid=0, zmin=-vabs, zmax=vabs,
-        colorbar=dict(title="\u0394 Visas"),
+        colorbar=dict(title="\u0394 Visas", tickfont=dict(color=t['text'])),
     ))
-    # Per-cell annotations with adaptive color
+    # Per-cell annotations — bold white text, always legible
     for i, country in enumerate(countries):
         for j in range(len(categories)):
             v = int(diff_arr[i][j])
-            txt = f"+{_fmt(v)}" if v > 0 else ("=" if v == 0 else _fmt(v))
+            txt = f"+{_fmt(v)}" if v > 0 else ("0" if v == 0 else _fmt(v))
             fig_diff.add_annotation(
                 x=cat_labels[j], y=country, text=txt, showarrow=False,
-                font=dict(size=8, color=diff_cell_colors[i][j]),
+                font=dict(size=9, color=diff_cell_colors[i][j],
+                          family="JetBrains Mono"),
             )
     fig_diff.update_layout(**_plotly_layout(
         height=600, margin=dict(l=110, r=60, t=30, b=80),
