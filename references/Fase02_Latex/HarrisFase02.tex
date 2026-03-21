@@ -583,7 +583,7 @@ El objetivo minimax de equidad es:
 \textbf{Interpretación:} $f_3$ cuenta las visas no asignadas. Minimizar $f_3$ maximiza la utilización del presupuesto de visas.
 
 \begin{yellowbox}
-\textbf{Variabilidad empírica de $f_3$.} A diferencia de lo anticipado en el modelo simplificado de 10 países (donde $f_3 = 0$ trivialmente por exceso de demanda global), el modelo completo de 21 países con datos USCIS reales produce $f_3 \in [0,\; 17.540]$. El sistema FIFO actual desperdicia 17.540 visas. La causa: la interacción entre topes por país (R2: $P_c = 25.620$) y topes por categoría (R3: $K_j^{\text{eff}}$) crea cuellos de botella --- categorías con capacidad disponible pero países ya saturados que no pueden recibirla. Verificación empírica: 10.000 permutaciones aleatorias producen $>$3.800 valores únicos de $f_3$.
+\textbf{Variabilidad empírica de $f_3$.} A diferencia de lo anticipado en el modelo simplificado de 10 países (donde $f_3 = 0$ trivialmente por exceso de demanda global), el modelo completo de 21 países con datos USCIS reales produce $f_3 \in [0,\; 41.510]$. El sistema FIFO actual desperdicia 17.540 visas, y el frente de Pareto encontrado tiene $f_3 \in [0,\; 17.105]$. La causa: la interacción entre topes por país (R2: $P_c = 25.620$) y topes por categoría (R3: $K_j^{\text{eff}}$) crea cuellos de botella --- categorías con capacidad disponible pero países ya saturados que no pueden recibirla. Verificación empírica: 10.000 permutaciones aleatorias producen $>$3.800 valores únicos de $f_3$.
 \end{yellowbox}
 
 \subsection{Resumen de objetivos}
@@ -1114,7 +1114,7 @@ Para confirmar que el modelo es internamente consistente, se presenta una verifi
 \end{tabular}}
 \end{table}
 
-\textbf{Prueba de consistencia:} Lo que $f_1$ minimiza (carga de espera no atendida) es exactamente lo que calcula el fitness del individuo decodificado: $(n_g - x_g) \cdot w_g$ sumado y normalizado. Lo que $f_2$ minimiza (disparidad) se calcula sobre la misma asignación $\mathbf{x}$. Lo que se le entrega al usuario (tabla de asignación) es el producto directo de la decodificación. El tercer objetivo $f_3$ (visas desperdiciadas) se restauró tras verificar empíricamente que varía de 0 a 17.540 con los datos de 21 países (Sección 4.3). No hay desconexión entre modelo, fitness y entregable.
+\textbf{Prueba de consistencia:} Lo que $f_1$ minimiza (carga de espera no atendida) es exactamente lo que calcula el fitness del individuo decodificado: $(n_g - x_g) \cdot w_g$ sumado y normalizado. Lo que $f_2$ minimiza (disparidad) se calcula sobre la misma asignación $\mathbf{x}$. Lo que se le entrega al usuario (tabla de asignación) es el producto directo de la decodificación. El tercer objetivo $f_3$ (visas desperdiciadas) se restauró tras verificar empíricamente que varía de 0 a 41.510 con los datos de 21 países (Sección 4.3). El FIFO desperdicia 17.540 y el frente de Pareto alcanza hasta 17.105. No hay desconexión entre modelo, fitness y entregable.
 
 
 % ==========================================================
