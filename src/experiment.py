@@ -224,7 +224,7 @@ def _save_convergence_csv(all_hv: list[list[float]]) -> None:
     max_len = max(len(h) for h in all_hv)
     padded = np.array([h + [h[-1]] * (max_len - len(h)) for h in all_hv])
     mean_hv = padded.mean(axis=0)
-    std_hv = padded.std(axis=0)
+    std_hv = padded.std(axis=0, ddof=1)
 
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
@@ -363,7 +363,7 @@ def _plot_convergence(all_hv: list[list[float]]) -> None:
     max_len = max(len(h) for h in all_hv)
     padded = np.array([h + [h[-1]] * (max_len - len(h)) for h in all_hv])
     mean_hv = padded.mean(axis=0)
-    std_hv = padded.std(axis=0)
+    std_hv = padded.std(axis=0, ddof=1)
     iters = np.arange(max_len)
 
     fig, ax = plt.subplots(figsize=(8, 5))

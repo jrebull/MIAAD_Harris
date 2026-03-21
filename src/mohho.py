@@ -189,15 +189,21 @@ def update_archive(
 
 
 def rng_fallback_idx(n: int) -> int:
-    """Return the middle index as fallback when all CDs are infinite.
+    """Return a random non-extreme index when all CDs are infinite.
+
+    Avoids removing extreme solutions (first/last) to preserve
+    Pareto front boundaries.
 
     Args:
         n: Number of archive members.
 
     Returns:
-        Middle index.
+        Random index in [1, n-2], or 0 if n <= 2.
     """
-    return n // 2
+    import random
+    if n <= 2:
+        return 0
+    return random.randint(1, n - 2)
 
 
 def evaluate_hawk(
@@ -225,12 +231,18 @@ def _greedy_select_levy(
     y: NDArray[np.float64],
     z: NDArray[np.float64],
     problem: VisaProblem,
-) -> tuple[NDArray[np.float64], Fitness3] | None:
+) -> tuple[
+    tuple[NDArray[np.float64], Fitness3] | None,
+    list[tuple[NDArray[np.float64], Fitness3]],
+]:
     """Greedy selection for Lévy operators (Ops 5-6).
 
     Try Y first: adopt if Y dominates X_i.
     Otherwise try Z: adopt if Z dominates X_i.
     Otherwise keep X_i (return None).
+
+    Also returns all evaluated candidates so the caller can offer them
+    to the archive even when they don't dominate the current hawk.
 
     Args:
         xi: Current hawk position.
@@ -240,17 +252,21 @@ def _greedy_select_levy(
         problem: VisaProblem instance.
 
     Returns:
-        Tuple of (selected_position, fitness) or None if neither is better.
+        Tuple of (winner_or_None, list_of_all_candidates).
     """
+    candidates: list[tuple[NDArray[np.float64], Fitness3]] = []
+
     _, fit_y = evaluate_hawk(y, problem)
+    candidates.append((y, fit_y))
     if dominates(fit_y, fit_i):
-        return y, fit_y
+        return (y, fit_y), candidates
 
     _, fit_z = evaluate_hawk(z, problem)
+    candidates.append((z, fit_z))
     if dominates(fit_z, fit_i):
-        return z, fit_z
+        return (z, fit_z), candidates
 
-    return None
+    return None, candidates
 
 
 def _step_hawk(
@@ -389,13 +405,16 @@ def _levy_step(
     else:
         y, z = op6_hard_siege_levy(population[i], x_rabbit, e, x_mean, rng)
 
-    result = _greedy_select_levy(population[i], fitnesses[i], y, z, problem)
-    if result is not None:
-        new_pos, fit_new = result
+    winner, candidates = _greedy_select_levy(
+        population[i], fitnesses[i], y, z, problem)
+    if winner is not None:
+        new_pos, fit_new = winner
         population[i] = new_pos
         fitnesses[i] = fit_new
+    # Offer ALL evaluated candidates to the archive (not just the winner).
+    for cand_pos, cand_fit in candidates:
         update_archive(archive_positions, archive_fitnesses,
-                       new_pos, fit_new, archive_size)
+                       cand_pos, cand_fit, archive_size)
 
 
 def _accept_and_archive(

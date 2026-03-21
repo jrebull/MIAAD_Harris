@@ -345,8 +345,8 @@ Esta formulación hace explícito que se trata de un problema de optimización c
 
 \begin{examplebox}
 \textbf{Mejor en $f_1$:} $(f_1, f_2, f_3) = (7{,}186;\; 10{,}744;\; 16.280)$.\\
-\textbf{Mejor en $f_2$:} $(f_1, f_2, f_3) = (7{,}514;\; 2{,}064;\; 17.105)$.\\
-\textbf{Mejor en $f_3$:} $(f_1, f_2, f_3) = (7{,}258;\; 9{,}390;\; 0)$.
+\textbf{Mejor en $f_2$:} $(f_1, f_2, f_3) = (7{,}507;\; 2{,}379;\; 8.664)$.\\
+\textbf{Mejor en $f_3$:} $(f_1, f_2, f_3) = (7{,}257;\; 9{,}361;\; 0)$.
 
 \textbf{Conclusión:} Las tres soluciones son mutuamente no dominadas:
 \begin{itemize}
@@ -592,12 +592,12 @@ El sistema actual logra una carga de espera moderada ($f_1 = 7{,}21$) porque pri
 
 \subsection{Frente de Pareto combinado}
 
-Tras las 30 corridas independientes, se combinaron todos los archivos finales y se filtraron las soluciones dominadas en 3D. El \textbf{frente de Pareto combinado} contiene \textbf{371 soluciones no dominadas}, que representan la mejor aproximación obtenida al frente de Pareto real del problema triobjetivo.
+Tras las 30 corridas independientes, se combinaron todos los archivos finales y se filtraron las soluciones dominadas en 3D. El \textbf{frente de Pareto combinado} contiene \textbf{406 soluciones no dominadas}, que representan la mejor aproximación obtenida al frente de Pareto real del problema triobjetivo.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{pareto_front.png}
-    \caption{Proyección $f_1$--$f_2$ del frente de Pareto combinado (371 soluciones no dominadas) de las 30 corridas independientes de MOHHO. Se incluye el punto del sistema FIFO como referencia. El color de cada punto indica el valor de $f_3$ (desperdicio de visas).}
+    \caption{Proyección $f_1$--$f_2$ del frente de Pareto combinado (406 soluciones no dominadas) de las 30 corridas independientes de MOHHO. Se incluye el punto del sistema FIFO como referencia. El color de cada punto indica el valor de $f_3$ (desperdicio de visas).}
     \label{fig:pareto}
 \end{figure}
 
@@ -615,8 +615,8 @@ La Figura~\ref{fig:pareto} muestra la proyección principal del frente triobjeti
 \midrule
 Mejor en $f_1$ (mín.\ carga de espera) & 7,1857 & 10,7436 & 16.280 \\
 \rowcolor{gray!8}
-Mejor en $f_2$ (máxima equidad) & 7,5137 & 2,0644 & 17.105 \\
-Mejor en $f_3$ (100\% utilización) & 7,2575 & 9,3900 & 0 \\
+Mejor en $f_2$ (máxima equidad) & 7,5067 & 2,3792 & 8.664 \\
+Mejor en $f_3$ (100\% utilización) & 7,2572 & 9,3611 & 0 \\
 \rowcolor{gray!8}
 Sistema FIFO (baseline) & 7,2138 & 12,6377 & 17.540 \\
 \bottomrule
@@ -626,7 +626,7 @@ Sistema FIFO (baseline) & 7,2138 & 12,6377 & 17.540 \\
 \begin{answerbox}
 \textbf{Observación clave:} La mejor solución en $f_1$ ($f_1 = 7{,}1857$) supera al FIFO ($f_1 = 7{,}2138$) en carga de espera, reduce la disparidad de 12{,}64 a 10{,}74 años, \textbf{y además} reduce el desperdicio de 17.540 a 16.280 visas. MOHHO encontró asignaciones que \textbf{dominan} al sistema FIFO en los tres objetivos. El FIFO no es Pareto-óptimo.
 
-Notablemente, 26 soluciones del frente logran $f_3 = 0$ (100\% de utilización de visas), algo que el sistema FIFO no puede alcanzar.
+Notablemente, 38 soluciones del frente logran $f_3 = 0$ (100\% de utilización de visas), algo que el sistema FIFO no puede alcanzar.
 \end{answerbox}
 
 \subsection{Convergencia del algoritmo}
@@ -652,13 +652,13 @@ La Figura~\ref{fig:convergence} muestra que el hipervolumen se estabiliza aproxi
 \rowcolor{tablehead}
 \textcolor{white}{\textbf{Estadístico}} & \textcolor{white}{\textbf{Valor}} \\
 \midrule
-Media & 1.751.430,44 \\
+Media & 1.785.802,75 \\
 \rowcolor{gray!8}
-Desviación estándar & 42.075,47 \\
-Mínimo & 1.672.659,72 \\
+Desviación estándar & 27.830,57 \\
+Mínimo & 1.702.705,17 \\
 \rowcolor{gray!8}
-Máximo & 1.816.331,21 \\
-Coeficiente de variación & 2,40\% \\
+Máximo & 1.815.580,14 \\
+Coeficiente de variación & 1,56\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -666,11 +666,11 @@ Coeficiente de variación & 2,40\% \\
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{hv_boxplot.png}
-    \caption{Diagrama de caja del hipervolumen (HV) de las 30 corridas. La mediana (línea central) y la media (rombo) son cercanas, indicando distribución simétrica. El coeficiente de variación de 2{,}40\% confirma la estabilidad del algoritmo.}
+    \caption{Diagrama de caja del hipervolumen (HV) de las 30 corridas. La mediana (línea central) y la media (rombo) son cercanas, indicando distribución simétrica. El coeficiente de variación de 1{,}56\% confirma la estabilidad del algoritmo.}
     \label{fig:hv_box}
 \end{figure}
 
-El coeficiente de variación del 2{,}40\% ($\sigma / \mu = 42.075 / 1.751.430$) indica que MOHHO produce resultados consistentes entre corridas. El hipervolumen 3D es sustancialmente mayor que en el caso 2D porque incluye la dimensión $f_3 \in [0,\; 50.000]$, lo que amplifica el volumen dominado.
+El coeficiente de variación del 1{,}56\% ($\sigma / \mu = 27.831 / 1.785.803$) indica que MOHHO produce resultados consistentes entre corridas. El hipervolumen 3D es sustancialmente mayor que en el caso 2D porque incluye la dimensión $f_3 \in [0,\; 50.000]$, lo que amplifica el volumen dominado.
 
 \subsection{Mapa de asignación de visas}
 
@@ -712,9 +712,9 @@ La Figura~\ref{fig:heatmap} permite visualizar \textbf{el entregable final}: la 
 Sistema FIFO actual & 7,2138 & 12,6377 & 17.540 & Baseline \\
 \rowcolor{gray!8}
 Mejor $f_1$ (MOHHO) & 7,1857 & 10,7436 & 16.280 & Domina al FIFO \\
-Mejor $f_2$ (MOHHO) & 7,5137 & 2,0644 & 17.105 & Equidad radical \\
+Mejor $f_2$ (MOHHO) & 7,5067 & 2,3792 & 8.664 & Equidad radical \\
 \rowcolor{gray!8}
-Mejor $f_3$ (MOHHO) & 7,2575 & 9,3900 & 0 & 100\% utilización \\
+Mejor $f_3$ (MOHHO) & 7,2572 & 9,3611 & 0 & 100\% utilización \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -728,12 +728,12 @@ Mejor $f_3$ (MOHHO) & 7,2575 & 9,3900 & 0 & 100\% utilización \\
     \item $f_2$: 10{,}7436 < 12{,}6377 (menos disparidad)
     \item $f_3$: 16.280 < 17.540 (menos desperdicio)
 \end{itemize}
-Esto demuestra que existen asignaciones que mejoran simultáneamente la eficiencia, la equidad \textbf{y} la utilización de visas respecto al sistema vigente. Además, 26 soluciones logran $f_3 = 0$ (cero desperdicio).
+Esto demuestra que existen asignaciones que mejoran simultáneamente la eficiencia, la equidad \textbf{y} la utilización de visas respecto al sistema vigente. Además, 38 soluciones logran $f_3 = 0$ (cero desperdicio).
 \end{resultbox}
 
 \subsection{Escenarios de política pública}
 
-El frente de Pareto ofrece 371 asignaciones no dominadas que representan un abanico de opciones para el tomador de decisiones. Se destacan cuatro escenarios tipo:
+El frente de Pareto ofrece 406 asignaciones no dominadas que representan un abanico de opciones para el tomador de decisiones. Se destacan cuatro escenarios tipo:
 
 \begin{examplebox}
 \textbf{Escenario 1 --- Priorizar eficiencia ($f_1$ mínimo):}\\
@@ -743,14 +743,14 @@ Se concentran las visas en los grupos con mayor tiempo de espera acumulado (prin
 
 \begin{examplebox}
 \textbf{Escenario 2 --- Priorizar equidad ($f_2$ mínimo):}\\
-$f_1 = 7{,}5137$, $f_2 = 2{,}0644$ años, $f_3 = 17.105$ visas.\\
-Se distribuyen las visas de forma que todos los países tengan tiempos de espera similares. La disparidad máxima se reduce de 12{,}64 a 2{,}06 años. Este escenario es coherente con las propuestas de reforma de topes por país \parencite{fwd2024}.
+$f_1 = 7{,}5067$, $f_2 = 2{,}3792$ años, $f_3 = 8.664$ visas.\\
+Se distribuyen las visas de forma que todos los países tengan tiempos de espera similares. La disparidad máxima se reduce de 12{,}64 a 2{,}38 años. Este escenario es coherente con las propuestas de reforma de topes por país \parencite{fwd2024}.
 \end{examplebox}
 
 \begin{examplebox}
 \textbf{Escenario 3 --- Máxima utilización ($f_3$ mínimo):}\\
-$f_1 = 7{,}2575$, $f_2 = 9{,}3900$ años, $f_3 = 0$ visas desperdiciadas.\\
-Se asignan las 140.000 visas sin desperdiciar ninguna. El FIFO actual desperdicia 17.540 visas por los cuellos de botella entre topes por país y por categoría. MOHHO encontró 26 soluciones que logran $f_3 = 0$.
+$f_1 = 7{,}2572$, $f_2 = 9{,}3611$ años, $f_3 = 0$ visas desperdiciadas.\\
+Se asignan las 140.000 visas sin desperdiciar ninguna. El FIFO actual desperdicia 17.540 visas por los cuellos de botella entre topes por país y por categoría. MOHHO encontró 38 soluciones que logran $f_3 = 0$.
 \end{examplebox}
 
 \begin{examplebox}
@@ -772,7 +772,7 @@ Los resultados confirman la hipótesis planteada en la Fase~02: existe un \textb
 \begin{itemize}
     \item \textbf{Conflicto $f_1$--$f_2$:} India y China concentran más del 80\% de la demanda total, con tiempos de espera de 10--13 años. Los topes por país ($P_c = 25.620$) impiden satisfacer toda su demanda. Cualquier reasignación que reduzca la disparidad necesariamente deja más carga sin atender en los países de alta demanda.
 
-    \item \textbf{Conflicto $f_2$--$f_3$:} Las soluciones con máxima equidad ($f_2 = 2{,}06$) generan alto desperdicio ($f_3 = 17.105$) porque distribuir equitativamente implica dejar capacidad sin usar en categorías saturadas.
+    \item \textbf{Conflicto $f_2$--$f_3$:} Las soluciones con máxima equidad ($f_2 = 2{,}38$) generan alto desperdicio ($f_3 = 8.664$) porque distribuir equitativamente implica dejar capacidad sin usar en categorías saturadas.
 
     \item \textbf{Conflicto $f_1$--$f_3$:} Las soluciones con mínima carga de espera ($f_1 = 7{,}19$) desperdician 16.280 visas, mientras que la utilización al 100\% ($f_3 = 0$) requiere aceptar $f_1 = 7{,}26$.
 
@@ -780,12 +780,12 @@ Los resultados confirman la hipótesis planteada en la Fase~02: existe un \textb
 \end{itemize}
 
 \begin{yellowbox}
-\textbf{Implicación para la política migratoria:} Los tres objetivos en conflicto representan tres prioridades reales del sistema: eficiencia (reducir backlog), equidad (igualdad entre nacionalidades) y utilización (no desperdiciar visas). El frente de Pareto triobjetivo con 371 soluciones proporciona un mapa completo de compromisos para el tomador de decisiones. Esto es relevante para el debate sobre la reforma de topes por país \parencite{fwd2024, crs2023}.
+\textbf{Implicación para la política migratoria:} Los tres objetivos en conflicto representan tres prioridades reales del sistema: eficiencia (reducir backlog), equidad (igualdad entre nacionalidades) y utilización (no desperdiciar visas). El frente de Pareto triobjetivo con 406 soluciones proporciona un mapa completo de compromisos para el tomador de decisiones. Esto es relevante para el debate sobre la reforma de topes por país \parencite{fwd2024, crs2023}.
 \end{yellowbox}
 
 \subsection{Robustez del algoritmo}
 
-La estabilidad del hipervolumen 3D ($\text{HV} = 1.751.430 \pm 42.075$, coeficiente de variación 2{,}40\%) indica que MOHHO produce resultados consistentes. La convergencia antes de la iteración 300 sugiere que los parámetros seleccionados son adecuados para este problema. La consistencia entre corridas permite confiar en que el frente combinado de 371 soluciones es una buena aproximación al frente de Pareto verdadero.
+La estabilidad del hipervolumen 3D ($\text{HV} = 1.785.803 \pm 27.831$, coeficiente de variación 1{,}56\%) indica que MOHHO produce resultados consistentes. La convergencia antes de la iteración 300 sugiere que los parámetros seleccionados son adecuados para este problema. La consistencia entre corridas permite confiar en que el frente combinado de 406 soluciones es una buena aproximación al frente de Pareto verdadero.
 
 \subsection{Validez del modelo}
 
@@ -861,7 +861,7 @@ El rango de $f_1$ en el frente combinado es notablemente estrecho comparado con 
 
 \begin{table}[H]
 \centering
-\caption{Rangos de los tres objetivos en el frente de Pareto combinado (371 soluciones).}
+\caption{Rangos de los tres objetivos en el frente de Pareto combinado (406 soluciones).}
 \label{tab:obj_ranges}
 \renewcommand{\arraystretch}{1.4}
 \begin{tabular}{lccc}
@@ -871,14 +871,14 @@ El rango de $f_1$ en el frente combinado es notablemente estrecho comparado con 
 \midrule
 $f_1$ (carga de espera) & 7,186 & 7,532 & 0,346 años \\
 \rowcolor{gray!8}
-$f_2$ (disparidad) & 2,064 & 12,000 & 9,936 años \\
-$f_3$ (desperdicio) & 0 & 17.105 & 17.105 visas \\
+$f_2$ (disparidad) & 2,379 & 12,000 & 9,621 años \\
+$f_3$ (desperdicio) & 0 & 23.048 & 23.048 visas \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{answerbox}
-\textbf{Interpretación.} La estrechez de $f_1$ (rango de 0{,}35 años, vs.\ 9{,}94 años para $f_2$) es una consecuencia \textbf{estructural} del problema, no una limitación del algoritmo. La demanda total ($>$900.000 peticiones) excede ampliamente las 140.000 visas, de modo que cualquier permutación procesada por el decodificador greedy deja un volumen de carga no atendida similar. La variabilidad de $f_1$ proviene exclusivamente de qué grupos reciben las últimas visas residuales. En contraste, $f_2$ y $f_3$ dependen de \textit{cómo} se distribuyen las visas entre países y categorías, lo que ofrece mayor espacio de diseño al algoritmo.
+\textbf{Interpretación.} La estrechez de $f_1$ (rango de 0{,}35 años, vs.\ 9{,}62 años para $f_2$) es una consecuencia \textbf{estructural} del problema, no una limitación del algoritmo. La demanda total ($>$900.000 peticiones) excede ampliamente las 140.000 visas, de modo que cualquier permutación procesada por el decodificador greedy deja un volumen de carga no atendida similar. La variabilidad de $f_1$ proviene exclusivamente de qué grupos reciben las últimas visas residuales. En contraste, $f_2$ y $f_3$ dependen de \textit{cómo} se distribuyen las visas entre países y categorías, lo que ofrece mayor espacio de diseño al algoritmo.
 \end{answerbox}
 
 \subsection{Implicaciones de política pública}
@@ -888,11 +888,11 @@ Los resultados de este proyecto tienen relevancia directa para el debate sobre l
 \begin{enumerate}
     \item \textbf{El sistema FIFO no es óptimo:} Se demostró que existen asignaciones que dominan al FIFO en los tres objetivos. El sistema vigente prioriza exclusivamente la antigüedad, sin considerar la equidad entre nacionalidades ni la utilización de visas.
 
-    \item \textbf{La equidad tiene un costo moderado:} Reducir la disparidad entre países de 12{,}64 a 2{,}06 años requiere un aumento de 0{,}30 en $f_1$ (4{,}2\%), lo que sugiere que mejoras significativas en equidad son factibles sin sacrificar sustancialmente la eficiencia.
+    \item \textbf{La equidad tiene un costo moderado:} Reducir la disparidad entre países de 12{,}64 a 2{,}38 años requiere un aumento de 0{,}29 en $f_1$ (4{,}1\%), lo que sugiere que mejoras significativas en equidad son factibles sin sacrificar sustancialmente la eficiencia.
 
-    \item \textbf{El desperdicio es evitable:} 26 soluciones del frente logran $f_3 = 0$ (cero visas desperdiciadas), demostrando que la utilización completa de las 140.000 visas es factible bajo restricciones alternativas de priorización.
+    \item \textbf{El desperdicio es evitable:} 38 soluciones del frente logran $f_3 = 0$ (cero visas desperdiciadas), demostrando que la utilización completa de las 140.000 visas es factible bajo restricciones alternativas de priorización.
 
-    \item \textbf{Herramienta de apoyo a la decisión:} El frente de Pareto triobjetivo con 371 soluciones no dominadas proporciona un abanico cuantificado de opciones que permite al tomador de decisiones visualizar explícitamente las consecuencias de priorizar eficiencia, equidad o utilización.
+    \item \textbf{Herramienta de apoyo a la decisión:} El frente de Pareto triobjetivo con 406 soluciones no dominadas proporciona un abanico cuantificado de opciones que permite al tomador de decisiones visualizar explícitamente las consecuencias de priorizar eficiencia, equidad o utilización.
 
     \item \textbf{Reforma de topes por país:} Los resultados son consistentes con las propuestas legislativas de eliminar o flexibilizar los topes del 7\% por país \parencite{fwd2024}, mostrando que la redistribución de visas puede mejorar la equidad sin generar un colapso en la gestión del backlog.
 \end{enumerate}
@@ -907,19 +907,19 @@ Los resultados de este proyecto tienen relevancia directa para el debate sobre l
 Este documento presenta la implementación y los resultados experimentales del algoritmo Multi-Objective Harris Hawks Optimization (MOHHO) aplicado al problema de asignación de \textit{Green Cards} de empleo en Estados Unidos. Las principales conclusiones son:
 
 \begin{enumerate}
-    \item \textbf{El modelo triobjetivo captura un conflicto real.} Las 371 soluciones no dominadas del frente de Pareto combinado confirman que existe un trade-off genuino entre minimizar la carga de espera ($f_1$), minimizar la disparidad entre países ($f_2$) y minimizar el desperdicio de visas ($f_3$). La prueba de conflicto triobjetivo (G2) muestra que las tres soluciones extremas son mutuamente no dominadas.
+    \item \textbf{El modelo triobjetivo captura un conflicto real.} Las 406 soluciones no dominadas del frente de Pareto combinado confirman que existe un trade-off genuino entre minimizar la carga de espera ($f_1$), minimizar la disparidad entre países ($f_2$) y minimizar el desperdicio de visas ($f_3$). La prueba de conflicto triobjetivo (G2) muestra que las tres soluciones extremas son mutuamente no dominadas.
 
     \item \textbf{MOHHO supera al sistema FIFO vigente en los tres objetivos.} Se encontraron múltiples soluciones que dominan estrictamente al baseline FIFO ($f_1 = 7{,}21$, $f_2 = 12{,}64$, $f_3 = 17.540$). El sistema actual no es Pareto-óptimo.
 
-    \item \textbf{La utilización completa de visas es factible.} 26 soluciones del frente logran $f_3 = 0$ (cero visas desperdiciadas), demostrando que la interacción entre topes por país y por categoría puede gestionarse sin desperdiciar visas.
+    \item \textbf{La utilización completa de visas es factible.} 38 soluciones del frente logran $f_3 = 0$ (cero visas desperdiciadas), demostrando que la interacción entre topes por país y por categoría puede gestionarse sin desperdiciar visas.
 
-    \item \textbf{El trade-off permite mejoras significativas en equidad.} Es posible reducir la disparidad de 12{,}64 a 2{,}06 años con un incremento moderado en $f_1$ (de 7{,}19 a 7{,}51). Esto sugiere que concesiones moderadas en eficiencia generan mejoras sustanciales en equidad.
+    \item \textbf{El trade-off permite mejoras significativas en equidad.} Es posible reducir la disparidad de 12{,}64 a 2{,}38 años con un incremento moderado en $f_1$ (de 7{,}19 a 7{,}51). Esto sugiere que concesiones moderadas en eficiencia generan mejoras sustanciales en equidad.
 
-    \item \textbf{El algoritmo es robusto y reproducible.} Las 30 corridas independientes produjeron un hipervolumen 3D medio de $\text{HV} = 1.751.430 \pm 42.075$ (CV = 2{,}40\%), con convergencia antes de la iteración 300 de las 500 totales.
+    \item \textbf{El algoritmo es robusto y reproducible.} Las 30 corridas independientes produjeron un hipervolumen 3D medio de $\text{HV} = 1.785.803 \pm 27.831$ (CV = 1{,}56\%), con convergencia antes de la iteración 300 de las 500 totales.
 
     \item \textbf{Las correcciones al modelo (G1--G6) fortalecen la formulación.} La formulación compacta triobjetivo, la prueba de conflicto con tres soluciones extremas, la definición formal del frente de Pareto en 3D, la inclusión de $w_g$ en la tabla de parámetros, la cita de SPV \parencite{bean1994} y la precisión del decodificador elevan el rigor del trabajo respecto a la Fase~02.
 
-    \item \textbf{El frente de Pareto triobjetivo es una herramienta de apoyo a la decisión.} Las 371 soluciones no dominadas ofrecen al tomador de decisiones un abanico cuantificado de escenarios en tres dimensiones: desde la priorización de eficiencia ($f_1 = 7{,}19$) hasta la equidad radical ($f_2 = 2{,}06$) y la utilización completa ($f_3 = 0$), permitiendo una elección informada basada en preferencias de política pública.
+    \item \textbf{El frente de Pareto triobjetivo es una herramienta de apoyo a la decisión.} Las 406 soluciones no dominadas ofrecen al tomador de decisiones un abanico cuantificado de escenarios en tres dimensiones: desde la priorización de eficiencia ($f_1 = 7{,}19$) hasta la equidad radical ($f_2 = 2{,}38$) y la utilización completa ($f_3 = 0$), permitiendo una elección informada basada en preferencias de política pública.
 \end{enumerate}
 
 \begin{resultbox}

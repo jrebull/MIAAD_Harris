@@ -1014,23 +1014,23 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             <div style="text-align:center;">
                 <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">f\u2081 espera</div>
                 <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent1']};font-weight:700;">
-                    {_fmtd(sel_point[0])}</div>
-                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:140px;line-height:1.3;">
-                    carga de espera no atendida ponderada</div>
+                    {_fmtd(sel_point[0])} <span style="font-size:0.7rem;">a\u00f1os</span></div>
+                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:160px;line-height:1.3;">
+                    promedio ponderado de a\u00f1os que los solicitantes <strong>siguen esperando</strong> despu\u00e9s de este reparto</div>
             </div>
             <div style="text-align:center;">
                 <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">f\u2082 disparidad</div>
                 <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent2']};font-weight:700;">
-                    {_fmtd(sel_point[1])}</div>
-                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:140px;line-height:1.3;">
-                    brecha m\u00e1x. de espera entre pa\u00edses</div>
+                    {_fmtd(sel_point[1])} <span style="font-size:0.7rem;">a\u00f1os</span></div>
+                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:160px;line-height:1.3;">
+                    diferencia de espera entre el pa\u00eds <strong>m\u00e1s favorecido y el menos</strong> favorecido</div>
             </div>
             <div style="text-align:center;">
                 <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">f\u2083 desperdicio</div>
                 <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent3']};font-weight:700;">
-                    {_fmt(int(sel_f3))}</div>
-                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:140px;line-height:1.3;">
-                    visas sin asignar</div>
+                    {_fmt(int(sel_f3))} <span style="font-size:0.7rem;">visas</span></div>
+                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:160px;line-height:1.3;">
+                    visas disponibles que <strong>quedan sin asignar</strong> a nadie</div>
             </div>
         </div>
         <div style="text-align:center;margin-top:8px;font-size:0.75rem;color:{t['danger']};font-weight:600;">
