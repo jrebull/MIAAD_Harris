@@ -16,7 +16,7 @@ import numpy as np
 
 from src.config import (
     NUM_RUNS, SEED_BASE, POPULATION_SIZE, MAX_ITERATIONS,
-    ARCHIVE_SIZE, COUNTRIES, CATEGORIES,
+    ARCHIVE_SIZE, COUNTRIES, CATEGORIES, NUM_GROUPS,
 )
 from src.problem import VisaProblem
 from src.mohho import run_mohho, dominates, compute_hypervolume
@@ -24,6 +24,52 @@ from src.baseline import run_baseline
 from src.decoder import decode
 
 logger = logging.getLogger(__name__)
+
+
+def _find_knee(
+    front: list[tuple[float, float]],
+    f1s: list[float] | None = None,
+    f2s: list[float] | None = None,
+) -> tuple[float, float]:
+    """Find knee point using max perpendicular distance from extreme-to-extreme line.
+
+    Normalizes both axes to [0,1] to avoid scale bias.
+    """
+    pts = sorted(front, key=lambda p: p[0])
+    if len(pts) <= 2:
+        return pts[len(pts) // 2]
+
+    f1_vals = f1s if f1s is not None else [p[0] for p in pts]
+    f2_vals = f2s if f2s is not None else [p[1] for p in pts]
+    f1_min, f1_max = min(f1_vals), max(f1_vals)
+    f2_min, f2_max = min(f2_vals), max(f2_vals)
+    f1_range = f1_max - f1_min
+    f2_range = f2_max - f2_min
+
+    if f1_range < 1e-12 or f2_range < 1e-12:
+        return pts[len(pts) // 2]
+
+    norm = [((p[0] - f1_min) / f1_range, (p[1] - f2_min) / f2_range) for p in pts]
+    p1n = np.array(norm[0])
+    p2n = np.array(norm[-1])
+    line_vec = p2n - p1n
+    line_len = np.linalg.norm(line_vec)
+    if line_len < 1e-12:
+        return pts[len(pts) // 2]
+    line_unit = line_vec / line_len
+
+    max_dist = -1.0
+    knee_idx = 0
+    for i, pn in enumerate(norm):
+        v = np.array(pn) - p1n
+        proj = np.dot(v, line_unit)
+        perp = v - proj * line_unit
+        dist = np.linalg.norm(perp)
+        if dist > max_dist:
+            max_dist = dist
+            knee_idx = i
+
+    return pts[knee_idx]
 
 RESULTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "results")
 FIGURES_DIR = os.path.join(RESULTS_DIR, "figures")
@@ -106,7 +152,7 @@ def run_all_experiments() -> None:
         "combined_pareto_size": len(combined_front),
         "hv_stats": {
             "mean": float(np.mean([h[-1] for h in all_hv_histories])),
-            "std": float(np.std([h[-1] for h in all_hv_histories])),
+            "std": float(np.std([h[-1] for h in all_hv_histories], ddof=1)),
             "min": float(np.min([h[-1] for h in all_hv_histories])),
             "max": float(np.max([h[-1] for h in all_hv_histories])),
         },
@@ -306,18 +352,13 @@ def _plot_heatmap(
     import matplotlib.pyplot as plt
     uacj_blue = "#003CA6"
 
-    f1_range = max(f1s) - min(f1s) if len(f1s) > 1 else 1.0
-    f2_range = max(f2s) - min(f2s) if len(f2s) > 1 else 1.0
-    distances = [((p[0] - min(f1s)) / max(f1_range, 1e-9)) ** 2 +
-                 ((p[1] - min(f2s)) / max(f2_range, 1e-9)) ** 2
-                 for p in combined_front]
-    target = combined_front[int(np.argmin(distances))]
+    target = _find_knee(combined_front, f1s, f2s)
 
     rng = np.random.default_rng(42)
     best_pos: dict[int, int] | None = None
     best_dist = float("inf")
     for _ in range(10000):
-        hawk = rng.uniform(0, 1, size=50)
+        hawk = rng.uniform(0, 1, size=NUM_GROUPS)
         perm = list(np.argsort(hawk, kind="stable"))
         alloc = decode(perm, problem.groups, problem.total_visas,
                        problem.country_caps, problem.category_caps)
@@ -395,12 +436,7 @@ def _plot_comparison_baseline(
     best_f1_sol = min(combined_front, key=lambda x: x[0])
     best_f2_sol = min(combined_front, key=lambda x: x[1])
 
-    f1_range = max(f1s) - min(f1s) if len(f1s) > 1 else 1.0
-    f2_range = max(f2s) - min(f2s) if len(f2s) > 1 else 1.0
-    distances = [((p[0] - min(f1s)) / max(f1_range, 1e-9)) ** 2 +
-                 ((p[1] - min(f2s)) / max(f2_range, 1e-9)) ** 2
-                 for p in combined_front]
-    eq_sol = combined_front[int(np.argmin(distances))]
+    eq_sol = _find_knee(combined_front, f1s, f2s)
 
     labels = ["Mejor f₁", "Mejor f₂", "Equilibrio", "FIFO"]
     f1_vals = [best_f1_sol[0], best_f2_sol[0], eq_sol[0], baseline[0]]

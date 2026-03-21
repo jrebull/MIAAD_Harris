@@ -1,7 +1,7 @@
 """MOHHO Visa Predict AI — Dashboard Dali Edition.
 
 21 country blocs x 5 EB categories = 105 groups.
-7 tabs + sidebar. Full Plotly interactivity, 3 selectable themes.
+9 tabs + sidebar. Full Plotly interactivity, 3 selectable themes.
 
 Sources:
     USCIS FY2025 Q2 Approved Petitions
@@ -70,12 +70,13 @@ THEMES: dict[str, dict[str, str]] = {
         "hero_grad_start": "#FFD600", "hero_grad_end": "#00E5A0",
         "sidebar_metric_bg": "rgba(255,255,255,0.04)",
         "real_tag": "#00E5A0", "est_tag": "#FFD600", "calc_tag": "#70A0FF",
+        "legend_bg": "rgba(0,0,0,0.3)", "marker_line": "#ffffff", "mid_blue": "#60a5fa",
     },
     "Azul UACJ": {
         "bg1": "#071428", "bg2": "#0c2244", "bg3": "#153366",
         "sidebar_bg1": "#0a1c3d", "sidebar_bg2": "#071428",
-        "text": "#E8F0FF", "text_muted": "rgba(200,220,255,0.55)",
-        "text_subtle": "rgba(200,220,255,0.4)",
+        "text": "#E8F0FF", "text_muted": "#8DA4C4",
+        "text_subtle": "#6B89AD",
         "card_bg": "rgba(80,140,255,0.07)", "card_border": "rgba(80,140,255,0.15)",
         "card_hover_shadow": "rgba(0,100,255,0.3)",
         "accent1": "#1565C0", "accent2": "#FFD600", "accent3": "#4FC3F7",
@@ -93,29 +94,31 @@ THEMES: dict[str, dict[str, str]] = {
         "hero_grad_start": "#FFD600", "hero_grad_end": "#4FC3F7",
         "sidebar_metric_bg": "rgba(80,140,255,0.06)",
         "real_tag": "#4FC3F7", "est_tag": "#FFD600", "calc_tag": "#90B4E0",
+        "legend_bg": "rgba(7,20,40,0.7)", "marker_line": "#E8F0FF", "mid_blue": "#64B5F6",
     },
     "Claro": {
-        "bg1": "#F5F7FA", "bg2": "#EDF0F5", "bg3": "#E4E8EF",
-        "sidebar_bg1": "#E8ECF2", "sidebar_bg2": "#DEE3EB",
-        "text": "#1a1a2e", "text_muted": "rgba(26,26,46,0.65)",
-        "text_subtle": "rgba(26,26,46,0.5)",
-        "card_bg": "rgba(255,255,255,0.75)", "card_border": "rgba(0,60,166,0.15)",
-        "card_hover_shadow": "rgba(0,60,166,0.18)",
-        "accent1": "#003CA6", "accent2": "#8B6914", "accent3": "#00895E",
-        "danger": "#C62828", "info_bg": "rgba(0,60,166,0.08)",
-        "tab_bg": "rgba(0,60,166,0.06)", "tab_text": "#3d4a5c",
-        "tab_active": "#003CA6", "tab_active_text": "#ffffff",
-        "grid": "rgba(0,0,0,0.08)", "zeroline": "rgba(0,0,0,0.12)",
-        "table_head": "rgba(0,60,166,0.12)", "table_border": "rgba(0,0,0,0.08)",
-        "table_hover": "rgba(0,60,166,0.06)",
-        "gloss_bg": "rgba(255,255,255,0.7)", "gloss_border": "rgba(0,60,166,0.12)",
-        "tag_bg": "rgba(0,60,166,0.1)", "tag_text": "#003CA6",
-        "scroll_track": "#F5F7FA", "scroll_thumb": "#003CA6",
-        "callout_bg": "rgba(198,40,40,0.06)",
-        "plotly_font": "#1a1a2e", "plotly_bg": "rgba(255,255,255,0.5)",
-        "hero_grad_start": "#7a5600", "hero_grad_end": "#005e3a",
-        "sidebar_metric_bg": "rgba(0,60,166,0.06)",
-        "real_tag": "#00895E", "est_tag": "#8B6914", "calc_tag": "#003CA6",
+        "bg1": "#F0F2F6", "bg2": "#E8EBF0", "bg3": "#DFE3EA",
+        "sidebar_bg1": "#DDE2EA", "sidebar_bg2": "#D2D8E2",
+        "text": "#111827", "text_muted": "#4B5563",
+        "text_subtle": "#6B7280",
+        "card_bg": "rgba(255,255,255,0.85)", "card_border": "rgba(0,60,166,0.20)",
+        "card_hover_shadow": "rgba(0,60,166,0.22)",
+        "accent1": "#1E40AF", "accent2": "#B45309", "accent3": "#047857",
+        "danger": "#B91C1C", "info_bg": "rgba(30,64,175,0.10)",
+        "tab_bg": "rgba(0,60,166,0.08)", "tab_text": "#1F2937",
+        "tab_active": "#1E40AF", "tab_active_text": "#ffffff",
+        "grid": "rgba(0,0,0,0.10)", "zeroline": "rgba(0,0,0,0.15)",
+        "table_head": "rgba(30,64,175,0.15)", "table_border": "rgba(0,0,0,0.10)",
+        "table_hover": "rgba(30,64,175,0.08)",
+        "gloss_bg": "rgba(255,255,255,0.9)", "gloss_border": "rgba(0,60,166,0.18)",
+        "tag_bg": "rgba(30,64,175,0.12)", "tag_text": "#1E40AF",
+        "scroll_track": "#F0F2F6", "scroll_thumb": "#1E40AF",
+        "callout_bg": "rgba(185,28,28,0.08)",
+        "plotly_font": "#111827", "plotly_bg": "rgba(255,255,255,0.6)",
+        "hero_grad_start": "#92400E", "hero_grad_end": "#065F46",
+        "sidebar_metric_bg": "rgba(30,64,175,0.08)",
+        "real_tag": "#047857", "est_tag": "#B45309", "calc_tag": "#1E40AF",
+        "legend_bg": "rgba(255,255,255,0.7)", "marker_line": "#1F2937", "mid_blue": "#3B82F6",
     },
 }
 
@@ -292,6 +295,119 @@ def _inject_css() -> None:
     ::-webkit-scrollbar {{ width: 6px; }}
     ::-webkit-scrollbar-track {{ background: {t['scroll_track']}; }}
     ::-webkit-scrollbar-thumb {{ background: {t['scroll_thumb']}; border-radius: 3px; }}
+
+    /* ── Native widget overrides for all themes ── */
+    /* Expanders */
+    [data-testid="stExpander"] {{
+        background: {t['card_bg']} !important;
+        border: 1px solid {t['card_border']} !important;
+        border-radius: 12px !important;
+    }}
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] summary span,
+    [data-testid="stExpander"] summary svg {{
+        color: {t['text']} !important;
+        fill: {t['text']} !important;
+    }}
+    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] p {{
+        color: {t['tab_text']} !important;
+    }}
+    /* Checkboxes */
+    [data-testid="stCheckbox"] label span {{
+        color: {t['text']} !important;
+    }}
+    /* Text inputs */
+    [data-testid="stTextInput"] input {{
+        background: {t['card_bg']} !important;
+        color: {t['text']} !important;
+        border-color: {t['card_border']} !important;
+    }}
+    /* Dataframes */
+    [data-testid="stDataFrame"] {{
+        background: {t['card_bg']} !important;
+        border-radius: 8px;
+    }}
+    /* Radio buttons (main area) */
+    [data-testid="stAppViewContainer"] .stRadio label span {{
+        color: {t['text']} !important;
+    }}
+    /* Selectbox (main area) */
+    [data-testid="stAppViewContainer"] div[data-baseweb="select"] {{
+        background: {t['card_bg']} !important;
+        border: 1px solid {t['card_border']} !important;
+        border-radius: 8px;
+    }}
+    [data-testid="stAppViewContainer"] div[data-baseweb="select"] span,
+    [data-testid="stAppViewContainer"] div[data-baseweb="select"] svg {{
+        color: {t['text']} !important;
+        fill: {t['text']} !important;
+    }}
+    /* Force theme on root .stApp — overrides config.toml defaults */
+    .stApp {{
+        background: linear-gradient(135deg, {t['bg1']} 0%, {t['bg2']} 50%, {t['bg3']} 100%) !important;
+    }}
+    .stApp > header {{
+        background: transparent !important;
+    }}
+    [data-testid="stAppViewContainer"] > section,
+    .stMainBlockContainer,
+    section[data-testid="stMain"] {{
+        background: transparent !important;
+    }}
+    /* Streamlit metric components */
+    [data-testid="stMetric"] {{
+        background: transparent !important;
+    }}
+    [data-testid="stMetric"] label {{
+        color: {t['text_muted']} !important;
+    }}
+    [data-testid="stMetric"] [data-testid="stMetricValue"] {{
+        color: {t['text']} !important;
+    }}
+    [data-testid="stMetric"] [data-testid="stMetricDelta"] {{
+        color: {t['accent3']} !important;
+    }}
+    /* Buttons */
+    .stButton button {{
+        color: {t['text']} !important;
+        border-color: {t['card_border']} !important;
+        background: {t['card_bg']} !important;
+    }}
+    .stButton button[kind="primary"],
+    .stButton button[data-testid="stBaseButton-primary"] {{
+        background-color: {t['accent1']} !important;
+        color: white !important;
+        border-color: {t['accent1']} !important;
+    }}
+    .stButton button:hover {{
+        border-color: {t['accent1']} !important;
+    }}
+    /* Number input & text input */
+    [data-testid="stNumberInput"] input,
+    .stNumberInput input {{
+        background: {t['card_bg']} !important;
+        color: {t['text']} !important;
+        border-color: {t['card_border']} !important;
+    }}
+    /* Slider labels & values */
+    .stSlider label, .stSlider [data-testid="stTickBarMin"],
+    .stSlider [data-testid="stTickBarMax"],
+    .stSlider [data-testid="stThumbValue"] {{
+        color: {t['text']} !important;
+    }}
+    /* Progress bar */
+    .stProgress > div > div {{
+        background-color: {t['accent1']} !important;
+    }}
+    .stProgress [data-testid="stProgressBarText"] {{
+        color: {t['text']} !important;
+    }}
+    /* Toast / alert overrides */
+    [data-testid="stNotification"] {{
+        background: {t['card_bg']} !important;
+        color: {t['text']} !important;
+        border: 1px solid {t['card_border']} !important;
+    }}
     </style>""", unsafe_allow_html=True)
 
 
@@ -551,8 +667,8 @@ def _grid() -> dict[str, str]:
 _REAL_DEMAND = {
     "India": {"EB-1", "EB-2", "EB-3", "EB-4", "EB-5"},
     "China": {"EB-1", "EB-2", "EB-3", "EB-4", "EB-5"},
-    "Filipinas": {"EB-2", "EB-3"},
-    "Mexico": {"EB-2", "EB-3"},
+    "Filipinas": {"EB-2", "EB-3", "EB-4"},
+    "Mexico": {"EB-2", "EB-3", "EB-4"},
 }
 _EST_DEM_CATS = {"EB-1", "EB-5"}  # Synthetic demand for "Current" categories
 _DHS_COUNTRIES = {
@@ -590,7 +706,7 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
                 PREDICT AI</span>
         </div>
         <div style="color:{t['text_muted']};font-size:0.95rem;margin-top:4px;">
-            Multi-Objective Harris Hawks Optimization para la Asignacion de Green Cards
+            Multi-Objective Harris Hawks Optimization para la Asignación de Green Cards
         </div>
     </div>""", unsafe_allow_html=True)
 
@@ -650,8 +766,8 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
     max_wait_country = max(data["country_wait"], key=data["country_wait"].get)
     st.markdown(f"""
     <div class="callout">
-        Un solicitante de {_flag(max_wait_country)} {max_wait_country} que registro su peticion
-        hace <strong>{max_wait} a\u00f1os</strong> aun espera su Green Card.
+        Un solicitante de {_flag(max_wait_country)} {max_wait_country} que registró su petición
+        hace <strong>{max_wait} a\u00f1os</strong> aún espera su Green Card.
         El sistema actual no distingue urgencia ni equidad \u2014 solo orden de llegada.
     </div>""", unsafe_allow_html=True)
 
@@ -674,8 +790,8 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
                 {_fmt(fifo_used)} visas</div>
             <div style="color:{t['text_muted']};font-size:0.85rem;margin-top:8px;">
                 Desperdicia <strong style="color:{t['danger']};">{_fmt(fifo_waste)}</strong> visas
-                ({fifo_pct}% utilizacion)<br>
-                Disparidad (brecha max de espera entre pa\u00edses):
+                ({fifo_pct}% utilización)<br>
+                Disparidad (brecha máx. de espera entre pa\u00edses):
                 <strong style="color:{t['danger']};">{_fmtd(baseline[1])} a\u00f1os</strong>
             </div>
         </div>""", unsafe_allow_html=True)
@@ -689,7 +805,7 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
                 Hasta {_fmt(data['total_visas'])} visas</div>
             <div style="color:{t['text_muted']};font-size:0.85rem;margin-top:8px;">
                 Puede asignar <strong style="color:{t['accent3']};">100%</strong> de las visas<br>
-                Disparidad (brecha max de espera entre pa\u00edses):
+                Disparidad (brecha máx. de espera entre pa\u00edses):
                 <strong style="color:{t['accent3']};">{_fmtd(best_f2[1])} a\u00f1os</strong>
                 (-{_fmtd(f2_imp, 1)}%)
             </div>
@@ -700,43 +816,65 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
     <div style="background:{t['info_bg']};border:1px solid {t['accent1']}33;
         border-radius:12px;padding:1.5rem;margin:1.5rem 0;">
         <div style="font-size:0.95rem;font-weight:700;color:{t['accent2']} !important;margin-bottom:8px;">
-            \u00bfPor que se desperdician visas?</div>
+            \u00bfPor qué se desperdician visas?</div>
         <p style="font-size:0.85rem;color:{t['tab_text']} !important;margin:0 0 8px;">
-            FIFO procesa las solicitudes mas antiguas primero. India EB-2 y EB-3 tienen fechas muy
-            antiguas, asi que se procesan primero y agotan el limite por pais de India (25,620).
-            Cuando FIFO llega a India EB-1, India ya esta llena. La categoria EB-1 tiene plazas
-            disponibles pero los paises con mayor demanda ya estan al tope.</p>
+            FIFO procesa las solicitudes más antiguas primero. India EB-2 y EB-3 tienen fechas muy
+            antiguas, así que se procesan primero y agotan el límite por país de India (25,620).
+            Cuando FIFO llega a India EB-1, India ya está llena. La categoría EB-1 tiene plazas
+            disponibles pero los países con mayor demanda ya están al tope.</p>
         <p style="font-size:0.85rem;color:{t['tab_text']} !important;margin:0;">
             <strong style="color:{t['accent3']};">MOHHO resuelve esto:</strong> al reordenar el procesamiento,
-            puede asignar las {_fmt(data['total_visas'])} visas completas (100% utilizacion)
+            puede asignar las {_fmt(data['total_visas'])} visas completas (100% utilización)
             mientras mejora la equidad.</p>
     </div>""", unsafe_allow_html=True)
 
-    # Disparity explanation
-    st.markdown(f"""
-    <div style="background:{t['info_bg']};border:1px solid {t['accent3']}33;
-        border-radius:12px;padding:1.5rem;margin:1rem 0;">
-        <div style="font-size:0.95rem;font-weight:700;color:{t['accent3']} !important;margin-bottom:8px;">
-            ¿Que es la disparidad (f\u2082)?</div>
-        <p style="font-size:0.85rem;color:{t['tab_text']} !important;margin:0 0 8px;">
-            Para cada pais se calcula <strong>W\u2099</strong>: el promedio ponderado de a\u00f1os de espera
-            de las visas que se le asignan. La <strong>disparidad</strong> es la diferencia entre el pais
-            con el W\u2099 mas alto y el mas bajo:</p>
-        <p style="font-family:'JetBrains Mono';font-size:0.85rem;color:{t['accent2']} !important;
-            margin:0 0 8px;text-align:center;">
-            f\u2082 = max |W\u0304<sub>c1</sub> \u2212 W\u0304<sub>c2</sub>| entre todos los pares de paises</p>
-        <p style="font-size:0.85rem;color:{t['tab_text']} !important;margin:0;">
-            Ejemplo: si India recibe visas con espera promedio de 13 a\u00f1os y Canada de 0.5 a\u00f1os,
-            la disparidad es <strong>12.5 a\u00f1os</strong>. MOHHO busca reducir esta brecha
-            sin abandonar a los que mas tiempo llevan esperando.</p>
-    </div>""", unsafe_allow_html=True)
+    # f1 and f2 explanations side by side
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        st.markdown(f"""
+        <div style="background:{t['info_bg']};border:1px solid {t['accent1']}33;
+            border-radius:12px;padding:1.5rem;margin:1rem 0;height:100%;">
+            <div style="font-size:0.95rem;font-weight:700;color:{t['accent1']} !important;margin-bottom:8px;">
+                ¿Qué es la espera no atendida (f\u2081)?</div>
+            <p style="font-size:0.85rem;color:{t['tab_text']} !important;margin:0 0 8px;">
+                Para cada grupo de solicitantes, se mide cuántos <strong>no reciben visa</strong>
+                y cu\u00e1ntos a\u00f1os llevan esperando. f\u2081 es el promedio ponderado:</p>
+            <p style="font-family:'JetBrains Mono';font-size:0.85rem;color:{t['accent2']} !important;
+                margin:0 0 8px;text-align:center;">
+                f\u2081 = \u03a3 (n<sub>g</sub> \u2212 x<sub>g</sub>) \u00b7 w<sub>g</sub>
+                &nbsp;/&nbsp; \u03a3 n<sub>g</sub></p>
+            <p style="font-size:0.85rem;color:{t['tab_text']} !important;margin:0;">
+                Ejemplo: si India EB-2 tiene 800,000 solicitantes esperando 13 a\u00f1os y solo
+                recibe 25,000 visas, los 775,000 restantes contribuyen
+                <strong>775,000 \u00d7 13 = 10M persona-a\u00f1os</strong> de carga sin atender.
+                Minimizar f\u2081 prioriza dar visas a quienes más tiempo llevan esperando.</p>
+        </div>""", unsafe_allow_html=True)
+    with col_f2:
+        st.markdown(f"""
+        <div style="background:{t['info_bg']};border:1px solid {t['accent3']}33;
+            border-radius:12px;padding:1.5rem;margin:1rem 0;height:100%;">
+            <div style="font-size:0.95rem;font-weight:700;color:{t['accent3']} !important;margin-bottom:8px;">
+                ¿Qué es la disparidad (f\u2082)?</div>
+            <p style="font-size:0.85rem;color:{t['tab_text']} !important;margin:0 0 8px;">
+                Para cada país se calcula <strong>W\u0304<sub>c</sub></strong>: el promedio ponderado
+                de a\u00f1os de espera de las visas que se le asignan. La disparidad es la brecha
+                máxima entre países:</p>
+            <p style="font-family:'JetBrains Mono';font-size:0.85rem;color:{t['accent2']} !important;
+                margin:0 0 8px;text-align:center;">
+                f\u2082 = max |W\u0304<sub>c1</sub> \u2212 W\u0304<sub>c2</sub>|
+                entre todos los pares de países</p>
+            <p style="font-size:0.85rem;color:{t['tab_text']} !important;margin:0;">
+                Ejemplo: si India recibe visas con espera promedio de 13 a\u00f1os y Canada de 0.5 a\u00f1os,
+                la disparidad es <strong>12.5 a\u00f1os</strong>. Minimizar f\u2082 busca que la espera
+                ponderada sea lo más parecida posible entre todos los países.</p>
+        </div>""", unsafe_allow_html=True)
 
     # How to read this app
     st.markdown(f"""
     <div style="background:{t['card_bg']};border:1px solid {t['card_border']};
         border-radius:16px;padding:1.5rem 2rem;margin:1.5rem 0;">
         <div style="font-size:1.1rem;font-weight:700;color:{t['accent2']} !important;margin-bottom:12px;">
-            Como navegar esta app</div>
+            Cómo navegar esta app</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;">
             <div style="padding:12px;background:{t['info_bg']};border-radius:10px;">
                 <div style="font-weight:700;color:{t['accent1']} !important;margin-bottom:4px;">
@@ -744,26 +882,26 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
                 <p style="font-size:0.8rem;color:{t['tab_text']} !important;margin:0;">
                     <strong>Humanitario</strong>: prioriza reducir espera global (f\u2081 minima).<br>
                     <strong>Equilibrio</strong>: mejor compromiso entre espera y equidad.<br>
-                    <strong>Equidad</strong>: minimiza brecha entre paises (f\u2082 minima).<br>
+                    <strong>Equidad</strong>: minimiza brecha entre países (f\u2082 minima).<br>
                     <strong>FIFO</strong>: sistema actual sin optimizar.</p>
             </div>
             <div style="padding:12px;background:{t['info_bg']};border-radius:10px;">
                 <div style="font-weight:700;color:{t['accent1']} !important;margin-bottom:4px;">
                     2. Explora las pesta\u00f1as</div>
                 <p style="font-size:0.8rem;color:{t['tab_text']} !important;margin:0;">
-                    <strong>Frente de Pareto</strong>: las 88 soluciones optimas y su trade-off.<br>
-                    <strong>Asignacion</strong>: heatmap de visas por pais-categoria.<br>
-                    <strong>Impacto por Pais</strong>: que gana o pierde cada pais.<br>
-                    <strong>Convergencia</strong>: como mejora el algoritmo por iteracion.</p>
+                    <strong>Frente de Pareto</strong>: las {len(pareto)} soluciones óptimas y su trade-off.<br>
+                    <strong>Asignación</strong>: heatmap de visas por país-categoría.<br>
+                    <strong>Impacto por País</strong>: qué gana o pierde cada país.<br>
+                    <strong>Convergencia</strong>: cómo mejora el algoritmo por iteración.</p>
             </div>
             <div style="padding:12px;background:{t['info_bg']};border-radius:10px;">
                 <div style="font-weight:700;color:{t['accent1']} !important;margin-bottom:4px;">
-                    3. Interpreta los numeros</div>
+                    3. Interpreta los números</div>
                 <p style="font-size:0.8rem;color:{t['tab_text']} !important;margin:0;">
                     <strong>f\u2081</strong> (espera): carga de espera no atendida \u2014 menor es mejor.<br>
-                    <strong>f\u2082</strong> (disparidad): brecha maxima de espera entre paises \u2014 menor es mejor.<br>
-                    <strong>Visas</strong>: cuantas de las 140,000 se asignan efectivamente.<br>
-                    Toda solucion Pareto es optima \u2014 ninguna mejora ambos objetivos a la vez.</p>
+                    <strong>f\u2082</strong> (disparidad): brecha máxima de espera entre países \u2014 menor es mejor.<br>
+                    <strong>Visas</strong>: cuántas de las 140,000 se asignan efectivamente.<br>
+                    Toda solución Pareto es óptima \u2014 ninguna mejora ambos objetivos a la vez.</p>
             </div>
         </div>
     </div>""", unsafe_allow_html=True)
@@ -782,7 +920,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
     st.markdown("""
     <div class="info-box">
     Cada punto representa una forma distinta de repartir las 140,000 visas.
-    <strong>No existe una solucion "mejor"</strong> \u2014 el decisor elige el balance entre espera y equidad.
+    <strong>No existe una solución "mejor"</strong> \u2014 el decisor elige el balance entre espera y equidad.
     </div>""", unsafe_allow_html=True)
 
     st.markdown(f"""
@@ -810,7 +948,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
         if abs(p[0] - sel_point[0]) < 1e-6 and abs(p[1] - sel_point[1]) < 1e-6:
             sol_idx = i + 1
             break
-    sol_txt = f"Solucion #{sol_idx} de {len(pareto)}" if sol_idx else "FIFO (baseline)"
+    sol_txt = f"Solución #{sol_idx} de {len(pareto)}" if sol_idx else "FIFO (baseline)"
     # Gap vs FIFO
     fifo_f1, fifo_f2 = baseline
     if sel_point != baseline:
@@ -844,17 +982,22 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
                 <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent3']};font-weight:700;">
                     {_fmtd(sel_point[1])}</div>
                 <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:160px;line-height:1.3;">
-                    brecha max de espera entre pa\u00edses</div>
+                    brecha máx. de espera entre pa\u00edses</div>
             </div>
         </div>
-        <div style="text-align:center;margin-top:8px;font-size:0.75rem;color:{t['accent3']};font-weight:600;">
+        <div style="text-align:center;margin-top:8px;font-size:0.75rem;color:{t['danger']};font-weight:600;">
             {gap_txt}</div>
     </div>""", unsafe_allow_html=True)
+
+    st.markdown(f"""<div style="text-align:center;font-size:0.9rem;color:{t['text_muted']};
+        font-style:italic;margin-bottom:-10px;">
+        Cada punto es un balance diferente entre espera y equidad</div>""",
+                unsafe_allow_html=True)
 
     fig = go.Figure()
     # Custom hover with visas
     hover_texts = [
-        f"<b>Solucion MOHHO</b><br>"
+        f"<b>Solución MOHHO</b><br>"
         f"f\u2081 (espera): {_fmtd(f1, 3)} a\u00f1os<br>"
         f"f\u2082 (disparidad): {_fmtd(f2, 2)} a\u00f1os<br>"
         f"Visas otorgadas: {_fmt(v)} ({v * 100 // total_visas}%)"
@@ -877,7 +1020,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
     fig.add_trace(go.Scatter(
         x=[baseline[0]], y=[baseline[1]], mode='markers+text',
         marker=dict(size=20, color=t['danger'], symbol='star',
-                    line=dict(width=2, color='white')),
+                    line=dict(width=2, color=t['marker_line'])),
         text=[fifo_label], textposition='middle right',
         textfont=dict(color=t['danger'], size=11),
         hovertemplate='<b>Sistema Actual (FIFO)</b><br>'
@@ -890,7 +1033,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
     fig.add_trace(go.Scatter(
         x=[knee[0]], y=[knee[1]], mode='markers+text',
         marker=dict(size=16, color=t['accent2'], symbol='diamond',
-                    line=dict(width=2, color='white')),
+                    line=dict(width=2, color=t['marker_line'])),
         text=['Equilibrio'], textposition='bottom center',
         textfont=dict(color=t['accent2'], size=10),
         hovertemplate='<b>Knee Point (Equilibrio)</b><br>'
@@ -905,10 +1048,10 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             x=[sel_point[0]], y=[sel_point[1]], mode='markers',
             marker=dict(size=22, color='rgba(0,0,0,0)', symbol='circle',
                         line=dict(width=3, color=t['accent2'])),
-            hovertemplate='<b>Seleccion activa</b><br>'
+            hovertemplate='<b>Selección activa</b><br>'
                           'f\u2081 espera: %{x:.3f} a\u00f1os<br>'
                           'f\u2082 disparidad: %{y:.2f} a\u00f1os<extra></extra>',
-            name=f'Seleccion ({sel_label})',
+            name=f'Selección ({sel_label})',
         ))
 
     # Annotations
@@ -922,17 +1065,83 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
     y_max = baseline[1] + 1.5
     y_min = min(f2s) - 0.5
     fig.update_layout(**_plotly_layout(
-        title=dict(text="Cada punto es un balance diferente entre espera y equidad",
-                   font=dict(size=14)),
         xaxis=dict(title="f\u2081 \u2014 Carga de espera no atendida (a\u00f1os)", **_grid()),
-        yaxis=dict(title="f\u2082 \u2014 Disparidad entre paises (a\u00f1os)",
+        yaxis=dict(title="f\u2082 \u2014 Disparidad entre países (a\u00f1os)",
                    range=[y_min, y_max], **_grid()),
-        legend=dict(orientation="h", yanchor="bottom", y=1.08, xanchor="right", x=1,
-                    bgcolor="rgba(0,0,0,0.3)", font=dict(size=10)),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                    bgcolor=t['legend_bg'], font=dict(size=10)),
         height=550,
-        margin=dict(t=80),
+        margin=dict(t=40),
     ))
     st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False})
+
+    # 3D Pareto surface with visas as z-axis
+    with st.expander("Ver Frente de Pareto en 3D (f\u2081 \u00d7 f\u2082 \u00d7 Visas)"):
+        fig3d = go.Figure()
+        fig3d.add_trace(go.Scatter3d(
+            x=f1s, y=f2s, z=visas_list,
+            mode='markers+lines',
+            marker=dict(
+                size=5, color=visas_list,
+                colorscale=[[0, t['danger']], [0.5, t['accent1']], [1, t['accent3']]],
+                colorbar=dict(title="Visas", thickness=12, len=0.6, x=1.02),
+                line=dict(width=0.5, color=t['text_subtle']),
+            ),
+            line=dict(width=2, color=_rgba(t['accent1'], 0.4)),
+            hovertemplate=(
+                '<b>Solución MOHHO</b><br>'
+                'f\u2081 (espera): %{x:.3f} a\u00f1os<br>'
+                'f\u2082 (disparidad): %{y:.2f} a\u00f1os<br>'
+                'Visas: %{z:,.0f}<extra></extra>'
+            ),
+            name='Frente de Pareto',
+        ))
+        # FIFO point
+        fig3d.add_trace(go.Scatter3d(
+            x=[baseline[0]], y=[baseline[1]], z=[data.get('fifo_used', total_visas) if data else total_visas],
+            mode='markers', name='FIFO (actual)',
+            marker=dict(size=10, color=t['danger'], symbol='diamond',
+                        line=dict(width=2, color=t['marker_line'])),
+            hovertemplate=(
+                '<b>FIFO (sistema actual)</b><br>'
+                'f\u2081: %{x:.3f}<br>f\u2082: %{y:.2f}<br>'
+                'Visas: %{z:,.0f}<extra></extra>'
+            ),
+        ))
+        # Knee point
+        knee_visas = pareto_visas.get(knee, total_visas)
+        fig3d.add_trace(go.Scatter3d(
+            x=[knee[0]], y=[knee[1]], z=[knee_visas],
+            mode='markers', name='Equilibrio (Knee)',
+            marker=dict(size=8, color=t['accent2'], symbol='diamond',
+                        line=dict(width=2, color=t['marker_line'])),
+            hovertemplate=(
+                '<b>Equilibrio (Knee)</b><br>'
+                'f\u2081: %{x:.3f}<br>f\u2082: %{y:.2f}<br>'
+                'Visas: %{z:,.0f}<extra></extra>'
+            ),
+        ))
+        fig3d.update_layout(**_plotly_layout(
+            scene=dict(
+                xaxis=dict(title='f\u2081 — Espera (a\u00f1os)', backgroundcolor='rgba(0,0,0,0)',
+                           gridcolor=_rgba(t['text'], 0.1), showbackground=True),
+                yaxis=dict(title='f\u2082 — Disparidad (a\u00f1os)', backgroundcolor='rgba(0,0,0,0)',
+                           gridcolor=_rgba(t['text'], 0.1), showbackground=True),
+                zaxis=dict(title='Visas otorgadas', backgroundcolor='rgba(0,0,0,0)',
+                           gridcolor=_rgba(t['text'], 0.1), showbackground=True),
+                bgcolor='rgba(0,0,0,0)',
+                camera=dict(eye=dict(x=1.8, y=-1.4, z=0.8)),
+            ),
+            legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="right", x=1,
+                        bgcolor=t['legend_bg'], font=dict(size=10)),
+            height=600,
+            margin=dict(l=0, r=0, t=30, b=0),
+        ))
+        st.plotly_chart(fig3d, use_container_width=True, theme=None, key="pareto_3d")
+        st.markdown(f"""<div class="info-box" style="font-size:0.8rem;">
+        La tercera dimension (eje Z) muestra las <strong>visas totales otorgadas</strong> por cada solución.
+        Arrastra para rotar, scroll para zoom. El punto rojo es FIFO; el dorado es el equilibrio (knee).
+        </div>""", unsafe_allow_html=True)
 
     # Stats cards with visas
     v_f1 = pareto_visas.get(best_f1_point, total_visas)
@@ -949,18 +1158,18 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
     hints = {
         "Mejor Humanitario": (
             "Minimiza la carga de espera global (f\u2081): prioriza asignar visas "
-            "a los grupos que llevan mas a\u00f1os esperando, aunque aumente la "
-            "diferencia entre paises."
+            "a los grupos que llevan más a\u00f1os esperando, aunque aumente la "
+            "diferencia entre países."
         ),
         "Equilibrio (Knee Point)": (
-            "Punto de maxima curvatura del frente de Pareto: el mejor compromiso "
+            "Punto de máxima curvatura del frente de Pareto: el mejor compromiso "
             "entre reducir espera y reducir disparidad sin sacrificar "
             "desproporcionadamente ninguno de los dos objetivos."
         ),
         "Mejor Equidad": (
-            "Minimiza la disparidad entre paises (f\u2082): busca que la espera "
-            "ponderada sea lo mas parecida posible entre todos los paises, "
-            "reduciendo la brecha entre los mas y menos favorecidos."
+            "Minimiza la disparidad entre países (f\u2082): busca que la espera "
+            "ponderada sea lo más parecida posible entre todos los países, "
+            "reduciendo la brecha entre los más y menos favorecidos."
         ),
     }
 
@@ -993,48 +1202,49 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
                     {hints[title]}</div>
             </div>""", unsafe_allow_html=True)
 
-    # Visas por solucion chart
-    st.markdown('<div class="section-title">Visas Otorgadas por Solucion del Frente</div>',
+    # Visas por solución chart
+    st.markdown('<div class="section-title">Visas Otorgadas por Solución del Frente</div>',
                 unsafe_allow_html=True)
 
     fig_v = go.Figure()
-    bar_colors = [t['accent3'] if v >= total_visas * 0.95
-                  else (t['accent2'] if v >= total_visas * 0.85 else t['danger'])
-                  for v in visas_list]
     fig_v.add_trace(go.Bar(
         x=list(range(1, len(sorted_p) + 1)),
         y=visas_list,
-        marker_color=bar_colors,
+        marker=dict(
+            color=visas_list,
+            colorscale=[[0, t['danger']], [0.5, t['accent1']], [1, t['accent3']]],
+            line=dict(width=0),
+        ),
         hovertemplate=(
-            'Solucion #%{x}<br>'
+            'Solución #%{x}<br>'
             'Visas: %{y:,.0f}<br>'
             f'f\u2081: %{{customdata[0]:.3f}} | f\u2082: %{{customdata[1]:.2f}}'
             '<extra></extra>'),
         customdata=list(zip(f1s, f2s)),
     ))
     fig_v.add_hline(y=total_visas, line_dash="dash", line_color=t['accent3'],
-                    annotation_text=f"Maximo: {_fmt(total_visas)}")
-    fifo_used_val = total_visas - (total_visas - pareto_visas.get(baseline, total_visas))
-    fig_v.add_hline(y=pareto_visas.get(baseline, 0), line_dash="dot",
+                    annotation_text=f"Máximo: {_fmt(total_visas)}")
+    fifo_used_val = data.get('fifo_used', total_visas)
+    fig_v.add_hline(y=fifo_used_val, line_dash="dot",
                     line_color=t['danger'],
-                    annotation_text="FIFO")
+                    annotation_text=f"FIFO: {_fmt(fifo_used_val)}")
     fig_v.update_layout(**_plotly_layout(
-        xaxis=dict(title="Solucion Pareto (ordenada por f\u2081)", **_grid()),
+        xaxis=dict(title="Solución Pareto (ordenada por f\u2081)", **_grid()),
         yaxis=dict(title="Visas otorgadas", **_grid()),
         height=350,
         margin=dict(l=60, r=30, t=40, b=50),
     ))
     st.plotly_chart(fig_v, use_container_width=True, theme=None, config={"displayModeBar": False})
 
-    # ── Tabla de las 88 soluciones Pareto ──
-    with st.expander("Ver las 88 soluciones del frente de Pareto"):
+    # ── Tabla de soluciones Pareto ──
+    with st.expander(f"Ver las {len(pareto)} soluciones del frente de Pareto"):
         st.markdown(f"""
         <div class="info-box">
-            <strong>¿Por que 88 soluciones?</strong> El algoritmo MOHHO explora miles de asignaciones
-            posibles. De todas ellas, solo 88 son <em>no dominadas</em>: ninguna otra solucion
+            <strong>¿Por qué {len(pareto)} soluciones?</strong> El algoritmo MOHHO explora miles de asignaciones
+            posibles. De todas ellas, solo {len(pareto)} son <em>no dominadas</em>: ninguna otra solución
             es mejor en ambos objetivos a la vez. Forman el <em>frente de Pareto</em> — el conjunto
             de mejores compromisos posibles entre minimizar la espera (f\u2081) y minimizar la
-            disparidad entre paises (f\u2082). Moverse a lo largo del frente implica siempre un
+            disparidad entre países (f\u2082). Moverse a lo largo del frente implica siempre un
             trade-off: mejorar un objetivo empeora el otro.
         </div>""", unsafe_allow_html=True)
 
@@ -1065,21 +1275,15 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
         df_pareto = pd.DataFrame(rows)
         st.dataframe(df_pareto, use_container_width=True, height=400)
 
-    # ── Tiempo de espera por pais: 4 escenarios vs FIFO ──
+    # ── Comparativa por pais: espera, visas, disparidad ──
     if data is not None:
-        st.markdown('<div class="section-title">Tiempo de Espera Ponderado por Pais — 4 Escenarios</div>',
+        st.markdown('<div class="section-title">Comparativa por País</div>',
                     unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="info-box">
-            W<sub>c</sub> = promedio ponderado de espera de las visas asignadas a cada pais.
-            Compara como cada escenario redistribuye la carga de espera frente al sistema FIFO actual.
-        </div>""", unsafe_allow_html=True)
 
         countries = data["countries"]
-        wait_arr = np.array(data["wait_matrix"])  # shape (nc, nj)
+        wait_arr = np.array(data["wait_matrix"])
 
         def _wc_from_matrix(mat):
-            """Compute weighted avg wait W_c per country from allocation matrix."""
             mat_arr = np.array(mat)
             wc = {}
             for i, c in enumerate(countries):
@@ -1090,52 +1294,132 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
                     wc[c] = float(wait_arr[i].max())
             return wc
 
-        # Compute W_c for all 4 scenarios
-        scenarios_wc = [
-            ("FIFO", _wc_from_matrix(data["fifo_matrix"])),
+        def _visas_from_matrix(mat):
+            mat_arr = np.array(mat)
+            return {c: int(mat_arr[i].sum()) for i, c in enumerate(countries)}
+
+        # Compute all 4 scenarios
+        all_scenarios = [
+            ("FIFO", data["fifo_matrix"], data["fifo_fit"]),
         ]
         for label, point in [("Humanitario", best_f1_point),
                              ("Equilibrio", knee),
                              ("Equidad", best_f2_point)]:
-            mat, _, _ = compute_mohho_allocation(point[0], point[1])
-            scenarios_wc.append((label, _wc_from_matrix(mat)))
+            mat, fit, _ = compute_mohho_allocation(point[0], point[1])
+            all_scenarios.append((label, mat, fit))
 
-        # Sort countries by FIFO wait (highest first)
+        scenarios_wc = [(n, _wc_from_matrix(m)) for n, m, _ in all_scenarios]
+        scenarios_visas = [(n, _visas_from_matrix(m)) for n, m, _ in all_scenarios]
+
+        # Toggle: 2 scenarios (FIFO vs selected) or all 4
+        show_all = st.checkbox("Ver los 4 escenarios", value=True, key="pareto_4scenarios")
+
+        if show_all:
+            show_scenarios = list(range(4))
+        else:
+            # FIFO + current selected
+            sel_map = {"Humanitario": 1, "Equilibrio (Knee)": 2, "Equidad": 3, "FIFO": 0}
+            sel_idx = sel_map.get(sel_label, 2)
+            show_scenarios = [0, sel_idx] if sel_idx != 0 else [0]
+
+        scenario_colors = [t['danger'], t['accent1'], t['accent2'], t['accent3']]
+
+        # Sort countries by FIFO wait
         fifo_wc = scenarios_wc[0][1]
         sorted_countries = sorted(countries, key=lambda c: fifo_wc[c], reverse=True)
         display_countries = [f"{_flag(c)} {c}" for c in sorted_countries]
 
-        scenario_colors = [t['danger'], t['accent1'], t['accent2'], t['accent3']]
+        # ── Chart 1: Espera ponderada W_c ──
+        st.markdown(f"""<div style="text-align:center;font-size:0.9rem;color:{t['text_muted']};
+            font-style:italic;margin-bottom:-10px;">
+            W\u2099 — Espera ponderada por país (a\u00f1os)</div>""",
+                    unsafe_allow_html=True)
 
         fig_wc = go.Figure()
-        for idx, (name, wc) in enumerate(scenarios_wc):
+        for idx in show_scenarios:
+            name, wc = scenarios_wc[idx]
             vals = [round(wc[c], 2) for c in sorted_countries]
             fig_wc.add_trace(go.Bar(
                 y=display_countries, x=vals, orientation='h',
                 name=name, marker_color=scenario_colors[idx], opacity=0.85,
                 hovertemplate=f'<b>%{{y}}</b><br>{name}: %{{x:.1f}} a\u00f1os<extra></extra>',
             ))
-
         fig_wc.update_layout(**_plotly_layout(
-            title=dict(text="W\u2099 — Espera ponderada por pais (a\u00f1os)",
-                       font=dict(size=14)),
             barmode='group',
-            xaxis=dict(title="A\u00f1os de espera ponderada (W\u2099)", **_grid()),
+            xaxis=dict(title="A\u00f1os de espera ponderada", **_grid()),
             yaxis=dict(autorange='reversed'),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-                        bgcolor="rgba(0,0,0,0.3)", font=dict(size=10)),
-            height=max(600, len(countries) * 45),
-            margin=dict(l=160, r=30, t=60, b=50),
+                        bgcolor=t['legend_bg'], font=dict(size=10)),
+            height=max(550, len(countries) * 40),
+            margin=dict(l=160, r=30, t=40, b=50),
         ))
-        st.plotly_chart(fig_wc, use_container_width=True, theme=None, config={"displayModeBar": False})
+        st.plotly_chart(fig_wc, use_container_width=True, config={"displayModeBar": False})
+
+        # ── Chart 2: Visas por país ──
+        st.markdown(f"""<div style="text-align:center;font-size:0.9rem;color:{t['text_muted']};
+            font-style:italic;margin-bottom:-10px;">
+            Visas asignadas por país</div>""",
+                    unsafe_allow_html=True)
+
+        fifo_visas = scenarios_visas[0][1]
+        sorted_countries_v = sorted(countries, key=lambda c: fifo_visas[c], reverse=True)
+        display_countries_v = [f"{_flag(c)} {c}" for c in sorted_countries_v]
+
+        fig_vis = go.Figure()
+        for idx in show_scenarios:
+            name, vis = scenarios_visas[idx]
+            vals = [vis[c] for c in sorted_countries_v]
+            fig_vis.add_trace(go.Bar(
+                y=display_countries_v, x=vals, orientation='h',
+                name=name, marker_color=scenario_colors[idx], opacity=0.85,
+                hovertemplate=f'<b>%{{y}}</b><br>{name}: %{{x:,.0f}} visas<extra></extra>',
+            ))
+        fig_vis.update_layout(**_plotly_layout(
+            barmode='group',
+            xaxis=dict(title="Visas asignadas", **_grid()),
+            yaxis=dict(autorange='reversed'),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                        bgcolor=t['legend_bg'], font=dict(size=10)),
+            height=max(550, len(countries) * 40),
+            margin=dict(l=160, r=30, t=40, b=50),
+        ))
+        st.plotly_chart(fig_vis, use_container_width=True, config={"displayModeBar": False})
+
+        # ── Chart 3: Disparidad (delta W_c vs promedio global) ──
+        st.markdown(f"""<div style="text-align:center;font-size:0.9rem;color:{t['text_muted']};
+            font-style:italic;margin-bottom:-10px;">
+            Desviación de espera vs promedio global (disparidad por país)</div>""",
+                    unsafe_allow_html=True)
+
+        fig_disp = go.Figure()
+        for idx in show_scenarios:
+            name, wc = scenarios_wc[idx]
+            wc_vals = [wc[c] for c in sorted_countries]
+            wc_mean = sum(wc_vals) / len(wc_vals)
+            deltas = [round(wc[c] - wc_mean, 2) for c in sorted_countries]
+            fig_disp.add_trace(go.Bar(
+                y=display_countries, x=deltas, orientation='h',
+                name=name, marker_color=scenario_colors[idx], opacity=0.85,
+                hovertemplate=f'<b>%{{y}}</b><br>{name}: %{{x:+.1f}} a\u00f1os vs promedio<extra></extra>',
+            ))
+        fig_disp.update_layout(**_plotly_layout(
+            barmode='group',
+            xaxis=dict(title="Desviación vs promedio (a\u00f1os)", zeroline=True, **_grid()),
+            yaxis=dict(autorange='reversed'),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                        bgcolor=t['legend_bg'], font=dict(size=10)),
+            height=max(550, len(countries) * 40),
+            margin=dict(l=160, r=30, t=40, b=50),
+        ))
+        st.plotly_chart(fig_disp, use_container_width=True, config={"displayModeBar": False})
 
 
-# ── Tab 3: Asignacion ────────────────────────────────────────
+# ── Tab 3: Asignación ────────────────────────────────────────
 def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
                     sel_used: int, sel_label: str, baseline: tuple) -> None:
     t = _get_theme()
 
-    st.markdown('<div class="section-title">Asignacion de Visas \u2014 Escenario Activo</div>',
+    st.markdown('<div class="section-title">Asignación de Visas \u2014 Escenario Activo</div>',
                 unsafe_allow_html=True)
 
     countries = data["countries"]
@@ -1149,10 +1433,12 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
     st.markdown(f"""
     <div class="info-box">
         <strong>Escenario: {sel_label}</strong> \u2014
-        f\u2081 espera = {_fmtd(sel_fit[0])} a\u00f1os \u2014
-        f\u2082 disparidad = {_fmtd(sel_fit[1])} a\u00f1os \u2014
         Visas otorgadas: <strong>{_fmt(mohho_used)} / {_fmt(data['total_visas'])}
-        ({sel_pct}%)</strong>
+        ({sel_pct}%)</strong><br>
+        <span style="color:{t['accent1']};">f\u2081 = {_fmtd(sel_fit[0])} a\u00f1os</span>
+        (carga de espera no atendida ponderada \u2014 menor es mejor) \u2014
+        <span style="color:{t['accent3']};">f\u2082 = {_fmtd(sel_fit[1])} a\u00f1os</span>
+        (brecha máxima de espera entre países \u2014 menor es mejor)
     </div>""", unsafe_allow_html=True)
 
     cat_labels = [f"{c} {CATS_DESC.get(c, '')}" for c in categories]
@@ -1169,7 +1455,7 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
                 pct = mat[i][j] / demand_arr[i][j] * 100 if demand_arr[i][j] > 0 else 0
                 row.append(
                     f"Pais: {countries[i]}<br>"
-                    f"Categoria: {categories[j]} ({CATS_DESC.get(categories[j], '')})<br>"
+                    f"Categoría: {categories[j]} ({CATS_DESC.get(categories[j], '')})<br>"
                     f"Visas: {_fmt(int(mat[i][j]))}<br>"
                     f"Demanda: {_fmt(int(demand_arr[i][j]))}<br>"
                     f"Cobertura: {_fmtd(pct, 1)}%<br>"
@@ -1180,22 +1466,30 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
 
     # Side-by-side heatmaps
     col1, col2 = st.columns(2)
-    for col, mat, title, hover in [
+    for col, mat, title, hover, hmap_key in [
         (col1, mohho_arr,
-         f"{sel_label} \u2014 {_fmt(mohho_used)} visas (f\u2082={_fmtd(mohho_fit[1])}a)", _build_hover(mohho_arr)),
+         f"{sel_label} \u2014 {_fmt(mohho_used)} visas (f\u2082={_fmtd(mohho_fit[1])}a)", _build_hover(mohho_arr), "heatmap_sel"),
         (col2, fifo_arr,
-         f"FIFO \u2014 {_fmt(data['fifo_used'])} visas (f\u2082={_fmtd(baseline[1])}a)", _build_hover(fifo_arr)),
+         f"FIFO \u2014 {_fmt(data['fifo_used'])} visas (f\u2082={_fmtd(baseline[1])}a)", _build_hover(fifo_arr), "heatmap_fifo"),
     ]:
         with col:
-            # Per-cell font color: dark on bright (high values), white on dark (low values)
+            # Custom colorscale: adapts to theme
+            heatmap_cs = [
+                [0.0, t['bg2']],
+                [0.15, "#1b3a4b"],
+                [0.35, "#0d6e6e"],
+                [0.55, "#0d9488"],
+                [0.75, "#2dd4bf"],
+                [1.0, "#99f6e4"],
+            ]
             mat_max = mat.max() if mat.max() > 0 else 1
             cell_colors = [
-                ['#0a0a1a' if v / mat_max > 0.45 else '#ffffff' for v in row]
+                [t['bg2'] if v / mat_max > 0.6 else t['text'] for v in row]
                 for row in mat
             ]
             fig = go.Figure(go.Heatmap(
                 z=mat, x=cat_labels, y=countries,
-                colorscale='Viridis', showscale=True,
+                colorscale=heatmap_cs, showscale=True,
                 hovertext=hover, hoverinfo='text',
             ))
             # Per-cell annotations with adaptive text color
@@ -1211,7 +1505,7 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
                 title=dict(text=title, font=dict(size=13, color=t['accent2'])),
                 height=650, margin=dict(l=110, r=20, t=50, b=80),
             ))
-            st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False})
+            st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False}, key=hmap_key)
 
     # Difference heatmap
     st.markdown(f'<div class="section-title">Diferencias ({sel_label} \u2212 FIFO)</div>',
@@ -1219,21 +1513,42 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
     diff_arr = mohho_arr - fifo_arr
     vabs = max(abs(int(diff_arr.min())), abs(int(diff_arr.max()))) or 1
 
+    # Diverging colorscale: red → neutral gray → blue
+    diff_colorscale = [
+        [0.0, "#dc2626"],
+        [0.3, "#f87171"],
+        [0.5, "#4a5568"],
+        [0.7, t['mid_blue']],
+        [1.0, "#2563eb"],
+    ]
+    # Adaptive text color: contrast on saturated cells, muted on neutral
+    diff_max = max(abs(diff_arr.min()), abs(diff_arr.max())) or 1
+    diff_cell_colors = [
+        [t['text'] if abs(v) / diff_max > 0.15 else t['text_muted']
+         for v in row]
+        for row in diff_arr
+    ]
     fig_diff = go.Figure(go.Heatmap(
         z=diff_arr, x=cat_labels, y=countries,
-        colorscale='RdYlGn', zmid=0, zmin=-vabs, zmax=vabs,
-        text=[[(f"+{_fmt(int(v))}" if int(v) > 0 else ("=" if int(v) == 0 else _fmt(int(v))))
-               for v in row] for row in diff_arr],
-        texttemplate="%{text}", textfont=dict(size=8),
+        colorscale=diff_colorscale, zmid=0, zmin=-vabs, zmax=vabs,
         colorbar=dict(title="\u0394 Visas"),
     ))
+    # Per-cell annotations with adaptive color
+    for i, country in enumerate(countries):
+        for j in range(len(categories)):
+            v = int(diff_arr[i][j])
+            txt = f"+{_fmt(v)}" if v > 0 else ("=" if v == 0 else _fmt(v))
+            fig_diff.add_annotation(
+                x=cat_labels[j], y=country, text=txt, showarrow=False,
+                font=dict(size=8, color=diff_cell_colors[i][j]),
+            )
     fig_diff.update_layout(**_plotly_layout(
         height=600, margin=dict(l=110, r=60, t=30, b=80),
     ))
-    st.plotly_chart(fig_diff, use_container_width=True, theme=None, config={"displayModeBar": False})
+    st.plotly_chart(fig_diff, use_container_width=True, theme=None, config={"displayModeBar": False}, key="heatmap_diff")
 
     # Data tables in expander
-    with st.expander("Ver tablas numericas completas"):
+    with st.expander("Ver tablas numéricas completas"):
         st.markdown("**Demanda pendiente (peticiones aprobadas)**")
         df_demand = pd.DataFrame(data["demand_matrix"],
                                  index=countries, columns=categories)
@@ -1252,14 +1567,14 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
         st.dataframe(df_dates, use_container_width=True)
 
 
-# ── Tab 4: Impacto por Pais ─────────────────────────────────
+# ── Tab 4: Impacto por País ─────────────────────────────────
 def _tab_country(data: dict, sel_matrix: list, sel_fit: tuple,
                  sel_used: int, sel_label: str,
                  baseline: tuple, knee: tuple,
                  best_f1: tuple, best_f2: tuple) -> None:
     t = _get_theme()
 
-    st.markdown('<div class="section-title">Impacto por Pais</div>',
+    st.markdown('<div class="section-title">Impacto por País</div>',
                 unsafe_allow_html=True)
 
     st.markdown(f"""
@@ -1297,19 +1612,21 @@ def _tab_country(data: dict, sel_matrix: list, sel_fit: tuple,
         name=f'{sel_label} (escenario)', marker_color=t['accent3'], opacity=0.7,
         hovertemplate=f'<b>%{{y}}</b><br>{sel_label}: %{{x:,.0f}} visas<extra></extra>',
     ))
+    st.markdown(f'<div class="section-title">{sel_label} vs FIFO — visas por país</div>',
+                unsafe_allow_html=True)
     fig.update_layout(**_plotly_layout(
-        title=dict(text=f"{sel_label} vs FIFO \u2014 visas por pais", font=dict(size=14)),
         barmode='group',
         xaxis=dict(title="Visas asignadas", **_grid()),
         yaxis=dict(autorange='reversed'),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-                    bgcolor="rgba(0,0,0,0.3)"),
+                    bgcolor=t['legend_bg']),
         height=max(500, len(countries) * 35),
+        margin=dict(l=140, r=30, t=80, b=50),
     ))
     st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # Delta bars
-    st.markdown(f'<div class="section-title">Cambio {sel_label} \u2212 FIFO por Pais</div>',
+    st.markdown(f'<div class="section-title">Cambio {sel_label} \u2212 FIFO por País</div>',
                 unsafe_allow_html=True)
 
     sorted_impact = [impact[i] for i in sorted_idx]
@@ -1333,13 +1650,13 @@ def _tab_country(data: dict, sel_matrix: list, sel_fit: tuple,
     st.plotly_chart(fig2, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # Wait times lollipop
-    st.markdown('<div class="section-title">Tiempo de Espera Maximo por Pais</div>',
+    st.markdown('<div class="section-title">Tiempo de Espera Máximo por País</div>',
                 unsafe_allow_html=True)
 
     wait_sorted = sorted(data["country_wait"].items(), key=lambda x: x[1], reverse=True)
     w_countries = [f"{_flag(c)} {c}" for c, _ in wait_sorted]
     w_values = [w for _, w in wait_sorted]
-    w_colors = [t['danger'] if w >= 10 else (t['accent2'] if w >= 3 else t['accent3']) for w in w_values]
+    w_colors = [t['danger'] if w >= 10 else (t['mid_blue'] if w >= 3 else t['accent3']) for w in w_values]
 
     fig3 = go.Figure()
     for i, (c, w) in enumerate(zip(w_countries, w_values)):
@@ -1350,7 +1667,7 @@ def _tab_country(data: dict, sel_matrix: list, sel_fit: tuple,
         ))
     fig3.add_trace(go.Scatter(
         x=w_values, y=w_countries, mode='markers+text',
-        marker=dict(size=14, color=w_colors, line=dict(width=2, color='white')),
+        marker=dict(size=14, color=w_colors, line=dict(width=2, color=t['marker_line'])),
         text=[f"{w} a\u00f1os" for w in w_values],
         textposition='middle right', textfont=dict(size=10, color=t['text']),
         showlegend=False,
@@ -1427,16 +1744,16 @@ def _all_scenarios_chart(data: dict, baseline: tuple, knee: tuple,
             hovertemplate=f'<b>%{{y}}</b><br>{name}: %{{x:,.0f}} visas<extra></extra>',
         ))
 
+    st.markdown(f'<div class="section-title">Visas otorgadas por pa\u00eds — 4 escenarios</div>',
+                unsafe_allow_html=True)
     fig.update_layout(**_plotly_layout(
-        title=dict(text="Visas otorgadas por pa\u00eds \u2014 4 escenarios",
-                   font=dict(size=14)),
         barmode='group',
         xaxis=dict(title="Visas asignadas", **_grid()),
         yaxis=dict(autorange='reversed'),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-                    bgcolor="rgba(0,0,0,0.3)", font=dict(size=10)),
+                    bgcolor=t['legend_bg'], font=dict(size=10)),
         height=max(600, len(countries) * 45),
-        margin=dict(l=140, r=30, t=60, b=50),
+        margin=dict(l=140, r=30, t=80, b=50),
     ))
     st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False})
 
@@ -1461,9 +1778,9 @@ def _all_scenarios_chart(data: dict, baseline: tuple, knee: tuple,
                    zerolinecolor=t['zeroline'], gridcolor=t['grid']),
         yaxis=dict(autorange='reversed'),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-                    bgcolor="rgba(0,0,0,0.3)", font=dict(size=10)),
+                    bgcolor=t['legend_bg'], font=dict(size=10)),
         height=max(600, len(countries) * 45),
-        margin=dict(l=140, r=30, t=60, b=50),
+        margin=dict(l=140, r=30, t=80, b=50),
     ))
     st.plotly_chart(fig_delta, use_container_width=True, theme=None, config={"displayModeBar": False})
 
@@ -1475,112 +1792,330 @@ def _tab_convergence(
 ) -> None:
     t = _get_theme()
 
-    st.markdown('<div class="section-title">Convergencia del Hipervolumen</div>',
-                unsafe_allow_html=True)
-
     m = np.array(means)
     s = np.array(stds)
     it = np.array(iters)
+    num_runs = summary["num_runs"]
+
+    # ── Intro ──
+    st.markdown(f"""
+    <div class="info-box">
+        El <strong>hipervolumen (HV)</strong> mide el área del espacio objetivo dominada por el frente de Pareto.
+        Un HV mayor significa que el algoritmo encontró soluciones más cercanas al punto ideal.
+        Aquí analizamos cómo evoluciona a lo largo de <strong>{int(it[-1])} iteraciones</strong>
+        en <strong>{num_runs} corridas independientes</strong> con diferentes semillas aleatorias.
+    </div>""", unsafe_allow_html=True)
+
+    # ── Hero metric cards ──
+    final_hvs = [load_run(i)["hv_final"] for i in range(num_runs)]
+    mean_hv = float(np.mean(final_hvs))
+    std_hv = float(np.std(final_hvs))
+    best_hv = max(final_hvs)
+    worst_hv = min(final_hvs)
+    best_run = final_hvs.index(best_hv)
+    hv_0 = float(m[0])
+    hv_gain = float(m[-1]) - hv_0
+    hv_gain_pct = hv_gain / hv_0 * 100 if hv_0 > 0 else 0
+
+    # 95% convergence iteration
+    target_95 = float(m[-1]) * 0.95
+    conv_iter = int(it[-1])
+    for i, val in enumerate(m):
+        if val >= target_95:
+            conv_iter = int(it[i])
+            break
+    conv_pct = conv_iter / int(it[-1]) * 100
+
+    # Coefficient of variation
+    cv = std_hv / mean_hv * 100 if mean_hv > 0 else 0
+
+    c1, c2, c3, c4 = st.columns(4)
+    _ms = "font-family:'JetBrains Mono';font-weight:700;"
+    for col, label, value, sub, color in [
+        (c1, "HV medio final", _fmtd(mean_hv), f"\u00b1{_fmtd(std_hv)} (CV={_fmtd(cv, 1)}%)", t['accent1']),
+        (c2, "Mejor corrida", _fmtd(best_hv), f"Corrida #{best_run + 1} (seed={42 + best_run})", t['accent3']),
+        (c3, "Ganancia HV", f"+{_fmtd(hv_gain_pct, 1)}%", f"De {_fmtd(hv_0)} a {_fmtd(float(m[-1]))}", t['accent2']),
+        (c4, "Convergencia 95%", f"Iter {conv_iter}", f"En el {_fmtd(conv_pct, 0)}% del presupuesto", t['danger']),
+    ]:
+        with col:
+            st.markdown(f"""
+            <div class="metric-card" style="text-align:center;padding:16px;">
+                <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;
+                    font-weight:600;letter-spacing:0.05em;">{label}</div>
+                <div style="{_ms}font-size:1.6rem;color:{color};margin:6px 0 2px;">{value}</div>
+                <div style="font-size:0.72rem;color:{t['text_subtle']};">{sub}</div>
+            </div>""", unsafe_allow_html=True)
+
+    # ── Main convergence chart ──
+    st.markdown('<div class="section-title">Evolución del Hipervolumen</div>',
+                unsafe_allow_html=True)
 
     fig = go.Figure()
-    # band
+    # ±1σ band
     fig.add_trace(go.Scatter(
         x=np.concatenate([it, it[::-1]]).tolist(),
         y=np.concatenate([m + s, (m - s)[::-1]]).tolist(),
-        fill='toself', fillcolor=_rgba(t['accent1'], 0.15),
+        fill='toself', fillcolor=_rgba(t['accent1'], 0.12),
         line=dict(width=0), name='\u00b11\u03c3', hoverinfo='skip',
+    ))
+    # ±2σ band (lighter)
+    fig.add_trace(go.Scatter(
+        x=np.concatenate([it, it[::-1]]).tolist(),
+        y=np.concatenate([m + 2 * s, (m - 2 * s)[::-1]]).tolist(),
+        fill='toself', fillcolor=_rgba(t['accent1'], 0.05),
+        line=dict(width=0), name='\u00b12\u03c3', hoverinfo='skip',
     ))
     # mean line
     fig.add_trace(go.Scatter(
         x=it.tolist(), y=m.tolist(), mode='lines',
         line=dict(color=t['accent1'], width=3), name='HV medio (30 corridas)',
-        hovertemplate='Iteracion %{x}<br>HV: %{y:.2f}<extra></extra>',
+        hovertemplate='Iter %{x}<br>HV: %{y:.2f}<extra></extra>',
     ))
+    # HV final line
     fig.add_hline(y=float(m[-1]), line_dash="dash", line_color=t['accent2'],
-                  annotation_text=f"HV final = {_fmtd(float(m[-1]))}")
-
+                  annotation_text=f"HV final = {_fmtd(float(m[-1]))}",
+                  annotation_font=dict(color=t['accent2'], size=11))
     # 95% convergence marker
-    target_95 = float(m[-1]) * 0.95
-    for i, val in enumerate(m):
-        if val >= target_95:
-            fig.add_vline(x=int(it[i]), line_dash="dot", line_color=t['danger'],
-                          annotation_text=f"95% en iter {int(it[i])}")
-            break
+    fig.add_vline(x=conv_iter, line_dash="dot", line_color=t['danger'],
+                  annotation_text=f"95% en iter {conv_iter}",
+                  annotation_font=dict(color=t['danger'], size=11))
+    # Starting HV
+    fig.add_annotation(x=0, y=hv_0, text=f"HV\u2080 = {_fmtd(hv_0)}",
+                       showarrow=True, arrowhead=2, arrowcolor=t['text_muted'],
+                       font=dict(size=10, color=t['text_muted']),
+                       ax=50, ay=-30)
 
     fig.update_layout(**_plotly_layout(
-        title=dict(text="Evolucion del Indicador de Hipervolumen", font=dict(size=14)),
         xaxis=dict(title="Iteracion", **_grid()),
-        yaxis=dict(title="Hipervolumen", **_grid()),
+        yaxis=dict(title="Hipervolumen (HV)", **_grid()),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-                    bgcolor="rgba(0,0,0,0.3)"),
-        height=450,
+                    bgcolor=t['legend_bg'], font=dict(size=10)),
+        height=480,
+        margin=dict(t=60),
     ))
-    st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False},
+                    key="conv_main")
 
-    # HV distribution & per-run bars
-    final_hvs = [load_run(i)["hv_final"] for i in range(summary["num_runs"])]
+    # ── Velocity of improvement (derivative) ──
+    st.markdown('<div class="section-title">Velocidad de Mejora (\u0394HV por iteración)</div>',
+                unsafe_allow_html=True)
+    st.markdown(f"""<div style="font-size:0.8rem;color:{t['text_muted']};margin-bottom:8px;">
+        Derivada discreta del HV medio: muestra en qué iteraciones el algoritmo aprende más rápido.
+        Las barras altas indican saltos de calidad; la zona plana indica convergencia.</div>""",
+        unsafe_allow_html=True)
+
+    delta_hv = np.diff(m)
+    # Smooth with moving average of 10 for readability
+    window = min(10, len(delta_hv))
+    if window > 1:
+        kernel = np.ones(window) / window
+        delta_smooth = np.convolve(delta_hv, kernel, mode='valid')
+        delta_iters = it[window:len(delta_smooth) + window]
+    else:
+        delta_smooth = delta_hv
+        delta_iters = it[1:]
+
+    fig_vel = go.Figure()
+    fig_vel.add_trace(go.Scatter(
+        x=delta_iters.tolist(), y=delta_smooth.tolist(),
+        mode='lines', fill='tozeroy',
+        fillcolor=_rgba(t['accent3'], 0.15),
+        line=dict(color=t['accent3'], width=2),
+        hovertemplate='Iter %{x}<br>\u0394HV: %{y:.4f}<extra></extra>',
+        name='\u0394HV (suavizado)',
+    ))
+    fig_vel.add_hline(y=0, line_color=t['text_subtle'], line_width=1)
+    fig_vel.update_layout(**_plotly_layout(
+        xaxis=dict(title="Iteracion", **_grid()),
+        yaxis=dict(title="\u0394HV por iteración", **_grid()),
+        height=280,
+        margin=dict(t=20, b=40),
+    ))
+    st.plotly_chart(fig_vel, use_container_width=True, theme=None, config={"displayModeBar": False},
+                    key="conv_velocity")
+
+    # ── Row: Distribution + Per-run bars ──
+    st.markdown('<div class="section-title">Análisis Estadístico de las 30 Corridas</div>',
+                unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown('<div class="section-title" style="font-size:1.1rem;">Distribucion HV Final</div>',
+        st.markdown(f'<div style="font-size:0.9rem;color:{t["text"]};font-weight:600;'
+                    f'margin-bottom:4px;">Distribución del HV Final</div>',
                     unsafe_allow_html=True)
-        fig_box = go.Figure(go.Box(
-            y=final_hvs, boxpoints='all', jitter=0.3,
-            marker=dict(color=t['accent1'], size=5),
-            line=dict(color=t['accent2']),
-            fillcolor=_rgba(t['accent1'], 0.3), name='30 corridas',
+        # Violin + strip instead of plain box
+        fig_box = go.Figure()
+        fig_box.add_trace(go.Violin(
+            y=final_hvs, box_visible=True, meanline_visible=True,
+            points='all', jitter=0.4, pointpos=-1.5,
+            marker=dict(color=t['accent1'], size=6, opacity=0.7,
+                        line=dict(width=1, color=t['marker_line'])),
+            line=dict(color=t['accent3']),
+            fillcolor=_rgba(t['accent1'], 0.2),
+            name='30 corridas',
+            hovertemplate='HV: %{y:.2f}<extra></extra>',
         ))
+        fig_box.add_hline(y=mean_hv, line_dash="dash", line_color=t['accent2'],
+                          annotation_text=f"\u03bc = {_fmtd(mean_hv)}",
+                          annotation_font=dict(size=10, color=t['accent2']))
         fig_box.update_layout(**_plotly_layout(
-            yaxis=dict(title="Hipervolumen", **_grid()), height=350,
+            yaxis=dict(title="Hipervolumen", **_grid()), height=380,
+            margin=dict(l=60, r=20, t=20, b=40),
         ))
-        st.plotly_chart(fig_box, use_container_width=True, theme=None, config={"displayModeBar": False})
+        st.plotly_chart(fig_box, use_container_width=True, theme=None,
+                        config={"displayModeBar": False}, key="conv_violin")
 
     with col2:
-        st.markdown('<div class="section-title" style="font-size:1.1rem;">HV por Corrida</div>',
+        st.markdown(f'<div style="font-size:0.9rem;color:{t["text"]};font-weight:600;'
+                    f'margin-bottom:4px;">HV por Corrida (ordenado)</div>',
                     unsafe_allow_html=True)
-        mean_hv = float(np.mean(final_hvs))
-        colors = [t['accent1'] if hv >= mean_hv else _rgba(t['text'], 0.15) for hv in final_hvs]
+        # Sort runs by HV for visual ranking
+        sorted_runs = sorted(enumerate(final_hvs), key=lambda x: x[1], reverse=True)
+        bar_x = [f"R{idx + 1}" for idx, _ in sorted_runs]
+        bar_y = [hv for _, hv in sorted_runs]
+        # Color gradient from best to worst
+        n_bars = len(bar_y)
+        bar_colors = [
+            f'rgba({int(60 + (255 - 60) * i / max(n_bars - 1, 1))},'
+            f'{int(165 - 100 * i / max(n_bars - 1, 1))},'
+            f'{int(250 - 100 * i / max(n_bars - 1, 1))},0.85)'
+            for i in range(n_bars)
+        ]
         fig_bar = go.Figure(go.Bar(
-            x=[f"R{i+1}" for i in range(len(final_hvs))],
-            y=final_hvs, marker_color=colors,
-            hovertemplate='Corrida %{x}<br>HV: %{y:.2f}<extra></extra>',
+            x=bar_x, y=bar_y, marker_color=bar_colors,
+            hovertemplate='%{x}<br>HV: %{y:.2f}<extra></extra>',
         ))
         fig_bar.add_hline(y=mean_hv, line_dash="dash", line_color=t['accent2'],
-                          annotation_text=f"Media = {_fmtd(mean_hv)}")
+                          annotation_text=f"\u03bc = {_fmtd(mean_hv)}",
+                          annotation_font=dict(size=10, color=t['accent2']))
         fig_bar.update_layout(**_plotly_layout(
-            yaxis=dict(title="Hipervolumen", **_grid()), height=350,
+            yaxis=dict(title="Hipervolumen", **_grid()),
+            xaxis=dict(tickangle=-45, tickfont=dict(size=8)),
+            height=380,
+            margin=dict(l=60, r=20, t=20, b=60),
         ))
-        st.plotly_chart(fig_bar, use_container_width=True, theme=None, config={"displayModeBar": False})
+        st.plotly_chart(fig_bar, use_container_width=True, theme=None,
+                        config={"displayModeBar": False}, key="conv_bars")
 
-    # Individual run explorer
+    # ── Pareto size per run ──
+    st.markdown('<div class="section-title">Soluciones Pareto por Corrida</div>',
+                unsafe_allow_html=True)
+
+    pareto_sizes = [load_run(i)["num_pareto"] for i in range(num_runs)]
+    mean_ps = float(np.mean(pareto_sizes))
+
+    col_a, col_b = st.columns([2, 1])
+    with col_a:
+        ps_colors = [t['accent3'] if ps >= mean_ps else t['mid_blue'] for ps in pareto_sizes]
+        fig_ps = go.Figure(go.Bar(
+            x=[f"R{i + 1}" for i in range(num_runs)],
+            y=pareto_sizes, marker_color=ps_colors,
+            text=pareto_sizes, textposition='outside',
+            textfont=dict(size=8, color=t['text_muted']),
+            hovertemplate='Corrida %{x}<br>Soluciones Pareto: %{y}<extra></extra>',
+        ))
+        fig_ps.add_hline(y=mean_ps, line_dash="dash", line_color=t['accent2'],
+                         annotation_text=f"\u03bc = {_fmtd(mean_ps, 1)}",
+                         annotation_font=dict(size=10, color=t['accent2']))
+        fig_ps.update_layout(**_plotly_layout(
+            yaxis=dict(title="# Soluciones no dominadas", **_grid()),
+            xaxis=dict(tickangle=-45, tickfont=dict(size=8)),
+            height=320,
+            margin=dict(l=60, r=20, t=20, b=60),
+        ))
+        st.plotly_chart(fig_ps, use_container_width=True, theme=None,
+                        config={"displayModeBar": False}, key="conv_pareto_sizes")
+
+    with col_b:
+        st.markdown(f"""
+        <div class="metric-card" style="padding:18px;margin-top:10px;">
+            <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;
+                font-weight:600;">Soluciones Pareto</div>
+            <div style="{_ms}font-size:1.4rem;color:{t['accent3']};margin:6px 0;">
+                {_fmtd(mean_ps, 1)} \u00b1 {_fmtd(float(np.std(pareto_sizes)), 1)}</div>
+            <div style="font-size:0.75rem;color:{t['text_subtle']};">promedio por corrida</div>
+            <div style="margin-top:12px;font-size:0.8rem;">
+                <span style="color:{t['text_muted']};">Min:</span>
+                <span style="color:{t['text']};font-weight:600;"> {min(pareto_sizes)}</span>
+                <span style="color:{t['text_muted']};margin-left:12px;">Max:</span>
+                <span style="color:{t['text']};font-weight:600;"> {max(pareto_sizes)}</span>
+            </div>
+            <div style="margin-top:8px;font-size:0.8rem;">
+                <span style="color:{t['text_muted']};">Combinadas:</span>
+                <span style="color:{t['accent2']};font-weight:600;"> {summary['combined_pareto_size']}</span>
+            </div>
+            <div style="font-size:0.7rem;color:{t['text_subtle']};margin-top:10px;font-style:italic;
+                line-height:1.3;">
+                De {sum(pareto_sizes)} soluciones Pareto individuales, al combinar las 30 corridas
+                y eliminar las dominadas, quedan {summary['combined_pareto_size']} soluciones únicas
+                en el frente final.</div>
+        </div>""", unsafe_allow_html=True)
+
+    # ── Individual run explorer ──
     st.markdown('<div class="section-title">Explorador de Corrida Individual</div>',
                 unsafe_allow_html=True)
+    st.markdown(f"""<div style="font-size:0.8rem;color:{t['text_muted']};margin-bottom:8px;">
+        Selecciona una corrida en el sidebar para ver su frente de Pareto individual
+        comparado con el FIFO.</div>""", unsafe_allow_html=True)
 
     run_data = load_run(run_idx)
     rf1 = [p["f1"] for p in run_data["pareto_front"]]
     rf2 = [p["f2"] for p in run_data["pareto_front"]]
 
+    # Rank of this run
+    rank = sorted(final_hvs, reverse=True).index(run_data["hv_final"]) + 1
+    rank_color = t['accent3'] if rank <= 10 else (t['accent2'] if rank <= 20 else t['danger'])
+
+    rc1, rc2, rc3 = st.columns(3)
+    for col, lbl, val, clr in [
+        (rc1, f"Corrida #{run_idx + 1}", f"HV = {_fmtd(run_data['hv_final'])}",
+         t['accent1']),
+        (rc2, "Ranking", f"#{rank} de {num_runs}", rank_color),
+        (rc3, "Soluciones Pareto", f"{run_data['num_pareto']}", t['accent3']),
+    ]:
+        with col:
+            st.markdown(f"""
+            <div class="metric-card" style="text-align:center;padding:12px;">
+                <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;
+                    font-weight:600;">{lbl}</div>
+                <div style="{_ms}font-size:1.2rem;color:{clr};margin-top:4px;">{val}</div>
+            </div>""", unsafe_allow_html=True)
+
     fig_run = go.Figure()
     fig_run.add_trace(go.Scatter(
         x=rf1, y=rf2, mode='markers',
-        marker=dict(size=8, color=t['accent1'], line=dict(width=1, color='white')),
+        marker=dict(size=9, color=t['accent1'],
+                    line=dict(width=1, color=t['marker_line'])),
         name=f"Corrida {run_idx + 1} ({run_data['num_pareto']} sol.)",
-        hovertemplate='f\u2081 espera: %{x:.3f} a\u00f1os<br>f\u2082 disparidad: %{y:.2f} a\u00f1os<extra></extra>',
+        hovertemplate='f\u2081: %{x:.3f}<br>f\u2082: %{y:.2f}<extra></extra>',
     ))
     fig_run.add_trace(go.Scatter(
         x=[baseline[0]], y=[baseline[1]], mode='markers',
         marker=dict(size=18, color=t['danger'], symbol='star',
-                    line=dict(width=2, color='white')),
+                    line=dict(width=2, color=t['marker_line'])),
         name='FIFO (actual)',
+        hovertemplate='FIFO<br>f\u2081: %{x:.3f}<br>f\u2082: %{y:.2f}<extra></extra>',
     ))
     fig_run.update_layout(**_plotly_layout(
-        title=dict(text=f"Corrida {run_idx + 1} \u2014 HV = {_fmtd(run_data['hv_final'])}",
-                   font=dict(size=14)),
-        xaxis=dict(title="f\u2081 \u2014 Carga de espera no atendida (a\u00f1os)", **_grid()),
-        yaxis=dict(title="f\u2082 \u2014 Disparidad entre paises (a\u00f1os)", **_grid()),
-        legend=dict(bgcolor="rgba(0,0,0,0.3)"), height=400,
+        xaxis=dict(title="f\u2081 \u2014 Carga de espera (a\u00f1os)", **_grid()),
+        yaxis=dict(title="f\u2082 \u2014 Disparidad (a\u00f1os)", **_grid()),
+        legend=dict(bgcolor=t['legend_bg']), height=420,
+        margin=dict(t=20),
     ))
-    st.plotly_chart(fig_run, use_container_width=True, theme=None, config={"displayModeBar": False})
+    st.plotly_chart(fig_run, use_container_width=True, theme=None,
+                    config={"displayModeBar": False}, key="conv_run_pareto")
+
+    # ── Summary table ──
+    with st.expander("Ver tabla completa de las 30 corridas"):
+        import pandas as pd
+        df_runs = pd.DataFrame({
+            "Corrida": [f"#{i + 1}" for i in range(num_runs)],
+            "Seed": [42 + i for i in range(num_runs)],
+            "HV Final": [f"{hv:.2f}" for hv in final_hvs],
+            "# Pareto": pareto_sizes,
+            "Ranking HV": [sorted(final_hvs, reverse=True).index(hv) + 1 for hv in final_hvs],
+        })
+        st.dataframe(df_runs.sort_values("Ranking HV"), use_container_width=True, hide_index=True)
 
 
 # ── Tab 6: Datos y Fuentes ───────────────────────────────────
@@ -1592,9 +2127,9 @@ def _tab_data_sources(data: dict) -> None:
 
     st.markdown(f"""
     <div class="info-box">
-        Este modelo combina datos de multiples fuentes oficiales. Algunos paises tienen datos completos
+        Este modelo combina datos de múltiples fuentes oficiales. Algunos países tienen datos completos
         publicados por USCIS; para otros, se estimaron las cifras a partir del DHS Yearbook.
-        <strong>La transparencia sobre que es real y que es estimado es fundamental para la credibilidad del modelo.</strong>
+        <strong>La transparencia sobre qué es real y qué es estimado es fundamental para la credibilidad del modelo.</strong>
     </div>""", unsafe_allow_html=True)
 
     # Legend
@@ -1609,7 +2144,7 @@ def _tab_data_sources(data: dict) -> None:
         <div>
             <span class="source-badge source-est">EST</span>
             <span style="font-size:0.8rem;color:{t['text_muted']};margin-left:6px;">
-                Estimado (DHS Yearbook FY2023 / demanda sintetica)</span>
+                Estimado (DHS Yearbook FY2023 / demanda sintética)</span>
         </div>
         <div>
             <span class="source-badge source-calc">CALC</span>
@@ -1659,7 +2194,7 @@ def _tab_data_sources(data: dict) -> None:
         showscale=False,
         text=prov_text,
         texttemplate="%{text}",
-        textfont=dict(size=9, color='white', family='Inter'),
+        textfont=dict(size=9, color=t['text'], family='Inter'),
         hovertemplate='<b>%{y}</b> | %{x}<br>%{text}<extra></extra>',
     ))
 
@@ -1674,7 +2209,7 @@ def _tab_data_sources(data: dict) -> None:
     fig_prov.update_layout(**_plotly_layout(
         height=650, margin=dict(l=110, r=20, t=40, b=80),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5,
-                    bgcolor="rgba(0,0,0,0.3)", font=dict(size=11)),
+                    bgcolor=t['legend_bg'], font=dict(size=11)),
     ))
     st.plotly_chart(fig_prov, use_container_width=True, theme=None, config={"displayModeBar": False})
 
@@ -1737,10 +2272,10 @@ def _tab_data_sources(data: dict) -> None:
          "Misma fuente USCIS FY2025 Q2. Solo EB-2 y EB-3 tienen datos directos."),
         ("Demanda \u2014 Filipinas, Mexico (EB-1, EB-5)",
          "EST-DEM",
-         "Demanda sintetica estimada para categorias \u201cCurrent\u201d sin backlog visible."),
+         "Demanda sintética estimada para categorías \u201cCurrent\u201d sin backlog visible."),
         ("Demanda \u2014 16 pa\u00edses derivados de \u201cAll Other\u201d",
          "EST",
-         "DHS Yearbook FY2023, tablas de inmigracion calificada. Se uso la proporcion historica de cada pais."),
+         "DHS Yearbook FY2023, tablas de inmigración calificada. Se usó la proporción histórica de cada país."),
         ("Demanda \u2014 Resto del Mundo",
          "EST",
          "Residuo: total USCIS \u201cAll Other\u201d menos los 16 pa\u00edses estimados."),
@@ -1749,7 +2284,7 @@ def _tab_data_sources(data: dict) -> None:
          "U.S. Department of State, Visa Bulletin abril 2026, \u201cFinal Action Dates for Employment-Based Preference Cases.\u201d"),
         ("Tiempo de espera (w)",
          "CALC",
-         "w = T_actual (2026) \u2212 a\u00f1o de fecha de prioridad. Derivado automaticamente."),
+         "w = T_actual (2026) \u2212 a\u00f1o de fecha de prioridad. Derivado automáticamente."),
         ("L\u00edmites por categor\u00eda (K_base)",
          "REAL",
          "INA Section 203(b). EB-1/2/3: 28.6% cada una; EB-4/5: 7.1% cada una de 140,000."),
@@ -1761,7 +2296,7 @@ def _tab_data_sources(data: dict) -> None:
          "7% del total de visas (V_TOTAL = 366,000), INA Section 202(a)(2)."),
         ("Total visas EB (V = 140,000)",
          "REAL",
-         "Asignacion estatutaria anual para visas de empleo."),
+         "Asignación estatutaria anual para visas de empleo."),
     ]
 
     for title, src_type, desc in sources:
@@ -1775,43 +2310,124 @@ def _tab_data_sources(data: dict) -> None:
 
 
 # ── Tab 7: Acerca del Modelo ────────────────────────────────
-def _tab_math(data: dict) -> None:
-    """Tab: Modelo Matematico completo, consistente con HarrisFase02.tex."""
+def _tab_math(data: dict, summary: dict = None) -> None:
+    """Tab: Modelo Matemático completo, explicado para cualquier audiencia."""
     t = _get_theme()
     mono = "font-family:'JetBrains Mono',monospace;"
     eq_bg = f"background:{t['info_bg']};border-radius:10px;padding:12px 16px;margin:8px 0;"
     eq_color = f"color:{t['accent2']} !important;"
+    G = len(data['countries']) * len(data['categories'])
 
-    st.markdown('<div class="section-title">Formulacion Matematica Biobjetivo</div>',
+    # ── Intro: El problema en lenguaje humano ──
+    st.markdown('<div class="section-title">El Problema en Palabras Simples</div>',
                 unsafe_allow_html=True)
-
     st.markdown(f"""
-    <div class="info-box">
-        Esta formulacion corresponde exactamente al modelo implementado en el codigo
-        y documentado en <em>HarrisFase02.tex</em> (Secciones 3-5).
-        El problema asigna <strong>{_fmt(data['total_visas'])}</strong> visas EB anuales
-        entre <strong>{len(data['countries'])} bloques de paises</strong> y
-        <strong>{len(data['categories'])} categorias</strong> (G = {len(data['countries']) * len(data['categories'])} grupos).
+    <div class="info-box" style="font-size:0.9rem;line-height:1.7;">
+        Imagina que tienes <strong style="color:{t['accent2']};">{_fmt(data['total_visas'])} boletos de avión</strong>
+        para repartir entre <strong style="color:{t['accent2']};">{_fmt(data['total_demand'])}</strong> personas
+        de <strong style="color:{t['accent2']};">{len(data['countries'])} países</strong> que llevan años esperando.
+        <br><br>
+        El sistema actual (FIFO) reparte por orden de llegada, pero tiene un limite:
+        <strong>ningún país puede recibir más del 7%</strong>. Esto genera un cuello de botella
+        brutal para India y China, donde la gente espera <strong style="color:{t['danger']};">10-13 años</strong>,
+        mientras países con poca demanda reciben sus visas en meses.
+        <br><br>
+        Nuestro modelo busca responder: <em>¿hay una forma más justa de repartir esas {_fmt(data['total_visas'])} visas?</em>
+        La respuesta no es única — hay <strong>88 formas diferentes</strong>, cada una con un balance
+        distinto entre ayudar a los que más esperan y tratar a todos los países por igual.
     </div>""", unsafe_allow_html=True)
 
-    # Variable de decision
+    # ── What are we deciding? ──
+    st.markdown('<div class="section-title">¿Qué Decidimos? (Variable de Decisión)</div>',
+                unsafe_allow_html=True)
     st.markdown(f"""
-    <div class="section-title" style="font-size:1.2rem;">Variable de Decision</div>
-    <p style="color:{t['tab_text']} !important;font-size:0.85rem;">
-        Para cada grupo g (combinacion pais-categoria):</p>
-    <div style="{eq_bg}">
-        <div style="{mono}{eq_color}text-align:center;font-size:1rem;">
-            x<sub>g</sub> \u2208 \u2124\u207a\u2080 &nbsp;:&nbsp; visas asignadas al grupo g,
-            &nbsp; \u2200 g \u2208 \U0001d4a2</div>
-    </div>
-    <p style="color:{t['tab_text']} !important;font-size:0.85rem;">
-        El vector de decision <strong>x</strong> = (x\u2081, x\u2082, ..., x\u2081\u2080\u2085)
-        tiene G = {len(data['countries']) * len(data['categories'])} componentes enteras no negativas.</p>
-    """, unsafe_allow_html=True)
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="metric-card">
+            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+                En lenguaje cotidiano</div>
+            <p style="font-size:0.85rem;color:{t['tab_text']} !important;margin:8px 0;line-height:1.6;">
+                Para cada combinación de país + categoría (ej. "India EB-2"),
+                decidimos <strong>cuántas visas le damos</strong> este año.
+                <br><br>
+                Hay {len(data['countries'])} países y {len(data['categories'])} categorías = <strong>{G} grupos</strong>.
+                Cada grupo tiene un número diferente: India EB-2 podría recibir 5,000 visas,
+                Canada EB-1 podría recibir 200, etc.</p>
+        </div>
+        <div class="metric-card">
+            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+                En lenguaje matematico</div>
+            <div style="{eq_bg}">
+                <div style="{mono}{eq_color}text-align:center;font-size:1rem;">
+                    x<sub>g</sub> \u2208 \u2124\u207a\u2080 &nbsp;:&nbsp; visas asignadas al grupo g</div>
+            </div>
+            <p style="font-size:0.82rem;color:{t['tab_text']} !important;margin:6px 0;line-height:1.5;">
+                El vector <strong>x</strong> = (x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>{G}</sub>)
+                tiene {G} números enteros no negativos.<br>
+                Cada x<sub>g</sub> dice cuántas visas recibe el grupo g.</p>
+        </div>
+    </div>""", unsafe_allow_html=True)
 
-    # Objetivos
+    # ── The two objectives ──
+    st.markdown('<div class="section-title">Los Dos Objetivos (¿Qué Queremos Lograr?)</div>',
+                unsafe_allow_html=True)
     st.markdown(f"""
-    <div class="section-title" style="font-size:1.2rem;">Funciones Objetivo</div>""",
+    <div class="info-box" style="font-size:0.85rem;">
+        Queremos dos cosas a la vez, pero están en conflicto: si priorizas a India (que espera más),
+        otros países se quedan sin visas y la desigualdad crece. Si repartes equitativamente,
+        India sigue esperando décadas. No hay solución perfecta — hay <strong>88 compromisos</strong>.
+    </div>""", unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"""
+        <div class="metric-card" style="border-color:{t['accent1']}44;">
+            <div style="font-size:0.8rem;color:{t['accent1']} !important;font-weight:700;
+                text-transform:uppercase;margin-bottom:6px;">
+                Objetivo 1 (f\u2081): Reducir la Espera</div>
+            <p style="font-size:0.85rem;color:{t['tab_text']} !important;line-height:1.6;margin:0 0 10px;">
+                <strong>En simple:</strong> darle visas a la gente que lleva <em>más años esperando</em>.
+                Si India lleva 13 años y Canada 4, priorizamos a India.</p>
+            <div style="{eq_bg}">
+                <div style="{mono}{eq_color}text-align:center;font-size:0.95rem;">
+                    f\u2081(x) = \u03a3<sub>g</sub>
+                    (n<sub>g</sub> \u2212 x<sub>g</sub>) \u00b7 w<sub>g</sub>
+                    &nbsp;/&nbsp; \u03a3<sub>g</sub> n<sub>g</sub></div>
+            </div>
+            <div style="font-size:0.8rem;color:{t['tab_text']} !important;line-height:1.6;">
+                <strong>n<sub>g</sub></strong> = cuántas personas esperan en el grupo g<br>
+                <strong>x<sub>g</sub></strong> = cuántas visas le damos al grupo g<br>
+                <strong>w<sub>g</sub></strong> = años que llevan esperando<br>
+                <strong>(n<sub>g</sub> \u2212 x<sub>g</sub>)</strong> = personas que se <em>quedan sin visa</em><br><br>
+                La fórmula dice: de los que no recibieron visa, ¿cuántos años de espera acumulan?
+                Dividimos entre el total para normalizar. <strong>Queremos que sea lo más bajo posible.</strong></div>
+        </div>""", unsafe_allow_html=True)
+
+    with col2:
+        st.markdown(f"""
+        <div class="metric-card" style="border-color:{t['accent3']}44;">
+            <div style="font-size:0.8rem;color:{t['accent3']} !important;font-weight:700;
+                text-transform:uppercase;margin-bottom:6px;">
+                Objetivo 2 (f\u2082): Reducir la Desigualdad</div>
+            <p style="font-size:0.85rem;color:{t['tab_text']} !important;line-height:1.6;margin:0 0 10px;">
+                <strong>En simple:</strong> que la espera sea <em>parecida</em> entre países.
+                Si India espera 13 años y Canada 1, la brecha es 12 — queremos reducirla.</p>
+            <div style="{eq_bg}">
+                <div style="{mono}{eq_color}text-align:center;font-size:0.95rem;">
+                    W\u0304<sub>c</sub> = \u03a3 x<sub>g</sub>\u00b7w<sub>g</sub>
+                    &nbsp;/&nbsp; \u03a3 x<sub>g</sub>
+                    &nbsp;&nbsp; (por país c)</div>
+                <div style="{mono}{eq_color}text-align:center;font-size:0.95rem;margin-top:6px;">
+                    f\u2082(x) = max |W\u0304<sub>c1</sub> \u2212 W\u0304<sub>c2</sub>|</div>
+            </div>
+            <div style="font-size:0.8rem;color:{t['tab_text']} !important;line-height:1.6;">
+                <strong>W\u0304<sub>c</sub></strong> = espera promedio de las visas que le dimos al país c<br>
+                Si un país <strong>no recibe visas</strong>: W\u0304<sub>c</sub> = su espera máxima (castigo)<br><br>
+                La fórmula busca el par de países con la <strong>mayor diferencia</strong> de espera.
+                Esa brecha máxima es f\u2082. <strong>Queremos que sea lo más baja posible.</strong></div>
+        </div>""", unsafe_allow_html=True)
+
+    # ── Why conflict ──
+    st.markdown('<div class="section-title">¿Por qué No se Puede Ganar en Ambos?</div>',
                 unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
@@ -1819,377 +2435,588 @@ def _tab_math(data: dict) -> None:
         st.markdown(f"""
         <div class="metric-card" style="border-color:{t['accent1']}44;">
             <div style="font-size:0.75rem;color:{t['accent1']} !important;font-weight:700;
-                text-transform:uppercase;margin-bottom:8px;">
-                Objetivo 1: Minimizar carga de espera no atendida</div>
-            <div style="{eq_bg}">
-                <div style="{mono}{eq_color}text-align:center;font-size:0.95rem;">
-                    f\u2081(x) = \u03a3<sub>g\u2208\U0001d4a2</sub>
-                    (n<sub>g</sub> \u2212 x<sub>g</sub>) \u00b7 w<sub>g</sub>
-                    &nbsp;/&nbsp; \u03a3<sub>g\u2208\U0001d4a2</sub> n<sub>g</sub></div>
+                text-transform:uppercase;">Estrategia A: "Ayudar a los que más esperan"</div>
+            <p style="font-size:0.82rem;color:{t['tab_text']} !important;margin:8px 0;line-height:1.5;">
+                Damos todas las visas posibles a India y China primero.
+                Se reduce mucho la espera global, pero Canada, Alemania y otros
+                con poca espera se quedan sin nada.</p>
+            <div style="display:flex;gap:1rem;margin-top:8px;">
+                <div style="text-align:center;flex:1;padding:8px;background:{t['info_bg']};border-radius:8px;">
+                    <div style="font-size:0.6rem;color:{t['text_muted']};text-transform:uppercase;">f\u2081 espera</div>
+                    <div style="{mono}font-size:1rem;color:{t['accent3']} !important;">Baja</div>
+                </div>
+                <div style="text-align:center;flex:1;padding:8px;background:{t['info_bg']};border-radius:8px;">
+                    <div style="font-size:0.6rem;color:{t['text_muted']};text-transform:uppercase;">f\u2082 brecha</div>
+                    <div style="{mono}font-size:1rem;color:{t['danger']} !important;">Alta</div>
+                </div>
             </div>
-            <div style="font-size:0.8rem;color:{t['tab_text']} !important;margin-top:8px;line-height:1.5;">
-                <strong>n<sub>g</sub></strong> = demanda del grupo g (peticiones aprobadas en espera)<br>
-                <strong>x<sub>g</sub></strong> = visas asignadas al grupo g<br>
-                <strong>w<sub>g</sub></strong> = t<sub>actual</sub> \u2212 d<sub>g</sub> (a\u00f1os de espera,
-                donde d<sub>g</sub> es la fecha de prioridad)<br><br>
-                <em>Interpretacion:</em> promedio ponderado de espera que queda sin atender.
-                Minimizar prioriza a los grupos con mayor tiempo acumulado.</div>
         </div>""", unsafe_allow_html=True)
-
     with col2:
         st.markdown(f"""
         <div class="metric-card" style="border-color:{t['accent3']}44;">
             <div style="font-size:0.75rem;color:{t['accent3']} !important;font-weight:700;
-                text-transform:uppercase;margin-bottom:8px;">
-                Objetivo 2: Minimizar disparidad maxima entre paises</div>
-            <div style="{eq_bg}">
-                <div style="{mono}{eq_color}text-align:center;font-size:0.95rem;">
-                    W\u0304<sub>c</sub>(x) = \u03a3 x<sub>g</sub>\u00b7w<sub>g</sub>
-                    &nbsp;/&nbsp; \u03a3 x<sub>g</sub>
-                    &nbsp;&nbsp; (para g con c(g)=c)</div>
-                <div style="{mono}{eq_color}text-align:center;font-size:0.95rem;margin-top:6px;">
-                    f\u2082(x) = max<sub>c\u2081,c\u2082 \u2208 \U0001d49e</sub>
-                    |W\u0304<sub>c\u2081</sub> \u2212 W\u0304<sub>c\u2082</sub>|</div>
+                text-transform:uppercase;">Estrategia B: "Tratar a todos igual"</div>
+            <p style="font-size:0.82rem;color:{t['tab_text']} !important;margin:8px 0;line-height:1.5;">
+                Repartimos visas para que todos los países tengan esperas similares.
+                Muy equitativo, pero India sigue con colas de décadas porque no recibe suficientes.</p>
+            <div style="display:flex;gap:1rem;margin-top:8px;">
+                <div style="text-align:center;flex:1;padding:8px;background:{t['info_bg']};border-radius:8px;">
+                    <div style="font-size:0.6rem;color:{t['text_muted']};text-transform:uppercase;">f\u2081 espera</div>
+                    <div style="{mono}font-size:1rem;color:{t['danger']} !important;">Alta</div>
+                </div>
+                <div style="text-align:center;flex:1;padding:8px;background:{t['info_bg']};border-radius:8px;">
+                    <div style="font-size:0.6rem;color:{t['text_muted']};text-transform:uppercase;">f\u2082 brecha</div>
+                    <div style="{mono}font-size:1rem;color:{t['accent3']} !important;">Baja</div>
+                </div>
             </div>
-            <div style="font-size:0.8rem;color:{t['tab_text']} !important;margin-top:8px;line-height:1.5;">
-                <strong>W\u0304<sub>c</sub></strong> = espera promedio ponderada de las visas
-                otorgadas al pais c<br>
-                Si un pais no recibe visas: W\u0304<sub>c</sub> = w<sub>c</sub><sup>max</sup>
-                (penalizacion maxima)<br><br>
-                <em>Interpretacion:</em> la peor brecha de espera entre cualquier par de paises.
-                Minimizar busca que ningun pais sea tratado desproporcionadamente.</div>
         </div>""", unsafe_allow_html=True)
 
-    # Constraints
     st.markdown(f"""
-    <div class="section-title" style="font-size:1.2rem;">Restricciones</div>""",
+    <div class="info-box" style="border-left:4px solid {t['accent2']};font-size:0.85rem;">
+        <strong>Ninguna estrategia gana en ambos:</strong> A es mejor en f\u2081 pero peor en f\u2082;
+        B es mejor en f\u2082 pero peor en f\u2081. Esto se llama <strong>conflicto estructural</strong>
+        y es la razón por la que no hay UNA solución óptima, sino un <strong>frente de {summary['combined_pareto_size']} compromisos</strong>.
+    </div>""", unsafe_allow_html=True)
+
+    # ── Why biobjetivo ──
+    st.markdown('<div class="section-title">¿Por qué 2 Objetivos y No 3?</div>',
                 unsafe_allow_html=True)
+
+    # Compute actual visa usage stats from Pareto solutions
+    pareto_visa_stats = compute_pareto_visas(tuple(sorted(
+        [(p[0], p[1]) for p in load_pareto_csv()[0]], key=lambda x: x[0])))
+    pv_vals = list(pareto_visa_stats.values())
+    pv_min, pv_max, pv_mean = min(pv_vals), max(pv_vals), sum(pv_vals) / len(pv_vals)
+
+    st.markdown(f"""
+    <div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+        Originalmente se planteó un tercer objetivo: <strong>f\u2083 = visas desperdiciadas</strong>
+        (V \u2212 \u03a3x<sub>g</sub>). Veamos qué pasa en la práctica:
+    </div>""", unsafe_allow_html=True)
+
+    c1, c2, c3 = st.columns(3)
+    _mono = "font-family:'JetBrains Mono';font-weight:700;"
+    with c1:
+        st.markdown(f"""
+        <div class="metric-card" style="border-color:{t['danger']}44;text-align:center;">
+            <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+                FIFO (sistema actual)</div>
+            <div style="{_mono}font-size:1.3rem;color:{t['danger']};margin:6px 0;">
+                {_fmt(data['fifo_used'])} visas</div>
+            <div style="font-size:0.75rem;color:{t['tab_text']} !important;">
+                Desperdicia <strong style="color:{t['danger']};">{_fmt(data['total_visas'] - data['fifo_used'])}</strong>
+                visas por chocar con límites por país</div>
+        </div>""", unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""
+        <div class="metric-card" style="border-color:{t['accent2']}44;text-align:center;">
+            <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+                MOHHO (88 soluciones Pareto)</div>
+            <div style="{_mono}font-size:1.3rem;color:{t['accent2']};margin:6px 0;">
+                {_fmt(int(pv_mean))} promedio</div>
+            <div style="font-size:0.75rem;color:{t['tab_text']} !important;">
+                Rango: {_fmt(pv_min)} a {_fmt(pv_max)} visas<br>
+                f\u2083 varía entre {_fmt(data['total_visas'] - pv_max)} y {_fmt(data['total_visas'] - pv_min)}</div>
+        </div>""", unsafe_allow_html=True)
+    with c3:
+        st.markdown(f"""
+        <div class="metric-card" style="border-color:{t['accent1']}44;text-align:center;">
+            <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+                Decisión de diseño</div>
+            <div style="{_mono}font-size:1.3rem;color:{t['accent1']};margin:6px 0;">
+                Biobjetivo</div>
+            <div style="font-size:0.75rem;color:{t['tab_text']} !important;">
+                f\u2083 se deja como métrica observable,<br>no como objetivo de optimización</div>
+        </div>""", unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+        <strong>¿Por qué no se optimiza f\u2083?</strong><br><br>
+        f\u2083 (visas no usadas) <em>sí varía</em> entre soluciones — no es trivialmente cero.
+        Las soluciones que priorizan equidad (f\u2082 bajo) tienden a usar menos visas porque
+        reparten entre más países y chocan con más límites.<br><br>
+        Sin embargo, agregar f\u2083 como tercer objetivo complicaría el frente de Pareto
+        (pasaría de una curva 2D a una superficie 3D) y las soluciones con f\u2083 bajo
+        (más utilización) ya están bien representadas: tienden a correlacionar con f\u2081 bajo.
+        <br><br>
+        <strong>Decisión:</strong> se mantiene como modelo biobjetivo min\u007bf\u2081, f\u2082\u007d.
+        f\u2083 se reporta como <strong>métrica de observación</strong> en el frente de Pareto
+        (visible como color y eje Z en la vista 3D), pero no dirige la búsqueda.
+        El presupuesto total de {_fmt(data['total_visas'])} visas se respeta como
+        <strong>restricción R1</strong> (\u03a3x<sub>g</sub> \u2264 V).
+    </div>""", unsafe_allow_html=True)
+
+    # ── Constraints (with real-world meaning) ──
+    st.markdown('<div class="section-title">Las 6 Reglas del Juego (Restricciones)</div>',
+                unsafe_allow_html=True)
+    st.markdown(f"""<p style="font-size:0.85rem;color:{t['tab_text']} !important;">
+        No podemos repartir visas como se nos antoje. La ley de inmigración de EE.UU.
+        impone reglas estrictas:</p>""", unsafe_allow_html=True)
 
     constraints = [
-        ("R1", "Capacidad anual",
-         f"\u03a3<sub>g\u2208\U0001d4a2</sub> x<sub>g</sub> \u2264 V",
-         f"No se pueden emitir mas de V = {_fmt(data['total_visas'])} visas EB por a\u00f1o fiscal."),
-        ("R2", "Limite por pais (7%)",
-         "\u03a3<sub>g: c(g)=c</sub> x<sub>g</sub> \u2264 P<sub>c</sub> &nbsp; \u2200c",
-         f"Ningun pais recibe mas de P<sub>c</sub> = {_fmt(25620)} visas (7% del total)."),
-        ("R3", "Limite por categoria",
-         "\u03a3<sub>g: j(g)=j</sub> x<sub>g</sub> \u2264 K<sub>j</sub><sup>eff</sup> &nbsp; \u2200j",
-         "Cada categoria EB tiene un tope ajustado por spillover."),
-        ("R4", "Limite por demanda",
-         "0 \u2264 x<sub>g</sub> \u2264 n<sub>g</sub> &nbsp; \u2200g",
-         "No se asignan mas visas de las solicitadas."),
-        ("R5", "Integridad",
-         "x<sub>g</sub> \u2208 \u2124\u207a\u2080",
-         "Las visas son indivisibles (enteros no negativos)."),
-        ("R6", "FIFO por grupo",
-         "Orden de fecha de prioridad dentro de (c, j)",
-         "Dentro de cada grupo, se procesan las peticiones mas antiguas primero."),
+        ("R1", "Presupuesto anual",
+         f"\u03a3 x<sub>g</sub> \u2264 {_fmt(data['total_visas'])}",
+         "No puedes dar más visas de las que existen.",
+         f"Solo hay {_fmt(data['total_visas'])} visas EB por año. Ni una más."),
+        ("R2", "Limite por país (7%)",
+         "\u03a3 x<sub>g</sub> \u2264 {_fmt(25620)} por país",
+         "Ningún país puede acaparar todo.",
+         "Cada país recibe máximo 7% del total. Por eso India, con 70% de la demanda, tiene colas de décadas."),
+        ("R3", "Límite por categoría",
+         "\u03a3 x<sub>g</sub> \u2264 K<sub>j</sub><sup>eff</sup> por categoría",
+         "Cada tipo de visa tiene su tope.",
+         "EB-1 (extraordinarios), EB-2 (profesionales), etc. tienen cupos propios, ajustados por spillover."),
+        ("R4", "No dar de mas",
+         "x<sub>g</sub> \u2264 n<sub>g</sub>",
+         "No puedes dar más visas de las que piden.",
+         "Si Canada EB-5 pide 100, no puedes darle 200."),
+        ("R5", "Enteros",
+         "x<sub>g</sub> \u2208 enteros \u2265 0",
+         "No hay media visa.",
+         "Cada visa es un permiso real — no se puede fraccionar."),
+        ("R6", "FIFO interno",
+         "Orden por fecha de prioridad",
+         "Dentro de cada grupo, los más antiguos primero.",
+         "Aunque reordenamos ENTRE grupos, DENTRO de cada grupo se respeta el orden de llegada."),
     ]
 
-    rows_html = ""
-    for rid, name, formula, desc in constraints:
-        rows_html += (
-            f"<tr><td style='font-weight:700;color:{t['accent1']} !important;'>{rid}</td>"
-            f"<td style='font-weight:600;'>{name}</td>"
-            f"<td style='{mono}{eq_color}font-size:0.8rem;'>{formula}</td>"
-            f"<td style='font-size:0.78rem;color:{t['tab_text']} !important;'>{desc}</td></tr>"
-        )
-
-    st.markdown(f"""
-    <table class="dark-table">
-        <thead><tr>
-            <th>ID</th><th>Restriccion</th><th>Formula</th><th>Descripcion</th>
-        </tr></thead>
-        <tbody>{rows_html}</tbody>
-    </table>""", unsafe_allow_html=True)
-
-    # Spillover
-    st.markdown(f"""
-    <div class="section-title" style="font-size:1.2rem;">Spillover (Desbordamiento entre Categorias)</div>
-    <p style="color:{t['tab_text']} !important;font-size:0.85rem;">
-        Las visas no usadas por una categoria se redistribuyen segun reglas del INA:</p>
-    <div style="{eq_bg}">
-        <div style="{mono}{eq_color}font-size:0.85rem;line-height:2;">
-            S\u2084 = max(0, K\u2084 \u2212 D\u2084), &nbsp;
-            S\u2085 = max(0, K\u2085 \u2212 D\u2085)<br>
-            K\u2081<sup>eff</sup> = K\u2081 + S\u2084 + S\u2085<br>
-            S\u2081 = max(0, K\u2081<sup>eff</sup> \u2212 D\u2081)<br>
-            K\u2082<sup>eff</sup> = K\u2082 + S\u2081, &nbsp;
-            S\u2082 = max(0, K\u2082<sup>eff</sup> \u2212 D\u2082)<br>
-            K\u2083<sup>eff</sup> = K\u2083 + S\u2082
-        </div>
-    </div>
-    <p style="color:{t['tab_text']} !important;font-size:0.85rem;">
-        EB-4 y EB-5 tienen baja demanda, asi que su excedente sube a EB-1.
-        El excedente de EB-1 baja a EB-2, y de EB-2 a EB-3.</p>
-    """, unsafe_allow_html=True)
-
-    # Encoding
-    st.markdown(f"""
-    <div class="section-title" style="font-size:1.2rem;">Codificacion en 3 Capas</div>
-    <p style="color:{t['tab_text']} !important;font-size:0.85rem;">
-        El algoritmo HHO opera en espacio continuo, pero el problema es combinatorio.
-        Se usa una representacion en 3 capas:</p>
-    """, unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
+    for rid, name, formula, simple, detail in constraints:
         st.markdown(f"""
-        <div class="metric-card" style="text-align:center;">
-            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
-                Capa 1: Continua</div>
-            <div style="{mono}font-size:0.9rem;color:{t['accent1']} !important;margin:8px 0;">
-                H = (h\u2081, ..., h<sub>G</sub>) \u2208 [0,1]<sup>G</sup></div>
-            <div style="font-size:0.78rem;color:{t['tab_text']} !important;">
-                Vector que el HHO manipula con sus 6 operadores
-                (exploracion, explotacion, Levy).</div>
-        </div>""", unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card" style="text-align:center;">
-            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
-                Capa 2: Permutacion (SPV)</div>
-            <div style="{mono}font-size:0.9rem;color:{t['accent2']} !important;margin:8px 0;">
-                \u03c0 = argsort(H)</div>
-            <div style="font-size:0.78rem;color:{t['tab_text']} !important;">
-                Se ordenan los indices por valor ascendente
-                (Smallest Position Value, Bean 1994).</div>
-        </div>""", unsafe_allow_html=True)
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card" style="text-align:center;">
-            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
-                Capa 3: Asignacion (Decoder)</div>
-            <div style="{mono}font-size:0.9rem;color:{t['accent3']} !important;margin:8px 0;">
-                x<sub>g</sub> = min(n<sub>g</sub>, V<sub>rest</sub>, P<sub>c</sub>, K<sub>j</sub>)</div>
-            <div style="font-size:0.78rem;color:{t['tab_text']} !important;">
-                Decodificador greedy recorre \u03c0 y asigna respetando R1-R6.
-                Toda permutacion produce solucion factible.</div>
+        <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;
+            padding:12px 16px;background:{t['card_bg']};border-radius:12px;
+            border:1px solid {t['card_border']};border-left:4px solid {t['accent1']};">
+            <div style="min-width:36px;text-align:center;">
+                <div style="{mono}font-weight:700;font-size:0.9rem;color:{t['accent1']} !important;">{rid}</div>
+            </div>
+            <div style="flex:1;">
+                <div style="font-weight:700;font-size:0.85rem;color:{t['text']} !important;">{name}:
+                    <span style="font-weight:400;color:{t['tab_text']} !important;">{simple}</span></div>
+                <div style="font-size:0.78rem;color:{t['text_subtle']} !important;margin-top:4px;">{detail}</div>
+                <div style="{mono}font-size:0.75rem;color:{t['accent2']} !important;margin-top:4px;
+                    opacity:0.8;">{formula}</div>
+            </div>
         </div>""", unsafe_allow_html=True)
 
-    # Decoder algorithm
-    st.markdown(f"""
-    <div class="section-title" style="font-size:1.2rem;">Algoritmo del Decodificador Greedy</div>
-    <div style="{eq_bg}">
-        <div style="{mono}font-size:0.8rem;color:{t['tab_text']} !important;line-height:1.8;">
-            <strong style="{eq_color}">Entrada:</strong> permutacion \u03c0, parametros V, P<sub>c</sub>,
-            K<sub>j</sub><sup>eff</sup>, n<sub>g</sub><br>
-            <strong style="{eq_color}">Salida:</strong> vector de asignacion x<br><br>
-            1. V<sub>rest</sub> \u2190 V; &nbsp; uso_pais[c] \u2190 0; &nbsp; uso_cat[j] \u2190 0<br>
-            2. <strong>Para</strong> k = 1, 2, ..., G:<br>
-            &nbsp;&nbsp;&nbsp; g \u2190 \u03c0<sub>k</sub><br>
-            &nbsp;&nbsp;&nbsp; cap_pais \u2190 P<sub>c(g)</sub> \u2212 uso_pais[c(g)]<br>
-            &nbsp;&nbsp;&nbsp; cap_cat \u2190 K<sub>j(g)</sub><sup>eff</sup> \u2212 uso_cat[j(g)]<br>
-            &nbsp;&nbsp;&nbsp; x<sub>g</sub> \u2190 min(n<sub>g</sub>, V<sub>rest</sub>, cap_pais, cap_cat)<br>
-            &nbsp;&nbsp;&nbsp; Actualizar: V<sub>rest</sub>, uso_pais[c(g)], uso_cat[j(g)]<br>
-            3. <strong>Retornar</strong> x
-        </div>
-    </div>
-    <p style="color:{t['tab_text']} !important;font-size:0.85rem;">
-        <strong>Propiedad clave:</strong> toda permutacion \u03c0 genera una asignacion factible.
-        No se necesitan funciones de penalizacion \u2014 la factibilidad esta garantizada por dise\u00f1o.</p>
-    """, unsafe_allow_html=True)
-
-    # Pareto dominance
-    st.markdown(f"""
-    <div class="section-title" style="font-size:1.2rem;">Dominancia de Pareto</div>
-    <div style="{eq_bg}">
-        <div style="{mono}{eq_color}text-align:center;font-size:0.9rem;">
-            a \u227b b &nbsp;\u27fa&nbsp;
-            \u2200m \u2208 \u007b1,2\u007d: f<sub>m</sub>(a) \u2264 f<sub>m</sub>(b)
-            &nbsp;\u2227&nbsp; \u2203m: f<sub>m</sub>(a) &lt; f<sub>m</sub>(b)</div>
-    </div>
-    <p style="color:{t['tab_text']} !important;font-size:0.85rem;">
-        La solucion <strong>a</strong> domina a <strong>b</strong> si es mejor o igual en ambos
-        objetivos y estrictamente mejor en al menos uno. El <strong>frente de Pareto</strong>
-        es el conjunto de soluciones no dominadas por ninguna otra:</p>
-    <div style="{eq_bg}">
-        <div style="{mono}{eq_color}text-align:center;font-size:0.9rem;">
-            \U0001d4ab* = \u007b x \u2208 \U0001d4d5 | \u2204 x' \u2208 \U0001d4d5 : x' \u227b x \u007d</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Conflict proof
-    st.markdown(f"""
-    <div class="section-title" style="font-size:1.2rem;">¿Por que los Objetivos Estan en Conflicto?</div>""",
+    # ── Spillover ──
+    st.markdown('<div class="section-title">Spillover: Las Visas que Sobran se Pasan</div>',
                 unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(f"""
-        <div class="metric-card" style="border-color:{t['accent1']}44;">
-            <div style="font-size:0.75rem;color:{t['accent1']} !important;font-weight:700;
-                text-transform:uppercase;">Permutacion A: priorizar antiguedad</div>
-            <p style="font-size:0.8rem;color:{t['tab_text']} !important;margin:8px 0;">
-                Procesar India y China primero (mayor w<sub>g</sub>).</p>
-            <div style="{mono}font-size:0.85rem;color:{t['accent1']} !important;">
-                f\u2081 \u2248 baja (poca espera residual)<br>
-                f\u2082 \u2248 alta (India ~13 a\u00f1os vs Canada &lt;1)</div>
-        </div>""", unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card" style="border-color:{t['accent3']}44;">
-            <div style="font-size:0.75rem;color:{t['accent3']} !important;font-weight:700;
-                text-transform:uppercase;">Permutacion B: priorizar equidad</div>
-            <p style="font-size:0.8rem;color:{t['tab_text']} !important;margin:8px 0;">
-                Distribuir uniformemente entre todos los paises.</p>
-            <div style="{mono}font-size:0.85rem;color:{t['accent3']} !important;">
-                f\u2081 \u2248 alta (mucha espera residual)<br>
-                f\u2082 \u2248 baja (tiempos similares)</div>
-        </div>""", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+        <strong>Ejemplo:</strong> EB-4 (visas especiales) y EB-5 (inversores) tienen poca demanda.
+        Sus visas sobrantes <strong>suben</strong> a EB-1. Si a EB-1 le sobran, <strong>bajan</strong>
+        a EB-2, y de EB-2 a EB-3. Así las visas no se desperdician.
+    </div>""", unsafe_allow_html=True)
 
     st.markdown(f"""
-    <p style="color:{t['tab_text']} !important;font-size:0.85rem;">
-        A no domina a B (f\u2082\u1d2c &gt; f\u2082\u1d2e) y B no domina a A (f\u2081\u1d2e &gt; f\u2081\u1d2c).
-        Esto prueba el <strong>conflicto estructural</strong> que justifica la resolucion
-        mediante frente de Pareto en lugar de optimizar un solo objetivo.</p>
-    """, unsafe_allow_html=True)
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+        padding:1.2rem;background:{t['card_bg']};border-radius:16px;
+        border:1px solid {t['card_border']};margin-bottom:12px;">
+        <div style="text-align:center;padding:10px 14px;background:{t['info_bg']};border-radius:10px;">
+            <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">EB-4, EB-5</div>
+            <div style="{mono}font-size:0.8rem;color:{t['accent3']} !important;">Sobran visas</div>
+        </div>
+        <div style="color:{t['accent2']};font-size:1.2rem;">\u2192</div>
+        <div style="text-align:center;padding:10px 14px;background:{t['info_bg']};border-radius:10px;">
+            <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">EB-1</div>
+            <div style="{mono}font-size:0.8rem;color:{t['accent2']} !important;">Recibe excedente</div>
+        </div>
+        <div style="color:{t['accent2']};font-size:1.2rem;">\u2192</div>
+        <div style="text-align:center;padding:10px 14px;background:{t['info_bg']};border-radius:10px;">
+            <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">EB-2</div>
+            <div style="{mono}font-size:0.8rem;color:{t['accent2']} !important;">Recibe sobrante de EB-1</div>
+        </div>
+        <div style="color:{t['accent2']};font-size:1.2rem;">\u2192</div>
+        <div style="text-align:center;padding:10px 14px;background:{t['info_bg']};border-radius:10px;">
+            <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">EB-3</div>
+            <div style="{mono}font-size:0.8rem;color:{t['accent2']} !important;">Recibe sobrante de EB-2</div>
+        </div>
+    </div>""", unsafe_allow_html=True)
 
-    # HV metric
+    with st.expander("Ver formulas de spillover"):
+        st.markdown(f"""
+        <div style="{eq_bg}">
+            <div style="{mono}{eq_color}font-size:0.85rem;line-height:2;">
+                S\u2084 = max(0, K\u2084 \u2212 D\u2084), &nbsp;
+                S\u2085 = max(0, K\u2085 \u2212 D\u2085)<br>
+                K\u2081<sup>eff</sup> = K\u2081 + S\u2084 + S\u2085<br>
+                S\u2081 = max(0, K\u2081<sup>eff</sup> \u2212 D\u2081)<br>
+                K\u2082<sup>eff</sup> = K\u2082 + S\u2081, &nbsp;
+                S\u2082 = max(0, K\u2082<sup>eff</sup> \u2212 D\u2082)<br>
+                K\u2083<sup>eff</sup> = K\u2083 + S\u2082
+            </div>
+        </div>""", unsafe_allow_html=True)
+
+    # ── How does the algorithm work (3 layers) ──
+    st.markdown('<div class="section-title">¿Cómo Encuentra las Soluciones? (Codificacion en 3 Capas)</div>',
+                unsafe_allow_html=True)
     st.markdown(f"""
-    <div class="section-title" style="font-size:1.2rem;">Metrica de Calidad: Hipervolumen</div>
-    <p style="color:{t['tab_text']} !important;font-size:0.85rem;">
-        El <strong>hipervolumen (HV)</strong> mide el area del espacio objetivo dominada por el frente
-        de Pareto respecto a un punto de referencia. Mayor HV = mejor cobertura del espacio de trade-offs.
-        Se usa como metrica principal para evaluar la calidad de las soluciones a traves de las 30 corridas.</p>
-    """, unsafe_allow_html=True)
+    <div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+        El algoritmo HHO está inspirado en <strong>halcones de Harris</strong> que cazan en grupo.
+        Cada halcón representa una posible forma de repartir visas. Pero los halcones
+        "piensan" en números decimales, y nosotros necesitamos decisiones enteras.
+        Aquí está el truco en 3 pasos:
+    </div>""", unsafe_allow_html=True)
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown(f"""
+        <div class="metric-card" style="text-align:center;">
+            <div style="font-size:1.8rem;margin-bottom:6px;">\U0001f985</div>
+            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+                Paso 1: El Halcon Vuela</div>
+            <div style="{mono}font-size:0.85rem;color:{t['accent1']} !important;margin:8px 0;">
+                H = (0.72, 0.15, 0.91, ...)</div>
+            <div style="font-size:0.78rem;color:{t['tab_text']} !important;line-height:1.5;">
+                El halcón tiene {G} números entre 0 y 1.
+                Los mueve usando 6 estrategias de caza
+                (exploracion, asedio, picada, vuelo de Levy...).</div>
+        </div>""", unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""
+        <div class="metric-card" style="text-align:center;">
+            <div style="font-size:1.8rem;margin-bottom:6px;">\U0001f522</div>
+            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+                Paso 2: Convertir a Orden (SPV)</div>
+            <div style="{mono}font-size:0.85rem;color:{t['accent2']} !important;margin:8px 0;">
+                \u03c0 = argsort(H) \u2192 (2, 1, 3, ...)</div>
+            <div style="font-size:0.78rem;color:{t['tab_text']} !important;line-height:1.5;">
+                Ordenamos los grupos de menor a mayor valor.
+                El grupo con el número más chico va primero
+                en la fila de las visas.</div>
+        </div>""", unsafe_allow_html=True)
+    with c3:
+        st.markdown(f"""
+        <div class="metric-card" style="text-align:center;">
+            <div style="font-size:1.8rem;margin-bottom:6px;">\u2699\ufe0f</div>
+            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+                Paso 3: Repartir (Decoder Greedy)</div>
+            <div style="{mono}font-size:0.85rem;color:{t['accent3']} !important;margin:8px 0;">
+                x<sub>g</sub> = min(demanda, disponible)</div>
+            <div style="font-size:0.78rem;color:{t['tab_text']} !important;line-height:1.5;">
+                Recorremos la fila y damos visas hasta agotar.
+                Cada grupo recibe lo que puede
+                sin violar ninguna regla.</div>
+        </div>""", unsafe_allow_html=True)
+
+    # ── Worked example ──
+    st.markdown('<div class="section-title">Ejemplo Paso a Paso</div>',
+                unsafe_allow_html=True)
+    st.markdown(f"""<div class="metric-card" style="padding:1.2rem 1.5rem;">
+<div style="font-size:0.85rem;color:{t['tab_text']} !important;line-height:1.8;">
+<strong style="color:{t['accent1']} !important;">Paso 1:</strong>
+El halcón genera: H = (<span style="{mono}color:{t['accent2']} !important;">0.72</span>,
+<span style="{mono}color:{t['accent2']} !important;">0.15</span>,
+<span style="{mono}color:{t['accent2']} !important;">0.91</span>,
+<span style="{mono}color:{t['accent2']} !important;">0.03</span>,
+<span style="{mono}color:{t['accent2']} !important;">0.58</span>)<br>
+<strong style="color:{t['accent2']} !important;">Paso 2 (SPV):</strong>
+Ordenamos de menor a mayor \u2192 \u03c0 = (4, 2, 5, 1, 3)<br>
+<span style="color:{t['text_muted']};">El grupo 4 (valor 0.03) va primero,
+luego el 2 (0.15), etc.</span><br>
+<strong style="color:{t['accent3']} !important;">Paso 3 (Decoder):</strong>
+Recorremos \u03c0 y repartimos:<br>
+<span style="color:{t['text_muted']};">
+&nbsp;&nbsp;\u2022 Grupo 4: pide 8,000 \u2192 le damos min(8000, disponible, cupo_país, cupo_cat)<br>
+&nbsp;&nbsp;\u2022 Grupo 2: pide 15,000 \u2192 le damos lo que se pueda sin violar R1-R6<br>
+&nbsp;&nbsp;\u2022 ... y así hasta agotar las {_fmt(data['total_visas'])} visas.
+</span><br><br>
+<strong>Propiedad clave:</strong> <em>cualquier</em> orden que genere el halcón produce una asignación
+válida. No se necesitan penalizaciones — la factibilidad está garantizada por diseño.
+</div>
+</div>""", unsafe_allow_html=True)
+
+    # ── Pareto dominance ──
+    st.markdown('<div class="section-title">¿Qué es el Frente de Pareto?</div>',
+                unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+        Imagina que comparas dos repartos de visas, <strong>A</strong> y <strong>B</strong>:<br><br>
+        \u2022 Si A tiene <strong>menor espera Y menor brecha</strong> que B \u2192 A es claramente mejor.
+        Decimos que A <em>domina</em> a B.<br>
+        \u2022 Si A tiene <strong>menor espera PERO mayor brecha</strong> \u2192 ninguno domina al otro.
+        Ambos son válidos, solo son compromisos diferentes.<br><br>
+        El <strong>frente de Pareto</strong> es el grupo de soluciones que nadie puede superar en ambos
+        objetivos a la vez. Son las "mejores opciones disponibles" — {summary['combined_pareto_size'] if summary else 88}
+        en nuestro caso.
+    </div>""", unsafe_allow_html=True)
+
+    with st.expander("Ver definición formal de dominancia"):
+        st.markdown(f"""
+        <div style="{eq_bg}">
+            <div style="{mono}{eq_color}text-align:center;font-size:0.9rem;">
+                a \u227b b &nbsp;\u27fa&nbsp;
+                \u2200m \u2208 \u007b1,2\u007d: f<sub>m</sub>(a) \u2264 f<sub>m</sub>(b)
+                &nbsp;\u2227&nbsp; \u2203m: f<sub>m</sub>(a) &lt; f<sub>m</sub>(b)</div>
+        </div>
+        <p style="font-size:0.82rem;color:{t['tab_text']} !important;">
+            a domina a b si es al menos igual en todo y estrictamente mejor en algo.</p>
+        <div style="{eq_bg}">
+            <div style="{mono}{eq_color}text-align:center;font-size:0.9rem;">
+                Frente de Pareto = \u007b x | no existe x' que domine a x \u007d</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ── Hypervolume ──
+    st.markdown('<div class="section-title">¿Cómo Sabemos si las Soluciones son Buenas? (Hipervolumen)</div>',
+                unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+        El <strong>hipervolumen (HV)</strong> es como medir el "área" que cubre el frente de Pareto
+        en el gráfico de f\u2081 vs f\u2082. Si el frente se expande (mejores soluciones),
+        el área crece.<br><br>
+        \u2022 <strong>Mayor HV = mejor:</strong> las soluciones cubren más espacio de opciones.<br>
+        \u2022 Lo calculamos para cada una de las 30 corridas del algoritmo para verificar que es
+        <strong>consistente</strong> (no fue suerte de una sola vez).<br>
+        \u2022 HV medio de nuestro modelo: <strong style="color:{t['accent2']};">{_fmtd(summary['hv_stats']['mean'] if summary else 35.92)}</strong>
+        con desviación estándar de solo <strong>{_fmtd(summary['hv_stats']['std'] if summary else 0.98)}</strong> \u2014 muy estable.
+    </div>""", unsafe_allow_html=True)
 
 
 def _tab_about(summary: dict, data: dict) -> None:
     t = _get_theme()
+    mono = "font-family:'JetBrains Mono',monospace;"
 
-    st.markdown('<div class="section-title">Flujo del Algoritmo MOHHO</div>',
+    # ── What is this project ──
+    st.markdown('<div class="section-title">¿Qué es Visa Predict AI?</div>',
                 unsafe_allow_html=True)
-
     st.markdown(f"""
-    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
-        padding:1.5rem;background:{t['card_bg']};border-radius:16px;
-        border:1px solid {t['card_border']};">
-        <div style="text-align:center;padding:12px 16px;background:{t['accent1']}26;border-radius:12px;">
-            <div style="font-size:1.5rem;">\U0001f985</div>
-            <div style="font-size:0.75rem;color:{t['accent2']};font-weight:700;">Halcon</div>
-            <div style="font-size:0.65rem;color:{t['text_subtle']};">Vector continuo<br>[0,1]^G</div>
-        </div>
-        <div style="color:{t['accent2']};font-size:1.5rem;">\u2192</div>
-        <div style="text-align:center;padding:12px 16px;background:{t['accent1']}26;border-radius:12px;">
-            <div style="font-size:1.5rem;">\U0001f522</div>
-            <div style="font-size:0.75rem;color:{t['accent2']};font-weight:700;">SPV</div>
-            <div style="font-size:0.65rem;color:{t['text_subtle']};">Smallest Position<br>Value \u2192 permutacion</div>
-        </div>
-        <div style="color:{t['accent2']};font-size:1.5rem;">\u2192</div>
-        <div style="text-align:center;padding:12px 16px;background:{t['accent1']}26;border-radius:12px;">
-            <div style="font-size:1.5rem;">\u2699\ufe0f</div>
-            <div style="font-size:0.75rem;color:{t['accent2']};font-weight:700;">Decoder</div>
-            <div style="font-size:0.65rem;color:{t['text_subtle']};">Greedy + 5<br>restricciones</div>
-        </div>
-        <div style="color:{t['accent2']};font-size:1.5rem;">\u2192</div>
-        <div style="text-align:center;padding:12px 16px;background:{t['accent1']}26;border-radius:12px;">
-            <div style="font-size:1.5rem;">\U0001f4ca</div>
-            <div style="font-size:0.75rem;color:{t['accent2']};font-weight:700;">f\u2081, f\u2082</div>
-            <div style="font-size:0.65rem;color:{t['text_subtle']};">f\u2081 espera<br>f\u2082 disparidad</div>
-        </div>
-        <div style="color:{t['accent2']};font-size:1.5rem;">\u2192</div>
-        <div style="text-align:center;padding:12px 16px;background:{t['accent3']}26;border-radius:12px;">
-            <div style="font-size:1.5rem;">\u2728</div>
-            <div style="font-size:0.75rem;color:{t['accent3']};font-weight:700;">Pareto</div>
-            <div style="font-size:0.65rem;color:{t['text_subtle']};">Archivo<br>externo</div>
-        </div>
+    <div class="info-box" style="font-size:0.9rem;line-height:1.8;">
+        <strong>Visa Predict AI</strong> es un proyecto de investigación que aplica inteligencia artificial
+        para repensar cómo se reparten las Green Cards de empleo en Estados Unidos.
+        <br><br>
+        El sistema actual (FIFO) atiende por orden de llegada, pero genera tiempos de espera absurdos:
+        un ingeniero indio que aplica hoy podria esperar <strong style="color:{t['danger']};">más de una
+        decada</strong>. Mientras tanto, países con poca demanda reciben visas en meses.
+        <br><br>
+        Usamos un algoritmo bio-inspirado llamado <strong>MOHHO</strong> (Multi-Objective Harris Hawks
+        Optimization) para encontrar <strong>88 formas alternativas</strong> de repartir las mismas
+        {_fmt(data['total_visas'])} visas, cada una con un balance diferente entre reducir la espera
+        y tratar a todos los países por igual.
     </div>""", unsafe_allow_html=True)
 
-    # Parameters table
-    st.markdown('<div class="section-title">Parametros del Experimento</div>',
+    # ── How does MOHHO work ──
+    st.markdown('<div class="section-title">¿Cómo Funciona MOHHO?</div>',
+                unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="info-box" style="font-size:0.85rem;line-height:1.7;border-left:4px solid {t['accent1']};">
+        Los <strong>halcones de Harris</strong> son las únicas aves rapaces que cazan en grupo de forma
+        cooperativa. Rodean a su presa, la acorralan y atacan desde múltiples ángulos.
+        <br><br>
+        El algoritmo HHO imita esta estrategia: un grupo de "halcones virtuales" explora
+        el espacio de posibles repartos de visas. Cada halcón representa una forma diferente
+        de distribuir las {_fmt(data['total_visas'])} visas. Comparten información y convergen
+        hacia las mejores soluciones.
+    </div>""", unsafe_allow_html=True)
+
+    # ── Pipeline flow (using columns to avoid HTML rendering issues) ──
+    G = len(data['countries']) * len(data['categories'])
+    steps = [
+        ("\U0001f985", "Halcón", f"50 halcones con vectores de {G} números entre 0 y 1",
+         t['accent1'], "Cada halcón es una propuesta de reparto"),
+        ("\U0001f522", "SPV", "Convertir números decimales a un orden de prioridad",
+         t['accent2'], "Quién va primero en la fila de visas"),
+        ("\u2699\ufe0f", "Decoder", "Repartir visas respetando las 6 reglas legales",
+         t['accent3'], "Asignación factible garantizada"),
+        ("\U0001f4ca", "Evaluar", "Calcular f\u2081 (espera) y f\u2082 (brecha entre países)",
+         t['accent1'], "Qué tan buena es esta solución"),
+        ("\u2728", "Pareto", "Guardar las soluciones que nadie puede superar",
+         t['accent3'], "88 compromisos óptimos"),
+    ]
+
+    cols = st.columns(len(steps))
+    for col, (icon, name, desc, color, hint) in zip(cols, steps):
+        with col:
+            st.markdown(f"""<div class="metric-card" style="text-align:center;padding:14px 10px;
+                border-color:{_rgba(color, 0.2)};">
+                <div style="font-size:1.5rem;">{icon}</div>
+                <div style="font-size:0.8rem;color:{color};font-weight:700;margin:4px 0;">{name}</div>
+                <div style="font-size:0.68rem;color:{t['tab_text']} !important;line-height:1.4;">{desc}</div>
+                <div style="font-size:0.62rem;color:{t['text_muted']};margin-top:4px;
+                    font-style:italic;">{hint}</div>
+            </div>""", unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div style="text-align:center;font-size:0.8rem;color:{t['text_muted']};margin-bottom:1rem;">
+        Este ciclo se repite <strong>{summary['max_iter']} veces</strong> por corrida,
+        y se ejecuta <strong>{summary['num_runs']} corridas</strong> con semillas diferentes
+        para verificar consistencia.
+    </div>""", unsafe_allow_html=True)
+
+    # ── The 6 hawk strategies ──
+    st.markdown('<div class="section-title">Las 6 Estrategias de los Halcones</div>',
+                unsafe_allow_html=True)
+
+    strategies = [
+        ("Exploración", "E \u2265 1",
+         "Buscar en zonas nuevas del espacio. Los halcones vuelan lejos del grupo, "
+         "como scouts que exploran territorio desconocido.",
+         t['accent1']),
+        ("Asedio suave", "0.5 \u2264 E < 1, r \u2265 0.5",
+         "Rodear la presa desde lejos. Los halcones ajustan su posición gradualmente "
+         "hacia la mejor solución conocida.",
+         t['accent2']),
+        ("Asedio duro", "0.5 \u2264 E < 1, r < 0.5",
+         "Acercarse rápidamente a la presa. Movimientos más agresivos hacia la solución líder.",
+         t['accent3']),
+        ("Picada suave", "E < 0.5, r \u2265 0.5",
+         "Simular que la presa escapa y recalcular. Incluye vuelos de Lévy "
+         "para dar saltos largos y evitar quedarse atrapado.",
+         t['danger']),
+        ("Picada dura", "E < 0.5, r < 0.5",
+         "Ataque final: movimiento preciso con vuelo de Lévy hacia la posición óptima.",
+         t['mid_blue']),
+        ("Vuelo de Lévy", "Componente especial",
+         "Patrón de movimiento con pasos largos ocasionales — como un halcón que de repente "
+         "vuela lejos del grupo para cubrir más terreno.",
+         t['accent2']),
+    ]
+
+    cols = st.columns(3)
+    for i, (name, trigger, desc, color) in enumerate(strategies):
+        with cols[i % 3]:
+            st.markdown(f"""
+            <div class="metric-card" style="border-left:3px solid {color};margin-bottom:10px;">
+                <div style="font-size:0.75rem;color:{color};font-weight:700;text-transform:uppercase;">
+                    {name}</div>
+                <div style="{mono}font-size:0.65rem;color:{t['text_muted']};margin:2px 0 6px;">
+                    {trigger}</div>
+                <div style="font-size:0.78rem;color:{t['tab_text']} !important;line-height:1.5;">
+                    {desc}</div>
+            </div>""", unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div class="info-box" style="font-size:0.82rem;">
+        La <strong>Energía de Escape (E)</strong> controla la transición: empieza en 2 (exploración pura)
+        y decrece a 0 (explotación pura) a lo largo de las iteraciones. Esto permite al algoritmo
+        primero explorar ampliamente y luego refinar las mejores soluciones.
+    </div>""", unsafe_allow_html=True)
+
+    # ── Parameters table ──
+    st.markdown('<div class="section-title">Parámetros del Experimento</div>',
                 unsafe_allow_html=True)
 
     params = [
-        ("Poblacion", str(summary["pop_size"]), "Halcones por generacion"),
-        ("Iteraciones", str(summary["max_iter"]), "Generaciones por corrida"),
-        ("Archivo Pareto", str(summary["archive_size"]), "Capacidad del archivo externo"),
-        ("Corridas", str(summary["num_runs"]), "Repeticiones independientes"),
-        ("V (visas)", _fmt(data["total_visas"]), "Visas anuales disponibles"),
-        ("G (grupos)", str(len(data["countries"]) * len(data["categories"])),
-         "21 paises \u00d7 5 categorias"),
-        ("Paises", str(len(data["countries"])), "20 explicitos + Resto del Mundo"),
-        ("Limite pais", _fmt(25620), "7% del total (P_C)"),
+        ("Población", str(summary["pop_size"]),
+         "Cuántos halcones buscan simultáneamente.",
+         "Heidari et al. (2019) recomiendan N=30-50 para problemas de dimensión media. "
+         "Con dim=105 (nuestros 105 grupos), 50 halcones dan suficiente diversidad sin "
+         "desperdicio computacional. Regla empírica: N \u2248 0.5\u00d7dim."),
+        ("Iteraciones", str(summary["max_iter"]),
+         "Rondas de caza que completa cada corrida.",
+         "500 iteraciones garantizan convergencia: nuestras curvas de hipervolumen se estabilizan "
+         "al 95% del valor final antes de la iteración 100. Las 400 restantes permiten "
+         "explotación fina (Ops 3-6 de HHO). En metaheurísticas, T=500 es estándar "
+         "para asegurar que el resultado no dependa de parar demasiado pronto."),
+        ("Archivo Pareto", str(summary["archive_size"]),
+         "Capacidad máxima de soluciones no dominadas.",
+         "100 es el valor canónico en MOEA/D y NSGA-II (Deb et al., 2002). "
+         "Suficiente para representar un frente 2D con buena diversidad. "
+         "Si se llena, se poda por crowding distance — se eliminan las soluciones "
+         "más apretadas, conservando los extremos y el knee."),
+        ("Corridas independientes", str(summary["num_runs"]),
+         "Repeticiones con diferentes semillas aleatorias.",
+         "30 corridas es el mínimo recomendado por Derrac et al. (2011) para aplicar "
+         "pruebas estadísticas no paramétricas (Wilcoxon, Mann-Whitney). "
+         "Con 30 muestras el Teorema Central del Límite justifica intervalos de confianza "
+         "sobre la media del hipervolumen. Semillas consecutivas: 42, 43, ..., 71."),
+        ("Visas disponibles (V)", _fmt(data["total_visas"]),
+         "Total de visas EB por año fiscal.",
+         "Establecido por la Ley de Inmigración y Nacionalidad (INA) §201(d). "
+         "No es un parámetro libre — es un dato fijo del gobierno de EE.UU. "
+         "Se mantiene en 140,000 desde 1990. Es la restricción R1 del modelo."),
+        ("Grupos (G)", str(len(data["countries"]) * len(data["categories"])),
+         f"{len(data['countries'])} países \u00d7 {len(data['categories'])} categorías EB.",
+         "Cada combinación país-categoría es una variable de decisión (x\u2081 a x\u2081\u2080\u2085). "
+         "El halcón genera un vector de 105 valores continuos en [0,1], que el SPV "
+         "convierte en permutación y el decoder traduce a asignación factible. "
+         "dim=105 define el tamaño del espacio de búsqueda."),
+        ("Países analizados", str(len(data["countries"])),
+         "20 países con mayor demanda + 'Resto del Mundo'.",
+         "Se seleccionaron los 20 países con mayor backlog documentado por USCIS (Visa Bulletin). "
+         "El bloque 'Resto del Mundo' agrupa ~170 países con demanda individual pequeña. "
+         "Estos 21 bloques representan >99% de la demanda total de visas EB."),
+        ("Límite por país", _fmt(25620),
+         "7% del total de visas de inmigración (366,000).",
+         "INA §202(a)(2): ningún país puede recibir más del 7% del total de visas de inmigración "
+         "(familiares + empleo = 366,000). 366,000 \u00d7 0.07 = 25,620. "
+         "Es la causa estructural del problema: India genera ~70% de la demanda EB "
+         "pero recibe máximo 7%. Esto crea colas de 10-134 años."),
     ]
 
-    rows_html = ""
-    for name, value, desc in params:
-        rows_html += (
-            f"<tr><td style='text-align:left;font-weight:600;'>{name}</td>"
-            f"<td style=\"font-family:'JetBrains Mono',monospace;color:{t['accent2']} !important;\">{value}</td>"
-            f"<td style='color:{t['text_muted']} !important;font-size:0.72rem;'>{desc}</td></tr>"
-        )
+    for name, value, short_desc, justification in params:
+        st.markdown(f"""<div style="margin-bottom:8px;padding:12px 16px;background:{t['card_bg']};
+border-radius:12px;border:1px solid {t['card_border']};border-left:4px solid {t['accent1']};">
+<div style="display:flex;gap:12px;align-items:center;">
+<div style="min-width:160px;font-weight:600;font-size:0.85rem;color:{t['text']} !important;">
+{name}</div>
+<div style="{mono}min-width:70px;color:{t['accent2']} !important;font-weight:700;
+font-size:1rem;">{value}</div>
+<div style="font-size:0.82rem;color:{t['tab_text']} !important;flex:1;">{short_desc}</div>
+</div>
+<div style="font-size:0.78rem;color:{t['text_muted']} !important;margin-top:6px;
+line-height:1.55;padding-left:4px;border-top:1px solid {t['card_border']};padding-top:6px;">
+<strong style="color:{t['accent3']} !important;">¿Por qué este valor?</strong> {justification}</div>
+</div>""", unsafe_allow_html=True)
 
-    st.markdown(f"""
-    <table class="dark-table">
-        <thead><tr>
-            <th style="text-align:left;">Parametro</th><th>Valor</th><th>Descripcion</th>
-        </tr></thead>
-        <tbody>{rows_html}</tbody>
-    </table>""", unsafe_allow_html=True)
-
-    # Glossary
-    st.markdown('<div class="section-title">Glosario Interactivo</div>',
+    # ── Glossary ──
+    st.markdown('<div class="section-title">Glosario</div>',
                 unsafe_allow_html=True)
 
-    search = st.text_input("Buscar termino...", key="glossary_search")
+    search = st.text_input("Buscar término...", key="glossary_search")
 
     glossary = [
-        ("FIFO (First In, First Out)", "Sistema",
-         "Sistema actual de EE.UU. para procesar Green Cards. Atiende por orden de llegada, "
-         "ignorando el tiempo acumulado y generando disparidades entre paises."),
-        ("MOHHO", "Algoritmo",
-         "Multi-Objective Harris Hawks Optimization. Metaheuristica bio-inspirada basada en "
-         "la caza cooperativa de halcones. Optimiza simultaneamente espera y equidad."),
-        ("Green Card", "Inmigracion",
-         "Tarjeta de Residencia Permanente de EE.UU. 140,000 visas de empleo anuales (EB-1 a EB-5)."),
-        ("Frente de Pareto", "Optimizacion",
-         "Conjunto de soluciones no dominadas. Cada punto es un balance diferente "
-         "entre espera y equidad."),
-        ("Dominancia de Pareto", "Optimizacion",
-         "Una solucion A domina a B si A es al menos tan buena en todos los objetivos y "
-         "estrictamente mejor en al menos uno."),
-        ("f\u2081 \u2014 Espera no atendida", "Objetivo",
-         "Promedio ponderado de anios de espera de quienes NO reciben visa. "
-         "f\u2081(x) = \u03a3[(n_g - x_g) \u00b7 w_g] / \u03a3[n_g]. Minimizar prioriza a los mas antiguos."),
-        ("f\u2082 \u2014 Disparidad entre paises", "Objetivo",
-         "Maxima diferencia de espera promedio entre cualquier par de paises. "
-         "f\u2082 = max|W_c1 - W_c2|. Minimizar busca equidad."),
-        ("f\u2083 \u2014 Visas desperdiciadas", "M\u00e9trica observada",
-         f"f\u2083 = V - \u03a3x_g. No es un objetivo de optimizaci\u00f3n (fue eliminado por redundancia). "
-         f"FIFO desperdicia ~{_fmt(data['total_visas'] - data['fifo_used'])} "
-         "visas por interacciones entre l\u00edmites. MOHHO puede lograr 100% utilizaci\u00f3n "
-         "como efecto secundario de reordenar el procesamiento."),
-        ("Hipervolumen (HV)", "Metrica",
-         "Indicador de calidad del frente de Pareto. Mide el volumen del espacio objetivo dominado. "
-         "Mayor = mejor."),
-        ("SPV (Smallest Position Value)", "Codificacion",
-         "Metodo de Bean (1994) para convertir vectores continuos en permutaciones."),
-        ("Decodificador Greedy", "Algoritmo",
-         "Convierte una permutacion en asignacion factible respetando 5 restricciones."),
-        ("Categorias EB (EB-1 a EB-5)", "Inmigracion",
-         "EB-1: extraordinarios. EB-2: profesionales. EB-3: calificados. "
-         "EB-4: especiales/SIV. EB-5: inversores."),
-        ("Spillover (Desbordamiento)", "Inmigracion",
-         "Cuando una categoria no usa todas sus visas, el excedente pasa a la siguiente segun reglas del INA."),
-        ("Limite por pais (7%)", "Inmigracion",
-         "Ningun pais puede recibir mas del 7% del total (25,620/anio). "
-         "Afecta especialmente a India y China."),
-        ("Knee Point (Punto de rodilla)", "Optimizacion",
-         "Punto del frente de Pareto con maxima curvatura. Representa el mejor compromiso "
-         "entre objetivos, calculado como el punto mas lejano de la linea entre los extremos."),
-        ("Fecha de Prioridad", "Inmigracion",
-         "La fecha en que se presento la solicitud. En FIFO, determina el orden de procesamiento."),
-        ("Resto del Mundo", "Modelo",
-         "Bloque agregado que representa a los ~190 paises no listados individualmente."),
+        ("Green Card (Tarjeta de Residencia)", "Inmigracion",
+         "Permiso de residencia permanente en EE.UU. Se emiten {V} visas de empleo al año "
+         "en 5 categorías (EB-1 a EB-5). Es lo que reparte nuestro modelo.".format(V=_fmt(data['total_visas']))),
+        ("FIFO (First In, First Out)", "Sistema actual",
+         "El sistema vigente: quien llegó primero se atiende primero. Simple pero injusto — "
+         "ignora cuánto llevas esperando y genera colas de décadas para India y China."),
+        ("MOHHO", "Nuestro algoritmo",
+         "Multi-Objective Harris Hawks Optimization. Algoritmo de IA inspirado en la caza cooperativa "
+         f"de halcones de Harris. Encuentra {summary['combined_pareto_size']} formas alternativas de repartir visas, cada una "
+         "balanceando espera vs equidad de manera diferente."),
+        ("f\u2081 \u2014 Carga de espera", "Objetivo 1",
+         "Mide cuántos años de espera quedan sin resolver. Minimizarlo prioriza dar visas "
+         "a la gente que lleva más tiempo en la fila (India, China)."),
+        ("f\u2082 \u2014 Brecha entre países", "Objetivo 2",
+         "Mide la mayor diferencia de espera entre cualquier par de países. "
+         "Minimizarlo busca que todos los países esperen tiempos similares — equidad pura."),
+        ("Frente de Pareto", "Concepto clave",
+         "El grupo de soluciones que nadie puede superar en ambos objetivos. "
+         "Si una solución tiene menos espera, otra tendrá menos brecha — "
+         f"no se puede ganar en todo. Nuestro frente tiene {summary['combined_pareto_size']} puntos."),
+        ("Knee Point (Equilibrio)", "Punto especial",
+         "El punto del frente de Pareto donde un poquito más de espera produce mucha más equidad "
+         "(o viceversa). Es el compromiso más eficiente entre ambos objetivos."),
+        ("Categorías EB", "Inmigración",
+         "EB-1: personas extraordinarias (premios Nobel, etc). "
+         "EB-2: profesionales con maestría. EB-3: trabajadores calificados. "
+         "EB-4: inmigrantes especiales (religiosos, traductores militares). "
+         "EB-5: inversores ($800k+)."),
+        ("Spillover", "Ley migratoria",
+         "Si una categoría no usa todas sus visas, el sobrante pasa a otra. "
+         "EB-4/5 tienen poca demanda, así que sus visas extras suben a EB-1, "
+         "luego bajan a EB-2 y EB-3."),
+        ("Límite del 7%", "Ley migratoria",
+         "Ningún país puede recibir más del 7% del total ({c} visas/ano). "
+         "India tiene ~70% de la demanda pero recibe máximo 7%. "
+         "Esta es la causa principal del problema.".format(c=_fmt(25620))),
+        ("Hipervolumen (HV)", "Métrica",
+         "Mide qué tan buenas son las soluciones: el 'área' cubierta por el frente de Pareto. "
+         "Mayor área = mejores soluciones. Lo usamos para comparar las 30 corridas del algoritmo."),
+        ("SPV", "Técnica",
+         "Smallest Position Value (Bean, 1994). Truco matemático para convertir números "
+         "decimales (que maneja el halcon) en un orden de prioridad (que necesita el decoder)."),
+        ("Decodificador Greedy", "Componente",
+         "Recibe un orden de prioridad y reparte visas uno por uno, respetando todas las reglas legales. "
+         "Cualquier orden produce un reparto válido — no puede equivocarse."),
+        ("Vuelo de Lévy", "Técnica HHO",
+         "Patrón de movimiento con pasos cortos frecuentes y saltos largos ocasionales. "
+         "Evita que los halcones se queden atrapados en soluciones mediocres."),
         ("Convergencia", "Experimento",
-         "Evolucion del hipervolumen a lo largo de las iteraciones. "
-         "Estabilizacion indica buena calidad de soluciones."),
-        ("Vuelo de Levy", "HHO",
-         "Patron de movimiento con pasos largos ocasionales. Permite escapar de optimos locales."),
-        ("Energia de Escape (E)", "HHO",
-         "Controla la transicion entre exploracion (E >= 1) y explotacion (E < 1). "
-         "Decrece de 2 a 0 durante la ejecucion."),
+         "Cómo mejora el algoritmo con el tiempo. Al inicio explora mucho (HV sube rápido), "
+         "luego se estabiliza (encontró las mejores soluciones). "
+         "Nuestro MOHHO converge al 95% en las primeras ~100 iteraciones."),
     ]
 
     for term, tag, desc in glossary:
@@ -2201,6 +3028,394 @@ def _tab_about(summary: dict, data: dict) -> None:
             <h4>{term}</h4>
             <p>{desc}</p>
         </div>""", unsafe_allow_html=True)
+
+    # ── Team & Credits ──
+    st.markdown('<div class="section-title">Equipo y Créditos</div>',
+                unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1rem;">
+        <div class="metric-card" style="text-align:center;">
+            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+                Investigadores</div>
+            <div style="font-size:1rem;color:{t['text']} !important;font-weight:700;margin:8px 0;">
+                Yazmín Flores</div>
+            <div style="font-size:0.85rem;color:{t['text']} !important;">
+                Javier Rebull</div>
+            <div style="font-size:0.75rem;color:{t['text_muted']};margin-top:8px;">
+                Maestría en Inteligencia Artificial<br>Aplicada a Datos (MIAAD)</div>
+        </div>
+        <div class="metric-card" style="text-align:center;">
+            <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+                Dirección académica</div>
+            <div style="font-size:1rem;color:{t['text']} !important;font-weight:700;margin:8px 0;">
+                Mtro. Raúl Gibrán Porras Alaniz</div>
+            <div style="font-size:0.85rem;color:{t['text']} !important;">
+                Optimización Inteligente</div>
+            <div style="font-size:0.75rem;color:{t['text_muted']};margin-top:8px;">
+                Universidad Autónoma de<br>Ciudad Juarez (UACJ)</div>
+        </div>
+    </div>""", unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div class="metric-card" style="text-align:center;padding:1rem;">
+        <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
+            Stack tecnológico</div>
+        <div style="display:flex;justify-content:center;gap:20px;margin:10px 0;flex-wrap:wrap;">
+            <div style="font-size:0.8rem;color:{t['tab_text']} !important;">
+                <strong style="color:{t['accent1']};">Python</strong> + NumPy</div>
+            <div style="font-size:0.8rem;color:{t['tab_text']} !important;">
+                <strong style="color:{t['accent2']};">Streamlit</strong> + Plotly</div>
+            <div style="font-size:0.8rem;color:{t['tab_text']} !important;">
+                <strong style="color:{t['accent3']};">MOHHO</strong> (implementación propia)</div>
+        </div>
+        <div style="font-size:0.72rem;color:{t['text_muted']};margin-top:6px;">
+            Código fuente: Python 3.12 | Visualización 100% Plotly (zero matplotlib) | Dark-first UI</div>
+    </div>""", unsafe_allow_html=True)
+
+
+# ── Tab 9: Simulación en Vivo ──────────────────────────────
+def _tab_simulation(data: dict, baseline: tuple) -> None:
+    """Ejecuta MOHHO en tiempo real con visualización de la bandada."""
+    from src.problem import VisaProblem
+    from src.mohho import (
+        evaluate_hawk, update_archive, _step_hawk,
+        compute_hypervolume,
+    )
+    from src.config import LB, UB, NUM_GROUPS, ARCHIVE_SIZE
+
+    t = _get_theme()
+    st.markdown(
+        f'<div class="section-title">Simulación en Vivo: La Caza del Halcón</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(f"""<div style="color:{t['text']};line-height:1.7;margin-bottom:1rem;font-size:0.92rem;">
+        Ejecuta el algoritmo MOHHO en tiempo real. Cada <strong style="color:{t['accent2']};">halcón</strong>
+        representa una asignación candidata de visas; el <strong style="color:{t['danger']};">conejo</strong>
+        (líder Pareto) es la mejor solución conocida. Observa cómo la bandada converge hacia el
+        frente de Pareto óptimo.
+    </div>""", unsafe_allow_html=True)
+
+    # ── Controles ──
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        sim_pop = st.slider("Halcones (N)", 10, 80, 30, 5, key="sim_pop")
+    with c2:
+        sim_iter = st.slider("Iteraciones (T)", 20, 300, 100, 10, key="sim_iter")
+    with c3:
+        sim_seed = st.number_input("Semilla", 1, 9999, 42, key="sim_seed")
+
+    run_btn = st.button(
+        "\U0001f985 Iniciar Simulación", type="primary", key="run_sim_btn",
+    )
+
+    if run_btn:
+        problem = VisaProblem()
+        rng = np.random.default_rng(sim_seed)
+
+        # Inicializar población
+        population = rng.uniform(LB, UB, size=(sim_pop, NUM_GROUPS))
+        fitnesses: list[tuple[float, float]] = []
+        for i in range(sim_pop):
+            _, fit = evaluate_hawk(population[i], problem)
+            fitnesses.append(fit)
+
+        archive_pos: list = []
+        archive_fit: list[tuple[float, float]] = []
+        for i in range(sim_pop):
+            update_archive(archive_pos, archive_fit,
+                           population[i], fitnesses[i], ARCHIVE_SIZE)
+
+        # Snapshots para animación (~40 cuadros)
+        snap_interval = max(1, sim_iter // 40)
+        snapshots: list[dict] = []
+        hv_curve: list[float] = []
+
+        def _take_snapshot(it: int) -> None:
+            snapshots.append({
+                "iter": it,
+                "pop": [tuple(f) for f in fitnesses],
+                "archive": [tuple(f) for f in archive_fit],
+                "hv": compute_hypervolume(archive_fit),
+                "size": len(archive_fit),
+            })
+
+        _take_snapshot(-1)  # estado inicial
+
+        progress = st.progress(0, text="Inicializando bandada de halcones...")
+
+        for t_iter in range(sim_iter):
+            x_mean = np.mean(population, axis=0)
+            for i in range(sim_pop):
+                _step_hawk(
+                    i, population, fitnesses,
+                    archive_pos, archive_fit,
+                    x_mean, t_iter, sim_iter, sim_pop, ARCHIVE_SIZE,
+                    problem, rng,
+                )
+
+            hv = compute_hypervolume(archive_fit)
+            hv_curve.append(hv)
+
+            if t_iter % snap_interval == 0 or t_iter == sim_iter - 1:
+                _take_snapshot(t_iter)
+
+            progress.progress(
+                (t_iter + 1) / sim_iter,
+                text=(f"Iteración {t_iter + 1}/{sim_iter} — "
+                      f"HV: {hv:.2f} — Archivo: {len(archive_fit)} soluciones"),
+            )
+
+        progress.progress(
+            1.0,
+            text=(f"\u2705 Completado — HV final: {hv_curve[-1]:.2f} — "
+                  f"{len(archive_fit)} soluciones Pareto"),
+        )
+
+        st.session_state["sim_snapshots"] = snapshots
+        st.session_state["sim_hv_curve"] = hv_curve
+        st.session_state["sim_params"] = {
+            "pop": sim_pop, "iter": sim_iter, "seed": sim_seed,
+        }
+
+    # ── Mostrar resultados (si existen) ──
+    if "sim_snapshots" not in st.session_state:
+        st.markdown(f"""<div class="metric-card" style="text-align:center;padding:3rem;">
+            <div style="font-size:3rem;margin-bottom:1rem;">\U0001f985</div>
+            <div style="font-size:1.1rem;font-weight:600;color:{t['text']};">
+                Configura los parámetros y presiona Iniciar</div>
+            <div style="font-size:0.85rem;color:{t['text_muted']};margin-top:8px;">
+                N=30, T=100 toma aproximadamente 10 segundos</div>
+        </div>""", unsafe_allow_html=True)
+        return
+
+    snapshots = st.session_state["sim_snapshots"]
+    hv_curve = st.session_state["sim_hv_curve"]
+    params = st.session_state["sim_params"]
+
+    # ── Tarjetas resumen ──
+    final_snap = snapshots[-1]
+    c1, c2, c3, c4 = st.columns(4)
+    cards = [
+        ("Halcones", str(params["pop"]), t["accent1"]),
+        ("Iteraciones", str(params["iter"]), t["accent2"]),
+        ("HV Final", f"{final_snap['hv']:.2f}", t["accent3"]),
+        ("Soluciones Pareto", str(final_snap["size"]), t["danger"]),
+    ]
+    for col, (label, val, color) in zip([c1, c2, c3, c4], cards):
+        with col:
+            st.markdown(f"""<div class="metric-card" style="text-align:center;">
+                <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;
+                    font-weight:600;">{label}</div>
+                <div style="font-family:'JetBrains Mono';font-size:1.8rem;font-weight:700;
+                    color:{color} !important;margin:6px 0;">{val}</div>
+            </div>""", unsafe_allow_html=True)
+
+    st.markdown("")
+
+    # ── Animación del frente de Pareto ──
+    st.markdown(
+        f'<div class="section-title">Evolución del Frente de Pareto</div>',
+        unsafe_allow_html=True,
+    )
+
+    frames = []
+    for snap in snapshots:
+        pop_f1 = [f[0] for f in snap["pop"]]
+        pop_f2 = [f[1] for f in snap["pop"]]
+        arch = sorted(snap["archive"], key=lambda p: p[0])
+        arch_f1 = [f[0] for f in arch]
+        arch_f2 = [f[1] for f in arch]
+        label = f"Iter {snap['iter']}" if snap["iter"] >= 0 else "Inicio"
+        frames.append(go.Frame(
+            data=[
+                go.Scatter(
+                    x=pop_f1, y=pop_f2, mode="markers",
+                    marker=dict(size=5, color=_rgba(t["accent3"], 0.35),
+                                line=dict(width=0)),
+                    name="Halcones", showlegend=True,
+                ),
+                go.Scatter(
+                    x=arch_f1, y=arch_f2, mode="markers+lines",
+                    marker=dict(size=7, color=t["accent1"],
+                                line=dict(width=1, color="white")),
+                    line=dict(width=1.5, color=_rgba(t["accent1"], 0.5)),
+                    name="Frente Pareto", showlegend=True,
+                ),
+                go.Scatter(
+                    x=[baseline[0]], y=[baseline[1]], mode="markers",
+                    marker=dict(size=14, symbol="star", color=t["danger"],
+                                line=dict(width=1.5, color="white")),
+                    name="FIFO actual", showlegend=True,
+                ),
+            ],
+            name=label,
+        ))
+
+    slider_steps = [
+        dict(args=[[f.name], dict(frame=dict(duration=0, redraw=True),
+                                  mode="immediate",
+                                  transition=dict(duration=0))],
+             label=f.name, method="animate")
+        for f in frames
+    ]
+
+    fig_anim = go.Figure(
+        data=frames[0].data,
+        frames=frames,
+    )
+    fig_anim.update_layout(
+        **_plotly_layout(height=520),
+        xaxis=dict(title="f\u2081 \u2014 Carga de espera (a\u00f1os)", **_grid()),
+        yaxis=dict(title="f\u2082 \u2014 Disparidad m\u00e1xima (a\u00f1os)", **_grid()),
+        updatemenus=[dict(
+            type="buttons", showactive=False,
+            x=0.05, y=1.12,
+            buttons=[
+                dict(label="\u25b6 Reproducir", method="animate",
+                     args=[None, dict(frame=dict(duration=120, redraw=True),
+                                      fromcurrent=True,
+                                      transition=dict(duration=40))]),
+                dict(label="\u23f8 Pausar", method="animate",
+                     args=[[None], dict(frame=dict(duration=0, redraw=False),
+                                        mode="immediate",
+                                        transition=dict(duration=0))]),
+            ],
+        )],
+        sliders=[dict(
+            active=0, steps=slider_steps,
+            currentvalue=dict(prefix="", visible=True,
+                              font=dict(color=t["text"], size=12)),
+            pad=dict(b=10, t=30), len=0.9, x=0.05,
+            bgcolor=_rgba(t["text"], 0.08),
+            activebgcolor=t["accent1"],
+            font=dict(color=t["text_muted"], size=9),
+        )],
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+            font=dict(size=11),
+        ),
+    )
+    st.plotly_chart(fig_anim, use_container_width=True, key="sim_pareto_anim")
+
+    # ── Convergencia + Crecimiento del archivo ──
+    col_left, col_right = st.columns(2)
+
+    with col_left:
+        st.markdown(
+            f'<div class="section-title">Convergencia (Hipervolumen)</div>',
+            unsafe_allow_html=True,
+        )
+        fig_hv = go.Figure()
+        fig_hv.add_trace(go.Scatter(
+            x=list(range(1, len(hv_curve) + 1)), y=hv_curve,
+            mode="lines", line=dict(width=2.5, color=t["accent1"]),
+            fill="tozeroy", fillcolor=_rgba(t["accent1"], 0.1),
+            name="HV",
+        ))
+        final_hv = hv_curve[-1]
+        threshold_95 = 0.95 * final_hv
+        conv_iter = next(
+            (i for i, h in enumerate(hv_curve) if h >= threshold_95),
+            len(hv_curve),
+        )
+        fig_hv.add_vline(
+            x=conv_iter + 1, line_dash="dash",
+            line_color=t["accent2"], line_width=1.5,
+            annotation_text=f"95% en iter {conv_iter + 1}",
+            annotation_font_color=t["accent2"],
+            annotation_font_size=10,
+        )
+        fig_hv.update_layout(
+            **_plotly_layout(height=350),
+            xaxis=dict(title="Iteración", **_grid()),
+            yaxis=dict(title="Hipervolumen", **_grid()),
+            showlegend=False,
+        )
+        st.plotly_chart(fig_hv, use_container_width=True, key="sim_hv_conv")
+
+    with col_right:
+        st.markdown(
+            f'<div class="section-title">Crecimiento del Archivo Pareto</div>',
+            unsafe_allow_html=True,
+        )
+        sizes = [s["size"] for s in snapshots]
+        iters_s = [max(0, s["iter"]) for s in snapshots]
+        fig_sz = go.Figure()
+        fig_sz.add_trace(go.Bar(
+            x=iters_s, y=sizes,
+            marker=dict(color=sizes, colorscale=[
+                [0, _rgba(t["accent3"], 0.3)],
+                [1, t["accent3"]],
+            ]),
+        ))
+        fig_sz.update_layout(
+            **_plotly_layout(height=350),
+            xaxis=dict(title="Iteración", **_grid()),
+            yaxis=dict(title="Soluciones en archivo", **_grid()),
+            showlegend=False,
+        )
+        st.plotly_chart(fig_sz, use_container_width=True, key="sim_arch_growth")
+
+    # ── Evolución de la bandada (4 instantáneas) ──
+    st.markdown(
+        f'<div class="section-title">Evolución de la Bandada</div>',
+        unsafe_allow_html=True,
+    )
+
+    n_show = min(4, len(snapshots))
+    indices = [0, len(snapshots) // 3, 2 * len(snapshots) // 3, len(snapshots) - 1]
+    indices = indices[:n_show]
+    cols_snap = st.columns(n_show)
+    for col_s, idx in zip(cols_snap, indices):
+        snap = snapshots[idx]
+        with col_s:
+            iter_label = f"Iter {snap['iter']}" if snap["iter"] >= 0 else "Inicio"
+            fig_s = go.Figure()
+            pop_f1 = [f[0] for f in snap["pop"]]
+            pop_f2 = [f[1] for f in snap["pop"]]
+            arch = sorted(snap["archive"], key=lambda p: p[0])
+            fig_s.add_trace(go.Scatter(
+                x=pop_f1, y=pop_f2, mode="markers",
+                marker=dict(size=4, color=_rgba(t["accent3"], 0.4)),
+                showlegend=False,
+            ))
+            fig_s.add_trace(go.Scatter(
+                x=[f[0] for f in arch], y=[f[1] for f in arch],
+                mode="markers+lines",
+                marker=dict(size=5, color=t["accent1"]),
+                line=dict(width=1, color=_rgba(t["accent1"], 0.4)),
+                showlegend=False,
+            ))
+            fig_s.add_trace(go.Scatter(
+                x=[baseline[0]], y=[baseline[1]], mode="markers",
+                marker=dict(size=10, symbol="star", color=t["danger"]),
+                showlegend=False,
+            ))
+            fig_s.update_layout(
+                **_plotly_layout(
+                    height=250,
+                    margin=dict(l=30, r=10, t=35, b=30),
+                ),
+                xaxis=dict(title="", **_grid(), tickfont=dict(size=8)),
+                yaxis=dict(title="", **_grid(), tickfont=dict(size=8)),
+                title=dict(
+                    text=f"<b>{iter_label}</b> \u2014 {len(snap['archive'])} sol.",
+                    font=dict(size=11, color=t["text"]),
+                    x=0.5, y=0.97,
+                ),
+            )
+            st.plotly_chart(fig_s, use_container_width=True,
+                            key=f"sim_snap_{idx}")
+
+    # ── Interpretación ──
+    st.markdown(f"""<div class="info-box">
+        <strong>Interpretación:</strong> Al inicio, los halcones están dispersos en el espacio de
+        objetivos (puntos verdes claros). Conforme avanzan las iteraciones, la bandada se concentra
+        cerca del frente de Pareto (línea azul), alejándose del punto FIFO (estrella roja).
+        El hipervolumen crece rápidamente al principio y se estabiliza \u2014 señal de convergencia.
+        La animación superior permite reproducir frame por frame esta evolución.
+    </div>""", unsafe_allow_html=True)
 
 
 # ── Main ─────────────────────────────────────────────────────
@@ -2243,7 +3458,7 @@ def main() -> None:
         </div>""", unsafe_allow_html=True)
 
         st.divider()
-        st.markdown("### Configuracion")
+        st.markdown("### Configuración")
 
         run_idx = st.selectbox(
             "Corrida",
@@ -2252,10 +3467,10 @@ def main() -> None:
         )
 
         scenario_labels = [
-            "Mejor f\u2081 espera (humanitario)",
-            "Equilibrio (knee point)",
-            "Mejor f\u2082 disparidad (equidad)",
-            "FIFO (sistema actual)",
+            "Min espera (f\u2081) — prioriza urgencia",
+            "Balance (knee) — compromiso f\u2081/f\u2082",
+            "Min brecha entre países (f\u2082) — igualdad",
+            "FIFO (sistema actual sin optimizar)",
         ]
         scenario = st.radio(
             "Escenario",
@@ -2300,7 +3515,7 @@ def main() -> None:
             <div class="label">Visas otorgadas ({sel_label})</div>
             <div class="value" style="color:{t['accent3']} !important;">
                 {_fmt(sel_used)} / {_fmt(data['total_visas'])}</div>
-            <div class="label" style="margin-top:2px;">{sel_pct}% utilizacion</div>
+            <div class="label" style="margin-top:2px;">{sel_pct}% utilización</div>
         </div>
         <div class="sidebar-metric">
             <div class="label">f\u2081 espera (a\u00f1os)</div>
@@ -2312,7 +3527,7 @@ def main() -> None:
         </div>""", unsafe_allow_html=True)
 
         st.divider()
-        st.markdown("### Metricas globales")
+        st.markdown("### Métricas globales")
 
         st.markdown(f"""
         <div class="sidebar-metric">
@@ -2363,14 +3578,15 @@ def main() -> None:
             st.rerun()
 
     # ── Tabs ──
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
         "El Problema",
         "Frente de Pareto",
-        "Asignacion",
-        "Impacto por Pais",
+        "Asignación",
+        "Impacto por País",
         "Convergencia",
+        "Simulación en Vivo",
         "Datos y Fuentes",
-        "Modelo Matematico",
+        "Modelo Matemático",
         "Acerca del Modelo",
     ])
 
@@ -2387,10 +3603,12 @@ def main() -> None:
     with tab5:
         _tab_convergence(iters, hv_means, hv_stds, summary, baseline, run_idx)
     with tab6:
-        _tab_data_sources(data)
+        _tab_simulation(data, baseline)
     with tab7:
-        _tab_math(data)
+        _tab_data_sources(data)
     with tab8:
+        _tab_math(data, summary)
+    with tab9:
         _tab_about(summary, data)
 
     # Footer
@@ -2399,8 +3617,8 @@ def main() -> None:
         <div style="font-size:1rem;font-weight:700;margin-bottom:4px;">
             Visa Predict AI</div>
         MIAAD \u00d7 UACJ 2026<br>
-        Javier Rebull & Yazmin Flores<br>
-        Optimizacion Inteligente \u2014 Mtro. Raul Gibran Porras Alaniz
+        Yazmín Flores & Javier Rebull<br>
+        Optimización Inteligente \u2014 Mtro. Raúl Gibrán Porras Alaniz
     </div>""", unsafe_allow_html=True)
 
 
