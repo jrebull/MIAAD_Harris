@@ -408,14 +408,28 @@ def _inject_css() -> None:
         color: {t['text']} !important;
         border: 1px solid {t['card_border']} !important;
     }}
+    /* --- Mobile responsive --- */
+    @media (max-width: 768px) {{
+        .metric-card {{ padding: 16px; }}
+        .hero-number {{ font-size: 2rem !important; }}
+        .section-title {{ font-size: 1.2rem; }}
+        .dark-table {{ font-size: 0.7rem; }}
+        .sidebar-metric .value {{ font-size: 1.1rem; }}
+        .info-box {{ font-size: 0.85rem; padding: 12px; }}
+        .gloss-card {{ padding: 12px; }}
+    }}
     </style>""", unsafe_allow_html=True)
 
 
 # ── Data loading ─────────────────────────────────────────────
 @st.cache_data
 def load_summary() -> dict[str, Any]:
-    with open(os.path.join(RESULTS_DIR, "summary.json")) as f:
-        return json.load(f)
+    try:
+        with open(os.path.join(RESULTS_DIR, "summary.json")) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        st.error(f"No se encontraron resultados. Ejecuta primero: python -m src.experiment\n\nDetalle: {e}")
+        st.stop()
 
 
 @st.cache_data
@@ -423,24 +437,32 @@ def load_pareto_csv() -> tuple[list[tuple[float, float, float]], tuple[float, fl
     path = os.path.join(RESULTS_DIR, "pareto_front.csv")
     pareto: list[tuple[float, float, float]] = []
     baseline: tuple[float, float, float] | None = None
-    with open(path) as f:
-        for row in csv.DictReader(f):
-            pt = (float(row["f1"]), float(row["f2"]), float(row["f3"]))
-            if row["type"] == "baseline":
-                baseline = pt
-            else:
-                pareto.append(pt)
+    try:
+        with open(path) as f:
+            for row in csv.DictReader(f):
+                pt = (float(row["f1"]), float(row["f2"]), float(row["f3"]))
+                if row["type"] == "baseline":
+                    baseline = pt
+                else:
+                    pareto.append(pt)
+    except (FileNotFoundError, KeyError) as e:
+        st.error(f"No se encontró pareto_front.csv. Ejecuta primero: python -m src.experiment\n\nDetalle: {e}")
+        st.stop()
     return pareto, baseline
 
 
 @st.cache_data
 def load_convergence() -> tuple[list[int], list[float], list[float]]:
     iters, means, stds = [], [], []
-    with open(os.path.join(RESULTS_DIR, "convergence.csv")) as f:
-        for row in csv.DictReader(f):
-            iters.append(int(row["iteration"]))
-            means.append(float(row["hv_mean"]))
-            stds.append(float(row["hv_std"]))
+    try:
+        with open(os.path.join(RESULTS_DIR, "convergence.csv")) as f:
+            for row in csv.DictReader(f):
+                iters.append(int(row["iteration"]))
+                means.append(float(row["hv_mean"]))
+                stds.append(float(row["hv_std"]))
+    except (FileNotFoundError, KeyError) as e:
+        st.error(f"No se encontró convergence.csv. Ejecuta: python -m src.experiment\n\nDetalle: {e}")
+        st.stop()
     return iters, means, stds
 
 
@@ -717,10 +739,10 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
     }}
     </style>
     <div class="cards">
-        <div class="card"><div class="num" id="n1">0</div><div class="lbl">Visas / a\u00f1o</div></div>
-        <div class="card"><div class="num" id="n2">0</div><div class="lbl">En cola de espera</div></div>
-        <div class="card"><div class="num" id="n3">0</div><div class="lbl">Pa\u00edses analizados</div></div>
-        <div class="card"><div class="num" id="n4">0</div><div class="lbl">A\u00f1os m\u00e1x. espera</div></div>
+        <div class="card"><div class="num" id="n1" aria-label="140,000 visas por a\u00f1o" role="text">0</div><div class="lbl">Visas / a\u00f1o</div></div>
+        <div class="card"><div class="num" id="n2" aria-label="Peticiones en cola de espera" role="text">0</div><div class="lbl">En cola de espera</div></div>
+        <div class="card"><div class="num" id="n3" aria-label="Pa\u00edses analizados" role="text">0</div><div class="lbl">Pa\u00edses analizados</div></div>
+        <div class="card"><div class="num" id="n4" aria-label="A\u00f1os m\u00e1ximos de espera" role="text">0</div><div class="lbl">A\u00f1os m\u00e1x. espera</div></div>
     </div>
     <script>
     function anim(id, end, dur) {{
@@ -1441,7 +1463,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             height=max(550, len(countries) * 40),
             margin=dict(l=160, r=30, t=40, b=50),
         ))
-        st.plotly_chart(fig_wc, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_wc, use_container_width=True, theme=None, config={"displayModeBar": False})
 
         # ── Chart 2: Visas por país ──
         st.markdown(f"""<div style="text-align:center;font-size:0.9rem;color:{t['text_muted']};
@@ -1471,7 +1493,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             height=max(550, len(countries) * 40),
             margin=dict(l=160, r=30, t=40, b=50),
         ))
-        st.plotly_chart(fig_vis, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_vis, use_container_width=True, theme=None, config={"displayModeBar": False})
 
         # ── Chart 3: Disparidad (delta W_c vs promedio global) ──
         st.markdown(f"""<div style="text-align:center;font-size:0.9rem;color:{t['text_muted']};
@@ -1499,7 +1521,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             height=max(550, len(countries) * 40),
             margin=dict(l=160, r=30, t=40, b=50),
         ))
-        st.plotly_chart(fig_disp, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_disp, use_container_width=True, theme=None, config={"displayModeBar": False})
 
 
 # ── Tab 3: Asignación ────────────────────────────────────────
@@ -1531,6 +1553,24 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
         <span style="color:{t['accent2']};">f\u2083 = {_fmt(sel_f3_val)}</span>
         (visas sin asignar \u2014 menor es mejor)
     </div>""", unsafe_allow_html=True)
+
+    util_pct = mohho_used / data["total_visas"]
+    st.markdown(f"""
+<div style="background:{t['card_bg']};border-radius:12px;padding:16px;margin:1rem 0;
+    border:1px solid {t['card_border']};">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:0.8rem;font-weight:600;color:{t['text']};">
+            Utilizaci\u00f3n de visas</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;
+            color:{t['accent3'] if util_pct > 0.95 else t['danger']};font-weight:700;">
+            {_fmt(mohho_used)} / {_fmt(data['total_visas'])} ({util_pct*100:.1f}%)</span>
+    </div>
+    <div style="height:12px;background:{t['card_border']};border-radius:6px;overflow:hidden;">
+        <div style="width:{util_pct*100:.1f}%;height:100%;border-radius:6px;
+            background:linear-gradient(90deg,{t['accent1']},{t['accent3']});
+            transition:width 0.5s ease;"></div>
+    </div>
+</div>""", unsafe_allow_html=True)
 
     cat_labels = [f"{c} {CATS_DESC.get(c, '')}" for c in categories]
     mohho_arr = np.array(mohho_matrix)
@@ -1656,6 +1696,17 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
             date_strs.append(row)
         df_dates = pd.DataFrame(date_strs, index=countries, columns=categories)
         st.dataframe(df_dates, use_container_width=True)
+
+    # Download CSV button
+    df_mohho = pd.DataFrame(mohho_matrix, index=countries, columns=categories)
+    df_mohho["Total"] = df_mohho.sum(axis=1)
+    csv_data = df_mohho.to_csv()
+    st.download_button(
+        label="Descargar tabla de asignación como CSV",
+        data=csv_data,
+        file_name=f"asignacion_{sel_label.replace(' ', '_')}.csv",
+        mime="text/csv",
+    )
 
 
 # ── Tab 4: Impacto por País ─────────────────────────────────
@@ -2401,6 +2452,22 @@ def _tab_data_sources(data: dict) -> None:
             <h4 style="margin-top:4px;">{title}</h4>
             <p>{desc}</p>
         </div>""", unsafe_allow_html=True)
+
+    # f₃ subsection
+    st.markdown(f"""
+<div style="background:{t['card_bg']};border-radius:12px;padding:20px;margin:1.5rem 0;
+    border:1px solid {t['card_border']};">
+<h4 style="color:{t['accent2']};margin-top:0;">Impacto en f\u2083 (desperdicio de visas)</h4>
+<p style="color:{t['text']};line-height:1.6;">
+El desperdicio de visas (f\u2083) surge de la interacci\u00f3n entre los topes por pa\u00eds (R2)
+y por categor\u00eda (R3). Con los datos de 21 pa\u00edses:</p>
+<ul style="color:{t['text']};line-height:1.8;">
+<li>Categor\u00eda EB-4 tiene 217,438 peticiones pero solo 9,940 slots</li>
+<li>Afganist\u00e1n (100K EB-4) e Irak (80K EB-4) saturan su cap de 25,620 r\u00e1pidamente</li>
+<li>Resultado: EB-4 tiene slots disponibles que ning\u00fan pa\u00eds puede usar</li>
+<li>El FIFO actual desperdicia <strong>17,540 visas</strong>; MOHHO encuentra soluciones con <strong>0 desperdicio</strong></li>
+</ul>
+</div>""", unsafe_allow_html=True)
 
 
 # ── Tab 7: Acerca del Modelo ────────────────────────────────
@@ -3420,7 +3487,7 @@ def _tab_simulation(data: dict, baseline: tuple) -> None:
             font=dict(size=11),
         ),
     )
-    st.plotly_chart(fig_anim, use_container_width=True, key="sim_pareto_anim")
+    st.plotly_chart(fig_anim, use_container_width=True, theme=None, key="sim_pareto_anim")
 
     # ── Convergencia + Crecimiento del archivo ──
     col_left, col_right = st.columns(2)
@@ -3456,7 +3523,7 @@ def _tab_simulation(data: dict, baseline: tuple) -> None:
             yaxis=dict(title="Hipervolumen", **_grid()),
             showlegend=False,
         )
-        st.plotly_chart(fig_hv, use_container_width=True, key="sim_hv_conv")
+        st.plotly_chart(fig_hv, use_container_width=True, theme=None, key="sim_hv_conv")
 
     with col_right:
         st.markdown(
@@ -3479,7 +3546,7 @@ def _tab_simulation(data: dict, baseline: tuple) -> None:
             yaxis=dict(title="Soluciones en archivo", **_grid()),
             showlegend=False,
         )
-        st.plotly_chart(fig_sz, use_container_width=True, key="sim_arch_growth")
+        st.plotly_chart(fig_sz, use_container_width=True, theme=None, key="sim_arch_growth")
 
     # ── Evolución de la bandada (4 instantáneas) ──
     st.markdown(
@@ -3529,7 +3596,7 @@ def _tab_simulation(data: dict, baseline: tuple) -> None:
                     x=0.5, y=0.97,
                 ),
             )
-            st.plotly_chart(fig_s, use_container_width=True,
+            st.plotly_chart(fig_s, use_container_width=True, theme=None,
                             key=f"sim_snap_{idx}")
 
     # ── Interpretación ──
