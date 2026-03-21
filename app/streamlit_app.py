@@ -2367,9 +2367,9 @@ def _tab_data_sources(data: dict) -> None:
 
     cat_labels = [f"{c} {CATS_DESC.get(c, '')}" for c in categories]
 
-    # Discrete colorscale: REAL=teal, EST=amber, EST-DEM=slate blue
+    # Discrete colorscale: REAL=teal, EST=warm sand, EST-DEM=slate blue
     c_real = "#0d9488"
-    c_est = "#d4915a"
+    c_est = "#a8956e"
     c_calc = "#7888b8"
     colorscale = [
         [0.0, c_real], [0.33, c_real],
