@@ -571,19 +571,26 @@ El objetivo minimax de equidad es:
 
 \textbf{Ejemplo:} Si India espera en promedio 13 años y Canadá 1 año, $f_2 \geq |13 - 1| = 12$ años. Una asignación que reduzca la espera de India a 8 años tendría $f_2 \geq |8 - 1| = 7$ años: más equitativa.
 
-\subsection{Sobre el tercer objetivo original (desperdicio de visas)}
+\subsection{Objetivo 3: Minimizar el desperdicio de visas}
 
-\begin{restrictionbox}
-\textbf{Eliminación de $f_3$.} En la Fase 1 se propuso un tercer objetivo: $f_3(\mathbf{x}) = V - \sum x_g$ (minimizar visas desperdiciadas). Un análisis detallado revela que $f_3 = 0$ \textbf{para toda asignación factible} en el modelo actual. La razón: la demanda total ($\sim$1,3 millones solo en EB-2) supera en un orden de magnitud la oferta ($V = 140.000$). Los topes $K_j^{\text{eff}}$ se calculan por spillover de modo que $\sum K_j^{\text{eff}} = V$, y la demanda excede cada $K_j^{\text{eff}}$ individualmente. Por tanto, el decodificador greedy \textbf{siempre} llena las 140.000 visas, sin importar el orden de la permutación. Un objetivo que nunca varía no aporta información al frente de Pareto y debe eliminarse por rigor.
+\begin{formulabox}
+\begin{equation}
+\min \; f_3(\mathbf{x}) = V - \sum_{g \in \mathcal{G}} x_g
+\label{eq:obj3_fase2}
+\end{equation}
+\end{formulabox}
 
-El problema se reformula como \textbf{biobjetivo}: $\min \{f_1, f_2\}$. Esto es consistente con la rúbrica, que acepta problemas mono-objetivo y multiobjetivo. Un frente de Pareto bidimensional es más fácil de visualizar e interpretar para el tomador de decisiones.
-\end{restrictionbox}
+\textbf{Interpretación:} $f_3$ cuenta las visas no asignadas. Minimizar $f_3$ maximiza la utilización del presupuesto de visas.
+
+\begin{yellowbox}
+\textbf{Variabilidad empírica de $f_3$.} A diferencia de lo anticipado en el modelo simplificado de 10 países (donde $f_3 = 0$ trivialmente por exceso de demanda global), el modelo completo de 21 países con datos USCIS reales produce $f_3 \in [0,\; 17.540]$. El sistema FIFO actual desperdicia 17.540 visas. La causa: la interacción entre topes por país (R2: $P_c = 25.620$) y topes por categoría (R3: $K_j^{\text{eff}}$) crea cuellos de botella --- categorías con capacidad disponible pero países ya saturados que no pueden recibirla. Verificación empírica: 10.000 permutaciones aleatorias producen $>$3.800 valores únicos de $f_3$.
+\end{yellowbox}
 
 \subsection{Resumen de objetivos}
 
 \begin{table}[H]
 \centering
-\caption{Los dos objetivos del problema biobjetivo.}
+\caption{Los tres objetivos del problema triobjetivo.}
 \label{tab:resumen_obj}
 \renewcommand{\arraystretch}{1.4}
 \begin{tabular}{clcc}
@@ -594,14 +601,15 @@ El problema se reformula como \textbf{biobjetivo}: $\min \{f_1, f_2\}$. Esto es 
 $f_1$ & Carga de espera no atendida & Minimizar & Persona-años / solicitante \\
 \rowcolor{gray!8}
 $f_2$ & Máxima disparidad entre países & Minimizar & Años \\
+$f_3$ & Visas desperdiciadas & Minimizar & Visas \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{formulabox}
-\textbf{Formulación compacta del problema biobjetivo:}
+\textbf{Formulación compacta del problema triobjetivo:}
 \begin{alignat*}{2}
-& \min_{\mathbf{x}} \quad && \bigl\{f_1(\mathbf{x}),\; f_2(\mathbf{x})\bigr\} \\
+& \min_{\mathbf{x}} \quad && \bigl\{f_1(\mathbf{x}),\; f_2(\mathbf{x}),\; f_3(\mathbf{x})\bigr\} \\
 & \text{s.a.} \quad && \text{R1: } \textstyle\sum_{g} x_g \leq V \\
 & && \text{R2: } \textstyle\sum_{g:\,c(g)=c} x_g \leq P_c \quad \forall\, c \\
 & && \text{R3: } \textstyle\sum_{g:\,j(g)=j} x_g \leq K_j^{\text{eff}} \quad \forall\, j \\
@@ -612,7 +620,7 @@ $f_2$ & Máxima disparidad entre países & Minimizar & Años \\
 \end{formulabox}
 
 \begin{yellowbox}
-\textbf{¿Cuál es el mejor resultado posible?} El ideal inalcanzable sería $f_1 = 0$ (toda la carga resuelta) y $f_2 = 0$ (todos los países con igual tiempo de espera promedio). Este punto \textbf{no es factible} porque los topes legales fuerzan compromisos: atender a India (alta $w_g$) reduce $f_1$ pero incrementa $f_2$ al aumentar la disparidad con países de espera corta. Lo que se busca es el \textbf{frente de Pareto} de asignaciones que mejor equilibren ambos objetivos.
+\textbf{¿Cuál es el mejor resultado posible?} El ideal inalcanzable sería $f_1 = 0$ (toda la carga resuelta), $f_2 = 0$ (todos los países con igual tiempo de espera) y $f_3 = 0$ (cero desperdicio). Este punto \textbf{no es factible} porque los topes legales fuerzan compromisos: atender a India (alta $w_g$) reduce $f_1$ pero incrementa $f_2$; maximizar utilización reduce $f_3$ pero puede empeorar la equidad. Lo que se busca es el \textbf{frente de Pareto tridimensional} de asignaciones que mejor equilibren los tres objetivos.
 \end{yellowbox}
 
 \begin{examplebox}
@@ -992,7 +1000,7 @@ Para manejar dos objetivos simultáneamente, MOHHO añade tres mecanismos al HHO
 
 \begin{formulabox}
 \begin{equation}
-\mathbf{a} \succ \mathbf{b} \iff \forall m \in \{1,2\}:\; f_m(\mathbf{a}) \leq f_m(\mathbf{b}) \;\wedge\; \exists m:\; f_m(\mathbf{a}) < f_m(\mathbf{b})
+\mathbf{a} \succ \mathbf{b} \iff \forall m \in \{1,2,3\}:\; f_m(\mathbf{a}) \leq f_m(\mathbf{b}) \;\wedge\; \exists m:\; f_m(\mathbf{a}) < f_m(\mathbf{b})
 \label{eq:dominancia}
 \end{equation}
 \end{formulabox}
@@ -1106,7 +1114,7 @@ Para confirmar que el modelo es internamente consistente, se presenta una verifi
 \end{tabular}}
 \end{table}
 
-\textbf{Prueba de consistencia:} Lo que $f_1$ minimiza (carga de espera no atendida) es exactamente lo que calcula el fitness del individuo decodificado: $(n_g - x_g) \cdot w_g$ sumado y normalizado. Lo que $f_2$ minimiza (disparidad) se calcula sobre la misma asignación $\mathbf{x}$. Lo que se le entrega al usuario (tabla de asignación) es el producto directo de la decodificación. La eliminación de $f_3$ se justifica matemáticamente (Sección 4.3). No hay desconexión entre modelo, fitness y entregable.
+\textbf{Prueba de consistencia:} Lo que $f_1$ minimiza (carga de espera no atendida) es exactamente lo que calcula el fitness del individuo decodificado: $(n_g - x_g) \cdot w_g$ sumado y normalizado. Lo que $f_2$ minimiza (disparidad) se calcula sobre la misma asignación $\mathbf{x}$. Lo que se le entrega al usuario (tabla de asignación) es el producto directo de la decodificación. El tercer objetivo $f_3$ (visas desperdiciadas) se restauró tras verificar empíricamente que varía de 0 a 17.540 con los datos de 21 países (Sección 4.3). No hay desconexión entre modelo, fitness y entregable.
 
 
 % ==========================================================
