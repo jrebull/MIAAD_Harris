@@ -3909,11 +3909,11 @@ def main() -> None:
         best_f3 = min(pareto, key=lambda x: x[2])
 
         scenario_labels = [
-            "Min espera (f\u2081) \u2014 prioriza urgencia",
-            "Balance (knee) \u2014 compromiso f\u2081/f\u2082/f\u2083",
-            "Min brecha entre pa\u00edses (f\u2082) \u2014 igualdad",
-            "Mejor f\u2083 (m\u00e1x. utilizaci\u00f3n)",
-            "FIFO (sistema actual sin optimizar)",
+            "\U0001f985 Humanitario \u2014 Min espera (f\u2081)",
+            "\u2696\ufe0f Equilibrio \u2014 Balance (knee)",
+            "\U0001f91d Equidad \u2014 Min brecha (f\u2082)",
+            "\U0001f4af M\u00e1x. Utilizaci\u00f3n \u2014 Min desperdicio (f\u2083)",
+            "\U0001f4cb FIFO \u2014 Sistema actual",
         ]
         scenario = st.radio(
             "Escenario",
