@@ -419,13 +419,13 @@ def load_summary() -> dict[str, Any]:
 
 
 @st.cache_data
-def load_pareto_csv() -> tuple[list[tuple[float, float]], tuple[float, float]]:
+def load_pareto_csv() -> tuple[list[tuple[float, float, float]], tuple[float, float, float]]:
     path = os.path.join(RESULTS_DIR, "pareto_front.csv")
-    pareto: list[tuple[float, float]] = []
-    baseline: tuple[float, float] | None = None
+    pareto: list[tuple[float, float, float]] = []
+    baseline: tuple[float, float, float] | None = None
     with open(path) as f:
         for row in csv.DictReader(f):
-            pt = (float(row["f1"]), float(row["f2"]))
+            pt = (float(row["f1"]), float(row["f2"]), float(row["f3"]))
             if row["type"] == "baseline":
                 baseline = pt
             else:
@@ -501,7 +501,7 @@ def compute_allocations() -> dict[str, Any]:
 @st.cache_data
 def compute_mohho_allocation(
     target_f1: float, target_f2: float,
-) -> tuple[list[list[int]], tuple[float, float], int]:
+) -> tuple[list[list[int]], tuple[float, float, float], int]:
     """Find MOHHO allocation closest to target fitness via Monte Carlo sampling."""
     from src.problem import VisaProblem
     from src.decoder import spv, decode
@@ -511,7 +511,7 @@ def compute_mohho_allocation(
     rng = np.random.default_rng(42)
     best_alloc = None
     best_dist = float("inf")
-    best_fit = (0.0, 0.0)
+    best_fit = (0.0, 0.0, 0.0)
 
     for _ in range(50_000):
         hawk = rng.uniform(0, 1, size=NUM_GROUPS)
@@ -536,38 +536,17 @@ def compute_mohho_allocation(
 
 @st.cache_data
 def compute_pareto_visas(
-    pareto_keys: tuple[tuple[float, float], ...],
-) -> dict[tuple[float, float], int]:
-    """Estimate visas used for each Pareto point via one shared Monte Carlo pool."""
-    from src.problem import VisaProblem
-    from src.decoder import spv, decode
-    from src.config import NUM_GROUPS
+    pareto_keys: tuple[tuple[float, float, float], ...],
+    total_visas: int = 140_000,
+) -> dict[tuple[float, float, float], int]:
+    """Compute visas used for each Pareto point from f3 (visa waste = V - sum(x)).
 
-    problem = VisaProblem()
-    rng = np.random.default_rng(42)
-
-    # Build pool of (fit, used) samples
-    pool: list[tuple[float, float, int]] = []
-    for _ in range(80_000):
-        hawk = rng.uniform(0, 1, size=NUM_GROUPS)
-        perm = spv(hawk)
-        alloc = decode(perm, problem.groups, problem.total_visas,
-                       problem.country_caps, problem.category_caps)
-        fit = problem.evaluate(alloc)
-        used = sum(alloc.values())
-        pool.append((fit[0], fit[1], used))
-
-    # For each Pareto point find closest sample
-    result: dict[tuple[float, float], int] = {}
-    for pf1, pf2 in pareto_keys:
-        best_d = float("inf")
-        best_u = 0
-        for sf1, sf2, su in pool:
-            d = (sf1 - pf1) ** 2 + (sf2 - pf2) ** 2
-            if d < best_d:
-                best_d = d
-                best_u = su
-        result[(pf1, pf2)] = best_u
+    Since f3 is now stored directly in the Pareto CSV, visas_used = V - f3.
+    """
+    result: dict[tuple[float, float, float], int] = {}
+    for pt in pareto_keys:
+        f3 = pt[2]
+        result[pt] = total_visas - int(f3)
     return result
 
 
@@ -584,9 +563,10 @@ def _fmtd(x: float, d: int = 2) -> str:
     return f"{x:,.{d}f}"
 
 
-def _find_knee(pareto: list[tuple[float, float]]) -> tuple[float, float]:
+def _find_knee(pareto: list[tuple[float, float, float]]) -> tuple[float, float, float]:
     """Find knee point using max perpendicular distance from extreme-to-extreme line.
 
+    Projects onto f1-f2 plane for knee detection, carries f3 along.
     Normalizes both axes to [0,1] to avoid scale bias (Bug 2 fix).
     """
     pts = sorted(pareto, key=lambda p: p[0])
@@ -775,6 +755,7 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
     fifo_used = data["fifo_used"]
     fifo_waste = data["total_visas"] - fifo_used
     best_f2 = min(pareto, key=lambda x: x[1])
+    best_f3 = min(pareto, key=lambda x: x[2])
     f2_imp = ((baseline[1] - best_f2[1]) / baseline[1]) * 100
     fifo_pct = fifo_used * 100 // data["total_visas"]
 
@@ -790,21 +771,23 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
                 {_fmt(fifo_used)} visas</div>
             <div style="color:{t['text_muted']};font-size:0.85rem;margin-top:8px;">
                 Desperdicia <strong style="color:{t['danger']};">{_fmt(fifo_waste)}</strong> visas
-                ({fifo_pct}% utilización)<br>
+                (f\u2083 = {_fmt(int(baseline[2]))}; {fifo_pct}% utilización)<br>
                 Disparidad (brecha máx. de espera entre pa\u00edses):
                 <strong style="color:{t['danger']};">{_fmtd(baseline[1])} a\u00f1os</strong>
             </div>
         </div>""", unsafe_allow_html=True)
 
     with col2:
+        best_f3_used = data['total_visas'] - int(best_f3[2])
         st.markdown(f"""
         <div class="metric-card" style="border-color:{t['accent3']}44;">
             <div style="font-size:0.75rem;color:{t['accent3']} !important;font-weight:700;text-transform:uppercase;">
                 MOHHO (Optimizado)</div>
             <div class="hero-number" style="font-size:2rem;">
-                Hasta {_fmt(data['total_visas'])} visas</div>
+                Hasta {_fmt(best_f3_used)} visas</div>
             <div style="color:{t['text_muted']};font-size:0.85rem;margin-top:8px;">
-                Puede asignar <strong style="color:{t['accent3']};">100%</strong> de las visas<br>
+                Mejor utilización: <strong style="color:{t['accent3']};">f\u2083 = {_fmt(int(best_f3[2]))}</strong>
+                ({best_f3_used * 100 // data['total_visas']}% utilización)<br>
                 Disparidad (brecha máx. de espera entre pa\u00edses):
                 <strong style="color:{t['accent3']};">{_fmtd(best_f2[1])} a\u00f1os</strong>
                 (-{_fmtd(f2_imp, 1)}%)
@@ -826,6 +809,28 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
             <strong style="color:{t['accent3']};">MOHHO resuelve esto:</strong> al reordenar el procesamiento,
             puede asignar las {_fmt(data['total_visas'])} visas completas (100% utilización)
             mientras mejora la equidad.</p>
+    </div>""", unsafe_allow_html=True)
+
+    # f3 hero card
+    st.markdown(f"""
+    <div class="metric-card" style="border-color:{t['accent2']}44;margin:1rem 0;">
+        <div style="font-size:0.75rem;color:{t['accent2']} !important;font-weight:700;text-transform:uppercase;">
+            Objetivo 3 (f\u2083): Desperdicio de Visas</div>
+        <div style="display:flex;justify-content:center;gap:3rem;flex-wrap:wrap;margin:10px 0;">
+            <div style="text-align:center;">
+                <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">FIFO desperdicia</div>
+                <div style="font-family:'JetBrains Mono';font-size:1.5rem;color:{t['danger']};font-weight:700;">
+                    {_fmt(int(baseline[2]))} visas</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">Mejor MOHHO (f\u2083)</div>
+                <div style="font-family:'JetBrains Mono';font-size:1.5rem;color:{t['accent3']};font-weight:700;">
+                    {_fmt(int(best_f3[2]))} visas</div>
+            </div>
+        </div>
+        <div style="color:{t['text_muted']};font-size:0.82rem;text-align:center;">
+            f\u2083 = V \u2212 \u03a3x<sub>g</sub> — visas disponibles que quedan sin asignar.
+            Minimizar f\u2083 maximiza la utilización del presupuesto anual.</div>
     </div>""", unsafe_allow_html=True)
 
     # f1 and f2 explanations side by side
@@ -880,9 +885,10 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
                 <div style="font-weight:700;color:{t['accent1']} !important;margin-bottom:4px;">
                     1. Elige un escenario en el sidebar</div>
                 <p style="font-size:0.8rem;color:{t['tab_text']} !important;margin:0;">
-                    <strong>Humanitario</strong>: prioriza reducir espera global (f\u2081 minima).<br>
-                    <strong>Equilibrio</strong>: mejor compromiso entre espera y equidad.<br>
-                    <strong>Equidad</strong>: minimiza brecha entre países (f\u2082 minima).<br>
+                    <strong>Humanitario</strong>: prioriza reducir espera global (f\u2081 m\u00ednima).<br>
+                    <strong>Equilibrio</strong>: mejor compromiso entre los tres objetivos.<br>
+                    <strong>Equidad</strong>: minimiza brecha entre pa\u00edses (f\u2082 m\u00ednima).<br>
+                    <strong>M\u00e1x. Utilizaci\u00f3n</strong>: minimiza desperdicio de visas (f\u2083 m\u00ednima).<br>
                     <strong>FIFO</strong>: sistema actual sin optimizar.</p>
             </div>
             <div style="padding:12px;background:{t['info_bg']};border-radius:10px;">
@@ -899,9 +905,9 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
                     3. Interpreta los números</div>
                 <p style="font-size:0.8rem;color:{t['tab_text']} !important;margin:0;">
                     <strong>f\u2081</strong> (espera): carga de espera no atendida \u2014 menor es mejor.<br>
-                    <strong>f\u2082</strong> (disparidad): brecha máxima de espera entre países \u2014 menor es mejor.<br>
-                    <strong>Visas</strong>: cuántas de las 140,000 se asignan efectivamente.<br>
-                    Toda solución Pareto es óptima \u2014 ninguna mejora ambos objetivos a la vez.</p>
+                    <strong>f\u2082</strong> (disparidad): brecha m\u00e1xima de espera entre pa\u00edses \u2014 menor es mejor.<br>
+                    <strong>f\u2083</strong> (desperdicio): visas no asignadas \u2014 menor es mejor.<br>
+                    Toda soluci\u00f3n Pareto es \u00f3ptima \u2014 ninguna mejora los tres objetivos a la vez.</p>
             </div>
         </div>
     </div>""", unsafe_allow_html=True)
@@ -920,16 +926,18 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
     st.markdown("""
     <div class="info-box">
     Cada punto representa una forma distinta de repartir las 140,000 visas.
-    <strong>No existe una solución "mejor"</strong> \u2014 el decisor elige el balance entre espera y equidad.
+    <strong>No existe una soluci\u00f3n "mejor"</strong> \u2014 el decisor elige el balance entre espera, equidad y utilizaci\u00f3n.
     </div>""", unsafe_allow_html=True)
 
     st.markdown(f"""
     <div style="display:flex;gap:2rem;padding:0.6rem 1rem;margin-bottom:0.5rem;
-        background:{t['card_bg']};border-radius:10px;font-size:0.85rem;">
+        background:{t['card_bg']};border-radius:10px;font-size:0.85rem;flex-wrap:wrap;">
         <span><strong style="color:{t['accent1']};">f\u2081</strong>
         <span style="color:{t['text_muted']};"> = Carga de espera no atendida (a\u00f1os) \u2014 menor es mejor</span></span>
         <span><strong style="color:{t['accent3']};">f\u2082</strong>
         <span style="color:{t['text_muted']};"> = Disparidad entre pa\u00edses (a\u00f1os) \u2014 menor es mejor</span></span>
+        <span><strong style="color:{t['accent2']};">f\u2083</strong>
+        <span style="color:{t['text_muted']};"> = Desperdicio de visas \u2014 menor es mejor</span></span>
     </div>""", unsafe_allow_html=True)
 
     sorted_p = sorted(pareto, key=lambda x: x[0])
@@ -937,8 +945,9 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
     f2s = [p[1] for p in sorted_p]
 
     # Compute visas for all Pareto solutions (cached)
-    pareto_visas = compute_pareto_visas(tuple(sorted_p))
+    pareto_visas = compute_pareto_visas(tuple(sorted_p), total_visas)
     visas_list = [pareto_visas.get(p, total_visas) for p in sorted_p]
+    f3s = [p[2] for p in sorted_p]
 
     # Selected solution card
     sel_pct = sel_used * 100 // total_visas
@@ -950,16 +959,18 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             break
     sol_txt = f"Solución #{sol_idx} de {len(pareto)}" if sol_idx else "FIFO (baseline)"
     # Gap vs FIFO
-    fifo_f1, fifo_f2 = baseline
+    fifo_f1, fifo_f2, fifo_f3 = baseline
     if sel_point != baseline:
         gap_f1 = ((sel_point[0] - fifo_f1) / fifo_f1) * 100
         gap_f2 = ((sel_point[1] - fifo_f2) / fifo_f2) * 100
-        gap_txt = (f"vs FIFO: f\u2081 {gap_f1:+.1f}% | f\u2082 {gap_f2:+.1f}%")
+        gap_f3 = ((sel_point[2] - fifo_f3) / fifo_f3) * 100 if fifo_f3 > 0 else 0
+        gap_txt = (f"vs FIFO: f\u2081 {gap_f1:+.1f}% | f\u2082 {gap_f2:+.1f}% | f\u2083 {gap_f3:+.1f}%")
     else:
         gap_txt = "Sistema actual sin optimizar"
+    sel_f3 = sel_point[2] if len(sel_point) > 2 else 0
     st.markdown(f"""
     <div class="metric-card" style="border-color:{t['accent2']}4D;margin-bottom:1rem;">
-        <div style="display:flex;justify-content:center;align-items:center;gap:2.5rem;flex-wrap:wrap;">
+        <div style="display:flex;justify-content:center;align-items:center;gap:2rem;flex-wrap:wrap;">
             <div style="text-align:center;">
                 <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
                     Escenario: {sel_label}</div>
@@ -974,15 +985,22 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
                 <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">f\u2081 espera</div>
                 <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent1']};font-weight:700;">
                     {_fmtd(sel_point[0])}</div>
-                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:160px;line-height:1.3;">
+                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:140px;line-height:1.3;">
                     carga de espera no atendida ponderada</div>
             </div>
             <div style="text-align:center;">
                 <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">f\u2082 disparidad</div>
                 <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent3']};font-weight:700;">
                     {_fmtd(sel_point[1])}</div>
-                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:160px;line-height:1.3;">
-                    brecha máx. de espera entre pa\u00edses</div>
+                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:140px;line-height:1.3;">
+                    brecha m\u00e1x. de espera entre pa\u00edses</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">f\u2083 desperdicio</div>
+                <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent2']};font-weight:700;">
+                    {_fmt(int(sel_f3))}</div>
+                <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:140px;line-height:1.3;">
+                    visas sin asignar</div>
             </div>
         </div>
         <div style="text-align:center;margin-top:8px;font-size:0.75rem;color:{t['danger']};font-weight:600;">
@@ -991,17 +1009,18 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
 
     st.markdown(f"""<div style="text-align:center;font-size:0.9rem;color:{t['text_muted']};
         font-style:italic;margin-bottom:-10px;">
-        Cada punto es un balance diferente entre espera y equidad</div>""",
+        Cada punto es un balance diferente entre espera, equidad y utilizaci\u00f3n</div>""",
                 unsafe_allow_html=True)
 
     fig = go.Figure()
-    # Custom hover with visas
+    # Custom hover with visas and f3
     hover_texts = [
         f"<b>Solución MOHHO</b><br>"
         f"f\u2081 (espera): {_fmtd(f1, 3)} a\u00f1os<br>"
         f"f\u2082 (disparidad): {_fmtd(f2, 2)} a\u00f1os<br>"
+        f"f\u2083 (desperdicio): {_fmt(int(f3))}<br>"
         f"Visas otorgadas: {_fmt(v)} ({v * 100 // total_visas}%)"
-        for f1, f2, v in zip(f1s, f2s, visas_list)
+        for f1, f2, f3, v in zip(f1s, f2s, f3s, visas_list)
     ]
     fig.add_trace(go.Scatter(
         x=f1s, y=f2s, mode='markers+lines',
@@ -1016,7 +1035,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
     ))
 
     # FIFO baseline
-    fifo_label = f"FIFO ({_fmtd(baseline[0], 2)}, {_fmtd(baseline[1], 2)})"
+    fifo_label = f"FIFO ({_fmtd(baseline[0], 2)}, {_fmtd(baseline[1], 2)}, {_fmt(int(baseline[2]))})"
     fig.add_trace(go.Scatter(
         x=[baseline[0]], y=[baseline[1]], mode='markers+text',
         marker=dict(size=20, color=t['danger'], symbol='star',
@@ -1075,59 +1094,121 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
     ))
     st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False})
 
-    # 3D Pareto surface with visas as z-axis
-    with st.expander("Ver Frente de Pareto en 3D (f\u2081 \u00d7 f\u2082 \u00d7 Visas)"):
+    # Projection selector for 2D views and 3D
+    st.markdown('<div class="section-title">Proyecciones del Frente Triobjetivo</div>',
+                unsafe_allow_html=True)
+    proj_choice = st.radio(
+        "Vista",
+        ["f\u2081 vs f\u2082", "f\u2081 vs f\u2083", "f\u2082 vs f\u2083", "3D (f\u2081 \u00d7 f\u2082 \u00d7 f\u2083)"],
+        horizontal=True, key="pareto_proj",
+    )
+
+    proj_axes = {
+        "f\u2081 vs f\u2082": (f1s, f2s, f3s, "f\u2081 \u2014 Espera (a\u00f1os)", "f\u2082 \u2014 Disparidad (a\u00f1os)", "f\u2083"),
+        "f\u2081 vs f\u2083": (f1s, f3s, f2s, "f\u2081 \u2014 Espera (a\u00f1os)", "f\u2083 \u2014 Desperdicio (visas)", "f\u2082"),
+        "f\u2082 vs f\u2083": (f2s, f3s, f1s, "f\u2082 \u2014 Disparidad (a\u00f1os)", "f\u2083 \u2014 Desperdicio (visas)", "f\u2081"),
+    }
+    if proj_choice != "3D (f\u2081 \u00d7 f\u2082 \u00d7 f\u2083)":
+        px, py, pc, xlabel, ylabel, clabel = proj_axes[proj_choice]
+        bl_map = {
+            "f\u2081 vs f\u2082": (baseline[0], baseline[1]),
+            "f\u2081 vs f\u2083": (baseline[0], baseline[2]),
+            "f\u2082 vs f\u2083": (baseline[1], baseline[2]),
+        }
+        kn_map = {
+            "f\u2081 vs f\u2082": (knee[0], knee[1]),
+            "f\u2081 vs f\u2083": (knee[0], knee[2]),
+            "f\u2082 vs f\u2083": (knee[1], knee[2]),
+        }
+        bl_xy = bl_map[proj_choice]
+        kn_xy = kn_map[proj_choice]
+
+        fig_proj = go.Figure()
+        fig_proj.add_trace(go.Scatter(
+            x=px, y=py, mode='markers',
+            marker=dict(size=8, color=pc,
+                        colorscale=[[0, t['danger']], [0.5, t['accent1']], [1, t['accent3']]],
+                        colorbar=dict(title=clabel, thickness=15, len=0.6),
+                        line=dict(width=1, color=t['text_subtle'])),
+            hovertemplate=f'{xlabel}: %{{x:.3f}}<br>{ylabel}: %{{y:.2f}}<br>{clabel}: %{{marker.color:.2f}}<extra></extra>',
+            name='Frente de Pareto',
+        ))
+        fig_proj.add_trace(go.Scatter(
+            x=[bl_xy[0]], y=[bl_xy[1]], mode='markers+text',
+            marker=dict(size=18, color=t['danger'], symbol='star',
+                        line=dict(width=2, color=t['marker_line'])),
+            text=['FIFO'], textposition='middle right',
+            textfont=dict(color=t['danger'], size=10),
+            name='FIFO',
+        ))
+        fig_proj.add_trace(go.Scatter(
+            x=[kn_xy[0]], y=[kn_xy[1]], mode='markers+text',
+            marker=dict(size=14, color=t['accent2'], symbol='diamond',
+                        line=dict(width=2, color=t['marker_line'])),
+            text=['Equilibrio'], textposition='bottom center',
+            textfont=dict(color=t['accent2'], size=10),
+            name='Equilibrio (Knee)',
+        ))
+        fig_proj.update_layout(**_plotly_layout(
+            xaxis=dict(title=xlabel, **_grid()),
+            yaxis=dict(title=ylabel, **_grid()),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                        bgcolor=t['legend_bg'], font=dict(size=10)),
+            height=500, margin=dict(t=40),
+        ))
+        st.plotly_chart(fig_proj, use_container_width=True, theme=None,
+                        config={"displayModeBar": False}, key="pareto_proj_2d")
+    else:
+        # 3D Pareto surface f1 x f2 x f3
         fig3d = go.Figure()
         fig3d.add_trace(go.Scatter3d(
-            x=f1s, y=f2s, z=visas_list,
-            mode='markers+lines',
+            x=f1s, y=f2s, z=f3s,
+            mode='markers',
             marker=dict(
                 size=5, color=visas_list,
                 colorscale=[[0, t['danger']], [0.5, t['accent1']], [1, t['accent3']]],
                 colorbar=dict(title="Visas", thickness=12, len=0.6, x=1.02),
                 line=dict(width=0.5, color=t['text_subtle']),
             ),
-            line=dict(width=2, color=_rgba(t['accent1'], 0.4)),
             hovertemplate=(
-                '<b>Solución MOHHO</b><br>'
+                '<b>Soluci\u00f3n MOHHO</b><br>'
                 'f\u2081 (espera): %{x:.3f} a\u00f1os<br>'
                 'f\u2082 (disparidad): %{y:.2f} a\u00f1os<br>'
-                'Visas: %{z:,.0f}<extra></extra>'
+                'f\u2083 (desperdicio): %{z:,.0f}<extra></extra>'
             ),
             name='Frente de Pareto',
         ))
         # FIFO point
         fig3d.add_trace(go.Scatter3d(
-            x=[baseline[0]], y=[baseline[1]], z=[data.get('fifo_used', total_visas) if data else total_visas],
+            x=[baseline[0]], y=[baseline[1]], z=[baseline[2]],
             mode='markers', name='FIFO (actual)',
             marker=dict(size=10, color=t['danger'], symbol='diamond',
                         line=dict(width=2, color=t['marker_line'])),
             hovertemplate=(
                 '<b>FIFO (sistema actual)</b><br>'
                 'f\u2081: %{x:.3f}<br>f\u2082: %{y:.2f}<br>'
-                'Visas: %{z:,.0f}<extra></extra>'
+                'f\u2083: %{z:,.0f}<extra></extra>'
             ),
         ))
         # Knee point
-        knee_visas = pareto_visas.get(knee, total_visas)
         fig3d.add_trace(go.Scatter3d(
-            x=[knee[0]], y=[knee[1]], z=[knee_visas],
+            x=[knee[0]], y=[knee[1]], z=[knee[2]],
             mode='markers', name='Equilibrio (Knee)',
             marker=dict(size=8, color=t['accent2'], symbol='diamond',
                         line=dict(width=2, color=t['marker_line'])),
             hovertemplate=(
                 '<b>Equilibrio (Knee)</b><br>'
                 'f\u2081: %{x:.3f}<br>f\u2082: %{y:.2f}<br>'
-                'Visas: %{z:,.0f}<extra></extra>'
+                'f\u2083: %{z:,.0f}<extra></extra>'
             ),
         ))
         fig3d.update_layout(**_plotly_layout(
             scene=dict(
-                xaxis=dict(title='f\u2081 — Espera (a\u00f1os)', backgroundcolor='rgba(0,0,0,0)',
+                xaxis=dict(title='f\u2081 \u2014 Espera (a\u00f1os)', backgroundcolor='rgba(0,0,0,0)',
                            gridcolor=_rgba(t['text'], 0.1), showbackground=True),
-                yaxis=dict(title='f\u2082 — Disparidad (a\u00f1os)', backgroundcolor='rgba(0,0,0,0)',
+                yaxis=dict(title='f\u2082 \u2014 Disparidad (a\u00f1os)', backgroundcolor='rgba(0,0,0,0)',
                            gridcolor=_rgba(t['text'], 0.1), showbackground=True),
-                zaxis=dict(title='Visas otorgadas', backgroundcolor='rgba(0,0,0,0)',
+                zaxis=dict(title='f\u2083 \u2014 Desperdicio (visas)', backgroundcolor='rgba(0,0,0,0)',
                            gridcolor=_rgba(t['text'], 0.1), showbackground=True),
                 bgcolor='rgba(0,0,0,0)',
                 camera=dict(eye=dict(x=1.8, y=-1.4, z=0.8)),
@@ -1139,7 +1220,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
         ))
         st.plotly_chart(fig3d, use_container_width=True, theme=None, key="pareto_3d")
         st.markdown(f"""<div class="info-box" style="font-size:0.8rem;">
-        La tercera dimension (eje Z) muestra las <strong>visas totales otorgadas</strong> por cada solución.
+        Frente de Pareto triobjetivo en 3D: f\u2081 (espera), f\u2082 (disparidad), f\u2083 (desperdicio de visas).
         Arrastra para rotar, scroll para zoom. El punto rojo es FIFO; el dorado es el equilibrio (knee).
         </div>""", unsafe_allow_html=True)
 
@@ -1164,7 +1245,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
         "Equilibrio (Knee Point)": (
             "Punto de máxima curvatura del frente de Pareto: el mejor compromiso "
             "entre reducir espera y reducir disparidad sin sacrificar "
-            "desproporcionadamente ninguno de los dos objetivos."
+            "desproporcionadamente ninguno de los tres objetivos."
         ),
         "Mejor Equidad": (
             "Minimiza la disparidad entre países (f\u2082): busca que la espera "
@@ -1185,7 +1266,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             <div class="metric-card" style="{border}text-align:center;">
                 <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
                     {title}</div>
-                <div style="display:flex;justify-content:center;gap:1.2rem;margin:8px 0 4px;">
+                <div style="display:flex;justify-content:center;gap:1rem;margin:8px 0 4px;flex-wrap:wrap;">
                     <div>
                         <div style="{_lbl_style}">f\u2081 espera</div>
                         <div style="{_card_style}color:{color};">{_fmtd(pt[0])} a\u00f1os</div>
@@ -1193,6 +1274,10 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
                     <div>
                         <div style="{_lbl_style}">f\u2082 disparidad</div>
                         <div style="{_card_style}color:{color};">{_fmtd(pt[1])} a\u00f1os</div>
+                    </div>
+                    <div>
+                        <div style="{_lbl_style}">f\u2083 desperdicio</div>
+                        <div style="{_card_style}color:{color};">{_fmt(int(pt[2]))}</div>
                     </div>
                 </div>
                 <div style="font-size:0.8rem;color:{t['text']};margin-top:4px;">
@@ -1216,11 +1301,11 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             line=dict(width=0),
         ),
         hovertemplate=(
-            'Solución #%{x}<br>'
+            'Soluci\u00f3n #%{x}<br>'
             'Visas: %{y:,.0f}<br>'
-            f'f\u2081: %{{customdata[0]:.3f}} | f\u2082: %{{customdata[1]:.2f}}'
+            f'f\u2081: %{{customdata[0]:.3f}} | f\u2082: %{{customdata[1]:.2f}} | f\u2083: %{{customdata[2]:,.0f}}'
             '<extra></extra>'),
-        customdata=list(zip(f1s, f2s)),
+        customdata=list(zip(f1s, f2s, f3s)),
     ))
     fig_v.add_hline(y=total_visas, line_dash="dash", line_color=t['accent3'],
                     annotation_text=f"Máximo: {_fmt(total_visas)}")
@@ -1240,12 +1325,12 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
     with st.expander(f"Ver las {len(pareto)} soluciones del frente de Pareto"):
         st.markdown(f"""
         <div class="info-box">
-            <strong>¿Por qué {len(pareto)} soluciones?</strong> El algoritmo MOHHO explora miles de asignaciones
-            posibles. De todas ellas, solo {len(pareto)} son <em>no dominadas</em>: ninguna otra solución
-            es mejor en ambos objetivos a la vez. Forman el <em>frente de Pareto</em> — el conjunto
-            de mejores compromisos posibles entre minimizar la espera (f\u2081) y minimizar la
-            disparidad entre países (f\u2082). Moverse a lo largo del frente implica siempre un
-            trade-off: mejorar un objetivo empeora el otro.
+            <strong>\u00bfPor qu\u00e9 {len(pareto)} soluciones?</strong> El algoritmo MOHHO explora miles de asignaciones
+            posibles. De todas ellas, solo {len(pareto)} son <em>no dominadas</em>: ninguna otra soluci\u00f3n
+            es mejor en los tres objetivos a la vez. Forman el <em>frente de Pareto</em> \u2014 el conjunto
+            de mejores compromisos posibles entre minimizar la espera (f\u2081), minimizar la
+            disparidad entre pa\u00edses (f\u2082) y minimizar el desperdicio de visas (f\u2083). Moverse a lo largo del frente implica siempre un
+            trade-off: mejorar un objetivo empeora al menos otro.
         </div>""", unsafe_allow_html=True)
 
         # Build table data
@@ -1262,14 +1347,17 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
                 tag = "Equilibrio"
             elif abs(p[0] - best_f2_point[0]) < 1e-6 and abs(p[1] - best_f2_point[1]) < 1e-6:
                 tag = "Equidad"
+            gap_f3_pct = ((p[2] - fifo_f3) / fifo_f3) * 100 if fifo_f3 > 0 else 0
             rows.append({
                 "#": i + 1,
                 "f\u2081 espera": round(p[0], 4),
                 "f\u2082 disparidad": round(p[1], 4),
+                "f\u2083 desperdicio": int(p[2]),
                 "Visas": v,
                 "% visas": f"{v * 100 // total_visas}%",
                 "\u0394f\u2081 vs FIFO": f"{gap_f1_pct:+.1f}%",
                 "\u0394f\u2082 vs FIFO": f"{gap_f2_pct:+.1f}%",
+                "\u0394f\u2083 vs FIFO": f"{gap_f3_pct:+.1f}%",
                 "Escenario": tag,
             })
         df_pareto = pd.DataFrame(rows)
@@ -1318,7 +1406,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             show_scenarios = list(range(4))
         else:
             # FIFO + current selected
-            sel_map = {"Humanitario": 1, "Equilibrio (Knee)": 2, "Equidad": 3, "FIFO": 0}
+            sel_map = {"Humanitario": 1, "Equilibrio (Knee)": 2, "Equidad": 3, "M\u00e1x. Utilizaci\u00f3n": 3, "FIFO": 0}
             sel_idx = sel_map.get(sel_label, 2)
             show_scenarios = [0, sel_idx] if sel_idx != 0 else [0]
 
@@ -1430,6 +1518,7 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
     mohho_used = sel_used
 
     sel_pct = mohho_used * 100 // data["total_visas"]
+    sel_f3_val = int(sel_fit[2]) if len(sel_fit) > 2 else data['total_visas'] - mohho_used
     st.markdown(f"""
     <div class="info-box">
         <strong>Escenario: {sel_label}</strong> \u2014
@@ -1438,7 +1527,9 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
         <span style="color:{t['accent1']};">f\u2081 = {_fmtd(sel_fit[0])} a\u00f1os</span>
         (carga de espera no atendida ponderada \u2014 menor es mejor) \u2014
         <span style="color:{t['accent3']};">f\u2082 = {_fmtd(sel_fit[1])} a\u00f1os</span>
-        (brecha máxima de espera entre países \u2014 menor es mejor)
+        (brecha m\u00e1xima de espera entre pa\u00edses \u2014 menor es mejor) \u2014
+        <span style="color:{t['accent2']};">f\u2083 = {_fmt(sel_f3_val)}</span>
+        (visas sin asignar \u2014 menor es mejor)
     </div>""", unsafe_allow_html=True)
 
     cat_labels = [f"{c} {CATS_DESC.get(c, '')}" for c in categories]
@@ -1577,12 +1668,14 @@ def _tab_country(data: dict, sel_matrix: list, sel_fit: tuple,
     st.markdown('<div class="section-title">Impacto por País</div>',
                 unsafe_allow_html=True)
 
+    sel_f3_country = int(sel_fit[2]) if len(sel_fit) > 2 else data['total_visas'] - sel_used
     st.markdown(f"""
     <div class="info-box">
         <strong>Escenario: {sel_label}</strong> \u2014
         Visas otorgadas: <strong>{_fmt(sel_used)} / {_fmt(data['total_visas'])}</strong> \u2014
         f\u2081 espera = {_fmtd(sel_fit[0])} \u2014
-        f\u2082 disparidad = {_fmtd(sel_fit[1])}
+        f\u2082 disparidad = {_fmtd(sel_fit[1])} \u2014
+        f\u2083 desperdicio = {_fmt(sel_f3_country)}
     </div>""", unsafe_allow_html=True)
 
     countries = data["countries"]
@@ -1725,7 +1818,7 @@ def _all_scenarios_chart(data: dict, baseline: tuple, knee: tuple,
                 <div style="font-family:'JetBrains Mono';font-size:1.1rem;color:{t['accent2']};
                     font-weight:700;">{_fmt(used)} visas</div>
                 <div style="font-size:0.72rem;color:{t['text_subtle']};">
-                    f\u2081={_fmtd(fit[0])} | f\u2082={_fmtd(fit[1])}</div>
+                    f\u2081={_fmtd(fit[0])} | f\u2082={_fmtd(fit[1])} | f\u2083={_fmt(int(fit[2]) if len(fit) > 2 else 0)}</div>
             </div>""", unsafe_allow_html=True)
 
     # Sorted by FIFO allocation
@@ -1800,8 +1893,8 @@ def _tab_convergence(
     # ── Intro ──
     st.markdown(f"""
     <div class="info-box">
-        El <strong>hipervolumen (HV)</strong> mide el área del espacio objetivo dominada por el frente de Pareto.
-        Un HV mayor significa que el algoritmo encontró soluciones más cercanas al punto ideal.
+        El <strong>hipervolumen (HV)</strong> mide el volumen del espacio triobjetivo dominado por el frente de Pareto.
+        Un HV mayor significa que el algoritmo encontr\u00f3 soluciones m\u00e1s cercanas al punto ideal.
         Aquí analizamos cómo evoluciona a lo largo de <strong>{int(it[-1])} iteraciones</strong>
         en <strong>{num_runs} corridas independientes</strong> con diferentes semillas aleatorias.
     </div>""", unsafe_allow_html=True)
@@ -2061,6 +2154,7 @@ def _tab_convergence(
     run_data = load_run(run_idx)
     rf1 = [p["f1"] for p in run_data["pareto_front"]]
     rf2 = [p["f2"] for p in run_data["pareto_front"]]
+    rf3 = [p["f3"] for p in run_data["pareto_front"]]
 
     # Rank of this run
     rank = sorted(final_hvs, reverse=True).index(run_data["hv_final"]) + 1
@@ -2333,8 +2427,8 @@ def _tab_math(data: dict, summary: dict = None) -> None:
         mientras países con poca demanda reciben sus visas en meses.
         <br><br>
         Nuestro modelo busca responder: <em>¿hay una forma más justa de repartir esas {_fmt(data['total_visas'])} visas?</em>
-        La respuesta no es única — hay <strong>88 formas diferentes</strong>, cada una con un balance
-        distinto entre ayudar a los que más esperan y tratar a todos los países por igual.
+        La respuesta no es \u00fanica \u2014 hay <strong>{summary['combined_pareto_size'] if summary else 371} formas diferentes</strong>, cada una con un balance
+        distinto entre ayudar a los que m\u00e1s esperan, tratar a todos los pa\u00edses por igual y no desperdiciar visas.
     </div>""", unsafe_allow_html=True)
 
     # ── What are we deciding? ──
@@ -2367,14 +2461,15 @@ def _tab_math(data: dict, summary: dict = None) -> None:
         </div>
     </div>""", unsafe_allow_html=True)
 
-    # ── The two objectives ──
-    st.markdown('<div class="section-title">Los Dos Objetivos (¿Qué Queremos Lograr?)</div>',
+    # ── The three objectives ──
+    st.markdown('<div class="section-title">Los Tres Objetivos (\u00bfQu\u00e9 Queremos Lograr?)</div>',
                 unsafe_allow_html=True)
     st.markdown(f"""
     <div class="info-box" style="font-size:0.85rem;">
-        Queremos dos cosas a la vez, pero están en conflicto: si priorizas a India (que espera más),
-        otros países se quedan sin visas y la desigualdad crece. Si repartes equitativamente,
-        India sigue esperando décadas. No hay solución perfecta — hay <strong>88 compromisos</strong>.
+        Queremos tres cosas a la vez, pero est\u00e1n en conflicto: si priorizas a India (que espera m\u00e1s),
+        otros pa\u00edses se quedan sin visas y la desigualdad crece. Si repartes equitativamente,
+        India sigue esperando d\u00e9cadas y se desperdician visas al chocar con l\u00edmites por pa\u00eds.
+        No hay soluci\u00f3n perfecta \u2014 hay <strong>{summary['combined_pareto_size'] if summary else 371} compromisos</strong>.
     </div>""", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
@@ -2426,8 +2521,29 @@ def _tab_math(data: dict, summary: dict = None) -> None:
                 Esa brecha máxima es f\u2082. <strong>Queremos que sea lo más baja posible.</strong></div>
         </div>""", unsafe_allow_html=True)
 
+    # f3 objective card
+    st.markdown(f"""
+    <div class="metric-card" style="border-color:{t['accent2']}44;margin:1rem 0;">
+        <div style="font-size:0.8rem;color:{t['accent2']} !important;font-weight:700;
+            text-transform:uppercase;margin-bottom:6px;">
+            Objetivo 3 (f\u2083): Minimizar el Desperdicio de Visas</div>
+        <p style="font-size:0.85rem;color:{t['tab_text']} !important;line-height:1.6;margin:0 0 10px;">
+            <strong>En simple:</strong> usar la mayor cantidad posible de las {_fmt(data['total_visas'])} visas disponibles.
+            Cada visa no asignada es una oportunidad perdida.</p>
+        <div style="{eq_bg}">
+            <div style="{mono}{eq_color}text-align:center;font-size:0.95rem;">
+                f\u2083(x) = V \u2212 \u03a3<sub>g</sub> x<sub>g</sub></div>
+        </div>
+        <div style="font-size:0.8rem;color:{t['tab_text']} !important;line-height:1.6;">
+            <strong>V</strong> = {_fmt(data['total_visas'])} visas disponibles por a\u00f1o<br>
+            <strong>\u03a3 x<sub>g</sub></strong> = total de visas efectivamente asignadas<br><br>
+            FIFO desperdicia <strong style="color:{t['danger']};">{_fmt(int(summary['baseline']['f3'] if summary else 17540))}</strong> visas
+            porque choca con l\u00edmites por pa\u00eds antes de agotar el presupuesto.
+            <strong>Queremos que f\u2083 sea lo m\u00e1s bajo posible.</strong></div>
+    </div>""", unsafe_allow_html=True)
+
     # ── Why conflict ──
-    st.markdown('<div class="section-title">¿Por qué No se Puede Ganar en Ambos?</div>',
+    st.markdown('<div class="section-title">\u00bfPor qu\u00e9 No se Puede Ganar en los Tres?</div>',
                 unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
@@ -2473,25 +2589,29 @@ def _tab_math(data: dict, summary: dict = None) -> None:
 
     st.markdown(f"""
     <div class="info-box" style="border-left:4px solid {t['accent2']};font-size:0.85rem;">
-        <strong>Ninguna estrategia gana en ambos:</strong> A es mejor en f\u2081 pero peor en f\u2082;
-        B es mejor en f\u2082 pero peor en f\u2081. Esto se llama <strong>conflicto estructural</strong>
-        y es la razón por la que no hay UNA solución óptima, sino un <strong>frente de {summary['combined_pareto_size']} compromisos</strong>.
+        <strong>Ninguna estrategia gana en los tres:</strong> A es mejor en f\u2081 pero peor en f\u2082;
+        B es mejor en f\u2082 pero peor en f\u2081; y las soluciones que maximizan utilizaci\u00f3n (f\u2083 bajo)
+        no siempre minimizan espera o disparidad. Esto se llama <strong>conflicto estructural</strong>
+        y es la raz\u00f3n por la que no hay UNA soluci\u00f3n \u00f3ptima, sino un <strong>frente de {summary['combined_pareto_size']} compromisos</strong>.
     </div>""", unsafe_allow_html=True)
 
-    # ── Why biobjetivo ──
-    st.markdown('<div class="section-title">¿Por qué 2 Objetivos y No 3?</div>',
+    # ── Why triobjetivo ──
+    st.markdown('<div class="section-title">\u00bfPor qu\u00e9 3 Objetivos?</div>',
                 unsafe_allow_html=True)
 
     # Compute actual visa usage stats from Pareto solutions
-    pareto_visa_stats = compute_pareto_visas(tuple(sorted(
-        [(p[0], p[1]) for p in load_pareto_csv()[0]], key=lambda x: x[0])))
+    pareto_all = load_pareto_csv()[0]
+    pareto_visa_stats = compute_pareto_visas(
+        tuple(sorted(pareto_all, key=lambda x: x[0])), data['total_visas'])
     pv_vals = list(pareto_visa_stats.values())
     pv_min, pv_max, pv_mean = min(pv_vals), max(pv_vals), sum(pv_vals) / len(pv_vals)
+    f3_vals = [p[2] for p in pareto_all]
+    f3_min, f3_max = min(f3_vals), max(f3_vals)
 
     st.markdown(f"""
     <div class="info-box" style="font-size:0.85rem;line-height:1.7;">
-        Originalmente se planteó un tercer objetivo: <strong>f\u2083 = visas desperdiciadas</strong>
-        (V \u2212 \u03a3x<sub>g</sub>). Veamos qué pasa en la práctica:
+        El tercer objetivo <strong>f\u2083 = V \u2212 \u03a3x<sub>g</sub></strong> mide las visas desperdiciadas.
+        Los datos emp\u00edricos muestran que f\u2083 var\u00eda significativamente entre soluciones:
     </div>""", unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
@@ -2502,48 +2622,46 @@ def _tab_math(data: dict, summary: dict = None) -> None:
             <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
                 FIFO (sistema actual)</div>
             <div style="{_mono}font-size:1.3rem;color:{t['danger']};margin:6px 0;">
-                {_fmt(data['fifo_used'])} visas</div>
+                f\u2083 = {_fmt(int(summary['baseline']['f3'] if summary else 17540))}</div>
             <div style="font-size:0.75rem;color:{t['tab_text']} !important;">
                 Desperdicia <strong style="color:{t['danger']};">{_fmt(data['total_visas'] - data['fifo_used'])}</strong>
-                visas por chocar con límites por país</div>
+                visas por chocar con l\u00edmites por pa\u00eds</div>
         </div>""", unsafe_allow_html=True)
     with c2:
         st.markdown(f"""
         <div class="metric-card" style="border-color:{t['accent2']}44;text-align:center;">
             <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
-                MOHHO (88 soluciones Pareto)</div>
+                MOHHO ({summary['combined_pareto_size']} soluciones Pareto)</div>
             <div style="{_mono}font-size:1.3rem;color:{t['accent2']};margin:6px 0;">
-                {_fmt(int(pv_mean))} promedio</div>
+                f\u2083: {_fmt(int(f3_min))} a {_fmt(int(f3_max))}</div>
             <div style="font-size:0.75rem;color:{t['tab_text']} !important;">
-                Rango: {_fmt(pv_min)} a {_fmt(pv_max)} visas<br>
-                f\u2083 varía entre {_fmt(data['total_visas'] - pv_max)} y {_fmt(data['total_visas'] - pv_min)}</div>
+                Visas usadas: {_fmt(pv_min)} a {_fmt(pv_max)}<br>
+                Promedio: {_fmt(int(pv_mean))} visas ({int(pv_mean) * 100 // data['total_visas']}%)</div>
         </div>""", unsafe_allow_html=True)
     with c3:
         st.markdown(f"""
-        <div class="metric-card" style="border-color:{t['accent1']}44;text-align:center;">
+        <div class="metric-card" style="border-color:{t['accent3']}44;text-align:center;">
             <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
-                Decisión de diseño</div>
-            <div style="{_mono}font-size:1.3rem;color:{t['accent1']};margin:6px 0;">
-                Biobjetivo</div>
+                Mejor utilizaci\u00f3n (f\u2083 m\u00ednimo)</div>
+            <div style="{_mono}font-size:1.3rem;color:{t['accent3']};margin:6px 0;">
+                f\u2083 = {_fmt(int(f3_min))}</div>
             <div style="font-size:0.75rem;color:{t['tab_text']} !important;">
-                f\u2083 se deja como métrica observable,<br>no como objetivo de optimización</div>
+                {_fmt(data['total_visas'] - int(f3_min))} visas asignadas<br>
+                ({(data['total_visas'] - int(f3_min)) * 100 // data['total_visas']}% utilizaci\u00f3n)</div>
         </div>""", unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class="info-box" style="font-size:0.85rem;line-height:1.7;">
-        <strong>¿Por qué no se optimiza f\u2083?</strong><br><br>
-        f\u2083 (visas no usadas) <em>sí varía</em> entre soluciones — no es trivialmente cero.
+        <strong>\u00bfPor qu\u00e9 restaurar f\u2083 como objetivo?</strong><br><br>
+        f\u2083 (visas no usadas) <em>var\u00eda significativamente</em> entre soluciones \u2014 de {_fmt(int(f3_min))} a {_fmt(int(f3_max))}.
         Las soluciones que priorizan equidad (f\u2082 bajo) tienden a usar menos visas porque
-        reparten entre más países y chocan con más límites.<br><br>
-        Sin embargo, agregar f\u2083 como tercer objetivo complicaría el frente de Pareto
-        (pasaría de una curva 2D a una superficie 3D) y las soluciones con f\u2083 bajo
-        (más utilización) ya están bien representadas: tienden a correlacionar con f\u2081 bajo.
-        <br><br>
-        <strong>Decisión:</strong> se mantiene como modelo biobjetivo min\u007bf\u2081, f\u2082\u007d.
-        f\u2083 se reporta como <strong>métrica de observación</strong> en el frente de Pareto
-        (visible como color y eje Z en la vista 3D), pero no dirige la búsqueda.
-        El presupuesto total de {_fmt(data['total_visas'])} visas se respeta como
-        <strong>restricción R1</strong> (\u03a3x<sub>g</sub> \u2264 V).
+        reparten entre m\u00e1s pa\u00edses y chocan con m\u00e1s l\u00edmites. Esto convierte a f\u2083 en un
+        objetivo genuinamente en conflicto con f\u2082.<br><br>
+        <strong>Decisi\u00f3n:</strong> se modela como <strong>triobjetivo min\u007bf\u2081, f\u2082, f\u2083\u007d</strong>.
+        El frente de Pareto pasa de ser una curva 2D a una <strong>superficie 3D</strong>
+        con {summary['combined_pareto_size']} soluciones no dominadas. El presupuesto total de {_fmt(data['total_visas'])} visas
+        se sigue respetando como <strong>restricci\u00f3n R1</strong> (\u03a3x<sub>g</sub> \u2264 V),
+        mientras que f\u2083 mide cu\u00e1nto de ese presupuesto se logra asignar efectivamente.
     </div>""", unsafe_allow_html=True)
 
     # ── Constraints (with real-world meaning) ──
@@ -2731,25 +2849,25 @@ válida. No se necesitan penalizaciones — la factibilidad está garantizada po
     st.markdown(f"""
     <div class="info-box" style="font-size:0.85rem;line-height:1.7;">
         Imagina que comparas dos repartos de visas, <strong>A</strong> y <strong>B</strong>:<br><br>
-        \u2022 Si A tiene <strong>menor espera Y menor brecha</strong> que B \u2192 A es claramente mejor.
+        \u2022 Si A tiene <strong>menor espera, menor brecha Y menos desperdicio</strong> que B \u2192 A es claramente mejor.
         Decimos que A <em>domina</em> a B.<br>
-        \u2022 Si A tiene <strong>menor espera PERO mayor brecha</strong> \u2192 ninguno domina al otro.
-        Ambos son válidos, solo son compromisos diferentes.<br><br>
-        El <strong>frente de Pareto</strong> es el grupo de soluciones que nadie puede superar en ambos
-        objetivos a la vez. Son las "mejores opciones disponibles" — {summary['combined_pareto_size'] if summary else 88}
+        \u2022 Si A tiene <strong>menor espera PERO mayor brecha o m\u00e1s desperdicio</strong> \u2192 ninguno domina al otro.
+        Ambos son v\u00e1lidos, solo son compromisos diferentes.<br><br>
+        El <strong>frente de Pareto</strong> es el grupo de soluciones que nadie puede superar en los tres
+        objetivos a la vez. Son las "mejores opciones disponibles" \u2014 {summary['combined_pareto_size'] if summary else 371}
         en nuestro caso.
     </div>""", unsafe_allow_html=True)
 
-    with st.expander("Ver definición formal de dominancia"):
+    with st.expander("Ver definici\u00f3n formal de dominancia"):
         st.markdown(f"""
         <div style="{eq_bg}">
             <div style="{mono}{eq_color}text-align:center;font-size:0.9rem;">
                 a \u227b b &nbsp;\u27fa&nbsp;
-                \u2200m \u2208 \u007b1,2\u007d: f<sub>m</sub>(a) \u2264 f<sub>m</sub>(b)
+                \u2200m \u2208 \u007b1,2,3\u007d: f<sub>m</sub>(a) \u2264 f<sub>m</sub>(b)
                 &nbsp;\u2227&nbsp; \u2203m: f<sub>m</sub>(a) &lt; f<sub>m</sub>(b)</div>
         </div>
         <p style="font-size:0.82rem;color:{t['tab_text']} !important;">
-            a domina a b si es al menos igual en todo y estrictamente mejor en algo.</p>
+            a domina a b si es al menos igual en los tres objetivos y estrictamente mejor en al menos uno.</p>
         <div style="{eq_bg}">
             <div style="{mono}{eq_color}text-align:center;font-size:0.9rem;">
                 Frente de Pareto = \u007b x | no existe x' que domine a x \u007d</div>
@@ -2761,9 +2879,9 @@ válida. No se necesitan penalizaciones — la factibilidad está garantizada po
                 unsafe_allow_html=True)
     st.markdown(f"""
     <div class="info-box" style="font-size:0.85rem;line-height:1.7;">
-        El <strong>hipervolumen (HV)</strong> es como medir el "área" que cubre el frente de Pareto
-        en el gráfico de f\u2081 vs f\u2082. Si el frente se expande (mejores soluciones),
-        el área crece.<br><br>
+        El <strong>hipervolumen (HV)</strong> es como medir el "volumen" que cubre el frente de Pareto
+        en el espacio tridimensional de f\u2081 \u00d7 f\u2082 \u00d7 f\u2083. Si el frente se expande (mejores soluciones),
+        el volumen crece.<br><br>
         \u2022 <strong>Mayor HV = mejor:</strong> las soluciones cubren más espacio de opciones.<br>
         \u2022 Lo calculamos para cada una de las 30 corridas del algoritmo para verificar que es
         <strong>consistente</strong> (no fue suerte de una sola vez).<br>
@@ -2789,9 +2907,9 @@ def _tab_about(summary: dict, data: dict) -> None:
         decada</strong>. Mientras tanto, países con poca demanda reciben visas en meses.
         <br><br>
         Usamos un algoritmo bio-inspirado llamado <strong>MOHHO</strong> (Multi-Objective Harris Hawks
-        Optimization) para encontrar <strong>88 formas alternativas</strong> de repartir las mismas
-        {_fmt(data['total_visas'])} visas, cada una con un balance diferente entre reducir la espera
-        y tratar a todos los países por igual.
+        Optimization) para encontrar <strong>{summary['combined_pareto_size']} formas alternativas</strong> de repartir las mismas
+        {_fmt(data['total_visas'])} visas, cada una con un balance diferente entre reducir la espera,
+        tratar a todos los pa\u00edses por igual y maximizar la utilizaci\u00f3n.
     </div>""", unsafe_allow_html=True)
 
     # ── How does MOHHO work ──
@@ -2817,10 +2935,10 @@ def _tab_about(summary: dict, data: dict) -> None:
          t['accent2'], "Quién va primero en la fila de visas"),
         ("\u2699\ufe0f", "Decoder", "Repartir visas respetando las 6 reglas legales",
          t['accent3'], "Asignación factible garantizada"),
-        ("\U0001f4ca", "Evaluar", "Calcular f\u2081 (espera) y f\u2082 (brecha entre países)",
-         t['accent1'], "Qué tan buena es esta solución"),
+        ("\U0001f4ca", "Evaluar", "Calcular f\u2081 (espera), f\u2082 (brecha) y f\u2083 (desperdicio)",
+         t['accent1'], "Qu\u00e9 tan buena es esta soluci\u00f3n"),
         ("\u2728", "Pareto", "Guardar las soluciones que nadie puede superar",
-         t['accent3'], "88 compromisos óptimos"),
+         t['accent3'], f"{summary['combined_pareto_size']} compromisos \u00f3ptimos"),
     ]
 
     cols = st.columns(len(steps))
@@ -2910,7 +3028,7 @@ def _tab_about(summary: dict, data: dict) -> None:
         ("Archivo Pareto", str(summary["archive_size"]),
          "Capacidad máxima de soluciones no dominadas.",
          "100 es el valor canónico en MOEA/D y NSGA-II (Deb et al., 2002). "
-         "Suficiente para representar un frente 2D con buena diversidad. "
+         "Suficiente para representar un frente triobjetivo con buena diversidad. "
          "Si se llena, se poda por crowding distance — se eliminan las soluciones "
          "más apretadas, conservando los extremos y el knee."),
         ("Corridas independientes", str(summary["num_runs"]),
@@ -2978,16 +3096,22 @@ line-height:1.55;padding-left:4px;border-top:1px solid {t['card_border']};paddin
         ("f\u2081 \u2014 Carga de espera", "Objetivo 1",
          "Mide cuántos años de espera quedan sin resolver. Minimizarlo prioriza dar visas "
          "a la gente que lleva más tiempo en la fila (India, China)."),
-        ("f\u2082 \u2014 Brecha entre países", "Objetivo 2",
-         "Mide la mayor diferencia de espera entre cualquier par de países. "
-         "Minimizarlo busca que todos los países esperen tiempos similares — equidad pura."),
+        ("f\u2082 \u2014 Brecha entre pa\u00edses", "Objetivo 2",
+         "Mide la mayor diferencia de espera entre cualquier par de pa\u00edses. "
+         "Minimizarlo busca que todos los pa\u00edses esperen tiempos similares \u2014 equidad pura."),
+        ("f\u2083 \u2014 Desperdicio de visas", "Objetivo 3",
+         "Mide cu\u00e1ntas de las {V} visas quedan sin asignar (f\u2083 = V \u2212 \u03a3x). "
+         "Minimizarlo maximiza la utilizaci\u00f3n del presupuesto anual. FIFO desperdicia "
+         "{w} visas; MOHHO puede llegar hasta f\u2083 = 0.".format(
+             V=_fmt(data['total_visas']),
+             w=_fmt(data['total_visas'] - data['fifo_used']))),
         ("Frente de Pareto", "Concepto clave",
-         "El grupo de soluciones que nadie puede superar en ambos objetivos. "
-         "Si una solución tiene menos espera, otra tendrá menos brecha — "
+         "El grupo de soluciones que nadie puede superar en los tres objetivos a la vez. "
+         "Si una soluci\u00f3n tiene menos espera, otra tendr\u00e1 menos brecha o menos desperdicio \u2014 "
          f"no se puede ganar en todo. Nuestro frente tiene {summary['combined_pareto_size']} puntos."),
         ("Knee Point (Equilibrio)", "Punto especial",
-         "El punto del frente de Pareto donde un poquito más de espera produce mucha más equidad "
-         "(o viceversa). Es el compromiso más eficiente entre ambos objetivos."),
+         "El punto del frente de Pareto donde un poquito m\u00e1s de espera produce mucha m\u00e1s equidad "
+         "(o viceversa). Es el compromiso m\u00e1s eficiente entre los tres objetivos."),
         ("Categorías EB", "Inmigración",
          "EB-1: personas extraordinarias (premios Nobel, etc). "
          "EB-2: profesionales con maestría. EB-3: trabajadores calificados. "
@@ -3001,9 +3125,9 @@ line-height:1.55;padding-left:4px;border-top:1px solid {t['card_border']};paddin
          "Ningún país puede recibir más del 7% del total ({c} visas/ano). "
          "India tiene ~70% de la demanda pero recibe máximo 7%. "
          "Esta es la causa principal del problema.".format(c=_fmt(25620))),
-        ("Hipervolumen (HV)", "Métrica",
-         "Mide qué tan buenas son las soluciones: el 'área' cubierta por el frente de Pareto. "
-         "Mayor área = mejores soluciones. Lo usamos para comparar las 30 corridas del algoritmo."),
+        ("Hipervolumen (HV)", "M\u00e9trica",
+         "Mide qu\u00e9 tan buenas son las soluciones: el 'volumen' del espacio triobjetivo cubierto por el frente de Pareto. "
+         "Mayor volumen = mejores soluciones. Lo usamos para comparar las 30 corridas del algoritmo."),
         ("SPV", "Técnica",
          "Smallest Position Value (Bean, 1994). Truco matemático para convertir números "
          "decimales (que maneja el halcon) en un orden de prioridad (que necesita el decoder)."),
@@ -3115,13 +3239,13 @@ def _tab_simulation(data: dict, baseline: tuple) -> None:
 
         # Inicializar población
         population = rng.uniform(LB, UB, size=(sim_pop, NUM_GROUPS))
-        fitnesses: list[tuple[float, float]] = []
+        fitnesses: list[tuple[float, float, float]] = []
         for i in range(sim_pop):
             _, fit = evaluate_hawk(population[i], problem)
             fitnesses.append(fit)
 
         archive_pos: list = []
-        archive_fit: list[tuple[float, float]] = []
+        archive_fit: list[tuple[float, float, float]] = []
         for i in range(sim_pop):
             update_archive(archive_pos, archive_fit,
                            population[i], fitnesses[i], ARCHIVE_SIZE)
@@ -3444,6 +3568,7 @@ def main() -> None:
     knee = _find_knee(pareto)
     best_f1 = min(pareto, key=lambda x: x[0])
     best_f2 = min(pareto, key=lambda x: x[1])
+    best_f3_global = min(pareto, key=lambda x: x[2])
     f2_imp = ((baseline[1] - best_f2[1]) / baseline[1]) * 100
 
     # ── Sidebar (single block to preserve tab state on rerun) ──
@@ -3466,10 +3591,13 @@ def main() -> None:
             format_func=lambda x: f"#{x+1} (seed={42+x})",
         )
 
+        best_f3 = min(pareto, key=lambda x: x[2])
+
         scenario_labels = [
-            "Min espera (f\u2081) — prioriza urgencia",
-            "Balance (knee) — compromiso f\u2081/f\u2082",
-            "Min brecha entre países (f\u2082) — igualdad",
+            "Min espera (f\u2081) \u2014 prioriza urgencia",
+            "Balance (knee) \u2014 compromiso f\u2081/f\u2082/f\u2083",
+            "Min brecha entre pa\u00edses (f\u2082) \u2014 igualdad",
+            "Mejor f\u2083 (m\u00e1x. utilizaci\u00f3n)",
             "FIFO (sistema actual sin optimizar)",
         ]
         scenario = st.radio(
@@ -3484,17 +3612,19 @@ def main() -> None:
             scenario_labels[0]: best_f1,
             scenario_labels[1]: knee,
             scenario_labels[2]: best_f2,
-            scenario_labels[3]: baseline,
+            scenario_labels[3]: best_f3,
+            scenario_labels[4]: baseline,
         }
         sel_point = scenario_map[scenario]
-        is_fifo = (scenario == scenario_labels[3])
+        is_fifo = (scenario == scenario_labels[4])
 
         # Short labels for display
         _short_labels = {
             scenario_labels[0]: "Humanitario",
             scenario_labels[1]: "Equilibrio (Knee)",
             scenario_labels[2]: "Equidad",
-            scenario_labels[3]: "FIFO",
+            scenario_labels[3]: "M\u00e1x. Utilizaci\u00f3n",
+            scenario_labels[4]: "FIFO",
         }
         if is_fifo:
             sel_matrix = data["fifo_matrix"]
@@ -3510,12 +3640,13 @@ def main() -> None:
         st.markdown("### Escenario activo")
 
         sel_pct = sel_used * 100 // data["total_visas"]
+        sel_f3_sidebar = int(sel_fit[2]) if len(sel_fit) > 2 else data['total_visas'] - sel_used
         st.markdown(f"""
         <div class="sidebar-metric">
             <div class="label">Visas otorgadas ({sel_label})</div>
             <div class="value" style="color:{t['accent3']} !important;">
                 {_fmt(sel_used)} / {_fmt(data['total_visas'])}</div>
-            <div class="label" style="margin-top:2px;">{sel_pct}% utilización</div>
+            <div class="label" style="margin-top:2px;">{sel_pct}% utilizaci\u00f3n</div>
         </div>
         <div class="sidebar-metric">
             <div class="label">f\u2081 espera (a\u00f1os)</div>
@@ -3524,11 +3655,17 @@ def main() -> None:
         <div class="sidebar-metric">
             <div class="label">f\u2082 disparidad (a\u00f1os)</div>
             <div class="value">{_fmtd(sel_fit[1])}</div>
+        </div>
+        <div class="sidebar-metric">
+            <div class="label">f\u2083 desperdicio (visas)</div>
+            <div class="value">{_fmt(sel_f3_sidebar)}</div>
         </div>""", unsafe_allow_html=True)
 
         st.divider()
         st.markdown("### Métricas globales")
 
+        fifo_f3_val = int(summary['baseline']['f3']) if 'baseline' in summary and 'f3' in summary['baseline'] else data['total_visas'] - data['fifo_used']
+        best_f3_val = int(summary['best_f3'][2]) if 'best_f3' in summary else 0
         st.markdown(f"""
         <div class="sidebar-metric">
             <div class="label">Soluciones Pareto</div>
@@ -3541,6 +3678,14 @@ def main() -> None:
         <div class="sidebar-metric">
             <div class="label">Mejora vs FIFO (f\u2082 disparidad)</div>
             <div class="value" style="color:{t['accent3']} !important;">\u2212{_fmtd(f2_imp, 1)}%</div>
+        </div>
+        <div class="sidebar-metric">
+            <div class="label">FIFO desperdicio (f\u2083)</div>
+            <div class="value" style="color:{t['danger']} !important;">{_fmt(fifo_f3_val)}</div>
+        </div>
+        <div class="sidebar-metric">
+            <div class="label">Mejor f\u2083 (m\u00e1x. utilizaci\u00f3n)</div>
+            <div class="value" style="color:{t['accent3']} !important;">{_fmt(best_f3_val)}</div>
         </div>""", unsafe_allow_html=True)
 
         # Progress ring
