@@ -341,7 +341,7 @@ Ver Sección~\ref{sec:codificacion} para el detalle completo y un ejemplo numér
 \subsection{\texorpdfstring{Hallazgo 2: <<\,¿Qué le entregas al usuario?\,>>}{Hallazgo 2: ¿Qué le entregas al usuario?}}
 
 \begin{answerbox}
-\textbf{Respuesta:} Al usuario (tomador de decisiones del Departamento de Estado) se le entrega una \textbf{tabla de asignación de visas}: una matriz $\mathbf{A}[c][j]$ que indica cuántas visas se asignan a cada combinación país $c$ -- categoría $j$ en el año fiscal. Adicionalmente, se presenta un \textbf{frente de Pareto} con múltiples asignaciones no dominadas que representan diferentes compromisos entre carga de espera no atendida ($f_1$) y equidad entre países ($f_2$), permitiendo seleccionar el escenario preferido.
+\textbf{Respuesta:} Al usuario (tomador de decisiones del Departamento de Estado) se le entrega una \textbf{tabla de asignación de visas}: una matriz $\mathbf{A}[c][j]$ que indica cuántas visas se asignan a cada combinación país $c$ -- categoría $j$ en el año fiscal. Adicionalmente, se presenta un \textbf{frente de Pareto} con múltiples asignaciones no dominadas que representan diferentes compromisos entre carga de espera no atendida ($f_1$), equidad entre países ($f_2$) y visas desperdiciadas ($f_3$), permitiendo seleccionar el escenario preferido.
 
 Ver Sección~\ref{sec:entregable} para el ejemplo concreto del entregable.
 \end{answerbox}
@@ -349,7 +349,7 @@ Ver Sección~\ref{sec:entregable} para el ejemplo concreto del entregable.
 \subsection{\texorpdfstring{Hallazgo 3: <<\,El algoritmo modifica valores de objetivos, no genera una planificación\,>>}{Hallazgo 3: El algoritmo modifica valores de objetivos, no genera una planificación}}
 
 \begin{answerbox}
-\textbf{Respuesta:} HHO opera sobre vectores continuos (posiciones de halcones), pero \textbf{nunca modifica directamente} los valores de $f_1$ o $f_2$. Los operadores de HHO mueven las posiciones de los halcones en $\mathbb{R}^G$; la regla SPV convierte cada posición en una permutación; el decodificador greedy traduce la permutación en una asignación concreta de visas; y \textbf{solo entonces} se calculan los dos objetivos sobre esa asignación. La cadena es: vector continuo $\rightarrow$ permutación $\rightarrow$ asignación $\rightarrow$ evaluación de fitness.
+\textbf{Respuesta:} HHO opera sobre vectores continuos (posiciones de halcones), pero \textbf{nunca modifica directamente} los valores de $f_1$, $f_2$ o $f_3$. Los operadores de HHO mueven las posiciones de los halcones en $\mathbb{R}^G$; la regla SPV convierte cada posición en una permutación; el decodificador greedy traduce la permutación en una asignación concreta de visas; y \textbf{solo entonces} se calculan los tres objetivos sobre esa asignación. La cadena es: vector continuo $\rightarrow$ permutación $\rightarrow$ asignación $\rightarrow$ evaluación de fitness.
 
 Ver Sección~\ref{sec:integracion} para el flujo completo.
 \end{answerbox}
@@ -381,13 +381,13 @@ Asignar 140.000 visas de empleo anuales entre $\sim$200 países y 5 categorías 
 \subsection{Por qué es un problema de optimización y no de pronóstico}
 
 \begin{restrictionbox}
-\textbf{Aclaración importante:} Este problema \textbf{no predice} cuántas visas se asignarán. El sistema actual asigna visas mediante reglas FIFO rígidas con topes fijos. Lo que la metaheurística busca es la \textbf{mejor combinación de prioridades de procesamiento} que optimice los dos objetivos simultáneamente. Es un problema de \textbf{asignación combinatoria}, no de pronóstico.
+\textbf{Aclaración importante:} Este problema \textbf{no predice} cuántas visas se asignarán. El sistema actual asigna visas mediante reglas FIFO rígidas con topes fijos. Lo que la metaheurística busca es la \textbf{mejor combinación de prioridades de procesamiento} que optimice los tres objetivos simultáneamente. Es un problema de \textbf{asignación combinatoria}, no de pronóstico.
 \end{restrictionbox}
 
 \subsection{Alcance del modelo (simplificación tractable)}
 
 \begin{restrictionbox}
-\textbf{Nota sobre cambios de notación respecto a la Fase 1.} En la Fase 1 se presentó una formulación general con índice temporal $t \in \mathcal{T}$ y variable $x_{i,t}$ (visas asignadas al grupo $i$ en el periodo $t$), junto con conjuntos $\mathcal{I}$ para grupos. Para la Fase 2, el modelo se \textbf{simplifica deliberadamente} a un solo año fiscal, eliminando el índice $t$ y renombrando $\mathcal{I} \to \mathcal{G}$, $x_{i,t} \to x_g$. Esta simplificación es necesaria para hacer el problema computacionalmente tractable en el alcance del proyecto, sin perder la esencia del conflicto entre los dos objetivos. La formulación multi-periodo de la Fase 1 se puede recuperar como extensión futura.
+\textbf{Nota sobre cambios de notación respecto a la Fase 1.} En la Fase 1 se presentó una formulación general con índice temporal $t \in \mathcal{T}$ y variable $x_{i,t}$ (visas asignadas al grupo $i$ en el periodo $t$), junto con conjuntos $\mathcal{I}$ para grupos. Para la Fase 2, el modelo se \textbf{simplifica deliberadamente} a un solo año fiscal, eliminando el índice $t$ y renombrando $\mathcal{I} \to \mathcal{G}$, $x_{i,t} \to x_g$. Esta simplificación es necesaria para hacer el problema computacionalmente tractable en el alcance del proyecto, sin perder la esencia del conflicto entre los tres objetivos. La formulación multi-periodo de la Fase 1 se puede recuperar como extensión futura.
 \end{restrictionbox}
 
 Para hacer el problema computacionalmente tractable sin perder su esencia, se modela \textbf{un año fiscal} con las siguientes simplificaciones:
@@ -521,7 +521,7 @@ El vector de decisión es $\mathbf{x} = (x_1, x_2, \ldots, x_G) \in \mathbb{Z}^{
 \section{Funciones Objetivo}
 \label{sec:objetivos}
 
-El problema tiene \textbf{dos objetivos en conflicto}. No existe una solución que optimice ambos simultáneamente; por ello se busca un \textbf{frente de Pareto} de soluciones no dominadas.
+El problema tiene \textbf{tres objetivos en conflicto}. No existe una solución que optimice todos simultáneamente; por ello se busca un \textbf{frente de Pareto} de soluciones no dominadas.
 
 \subsection{Objetivo 1: Minimizar la carga de espera no atendida}
 
@@ -680,7 +680,7 @@ R6 & FIFO por $(c, j)$ & Dentro de un mismo país-categoría, se procesa primero
 \end{table}
 
 \begin{yellowbox}
-\textbf{Nota sobre R6:} En el modelo simplificado ($G = C \times |\mathcal{J}| = 50$), existe \textbf{un solo grupo} por cada combinación país-categoría, por lo que R6 se satisface trivialmente. En una extensión a múltiples cohortes por (país, categoría), el decodificador procesaría las cohortes en orden cronológico de $d_g$ antes de asignar visas, haciendo R6 activa.
+\textbf{Nota sobre R6:} En el modelo simplificado ($G = C \times |\mathcal{J}| = 105$), existe \textbf{un solo grupo} por cada combinación país-categoría, por lo que R6 se satisface trivialmente. En una extensión a múltiples cohortes por (país, categoría), el decodificador procesaría las cohortes en orden cronológico de $d_g$ antes de asignar visas, haciendo R6 activa.
 \end{yellowbox}
 
 \subsection{Reglas de \textit{spillover} (restricción R3 ajustada)}
@@ -875,7 +875,7 @@ Solo India-EB2 contribuye al numerador: 20 solicitantes no atendidos $\times$ 13
 $$f_2 = \max(|14{,}8 - 6{,}57|,\; |14{,}8 - 1{,}33|,\; |6{,}57 - 1{,}33|) = |14{,}8 - 1{,}33| = 13{,}47 \text{ años}$$
 
 \begin{resultbox}
-\textbf{Fitness del halcón:} $(f_1, f_2) = (2{,}17;\;\; 13{,}47)$. Esta dupla se compara con las de otros halcones mediante \textbf{dominancia de Pareto} para determinar si la solución pertenece al frente no dominado.
+\textbf{Fitness del halcón:} $(f_1, f_2, f_3) = (2{,}17;\;\; 13{,}47;\;\; 0)$. Esta terna se compara con las de otros halcones mediante \textbf{dominancia de Pareto} para determinar si la solución pertenece al frente no dominado.
 
 \vspace{0.3em}
 \textbf{Verificación direccional de $f_1$:} Si no se asignara ninguna visa a India ($x_1 = x_2 = 0$), el numerador sería $40 \times 13 + 30 \times 16 = 1.000$, dando $f_1 = 1.000/120 = 8{,}33$. Servir a India reduce $f_1$ de 8,33 a 2,17: el objetivo correctamente prioriza a quienes más esperan. \ding{51}
@@ -942,7 +942,7 @@ El tomador de decisiones selecciona el escenario que mejor refleje sus prioridad
 
 \subsection{Entregable 3: Comparación contra el sistema actual}
 
-Se incluirá una comparación cuantitativa entre cada solución del frente de Pareto y la asignación real del sistema FIFO+topes. Para ello se simulará la asignación actual (procesamiento estricto por fecha de prioridad dentro de cada país-categoría, respetando todos los topes legales) y se calcularán los mismos dos objetivos. La tabla comparativa mostrará, para cada escenario del frente de Pareto: la reducción porcentual en $f_1$ (carga de espera no atendida reducida) y la mejora en $f_2$ (reducción de disparidad entre países). Esto permitirá al tomador de decisiones cuantificar el costo de oportunidad del sistema actual.
+Se incluirá una comparación cuantitativa entre cada solución del frente de Pareto y la asignación real del sistema FIFO+topes. Para ello se simulará la asignación actual (procesamiento estricto por fecha de prioridad dentro de cada país-categoría, respetando todos los topes legales) y se calcularán los mismos tres objetivos. La tabla comparativa mostrará, para cada escenario del frente de Pareto: la reducción porcentual en $f_1$ (carga de espera no atendida reducida), la mejora en $f_2$ (reducción de disparidad entre países) y la variación en $f_3$ (visas desperdiciadas). Esto permitirá al tomador de decisiones cuantificar el costo de oportunidad del sistema actual.
 
 
 % ==========================================================
@@ -963,7 +963,7 @@ Esta sección vincula el modelo matemático con la metaheurística \textbf{sin r
     \item \textbf{HHO genera/modifica} un vector $\mathbf{H} \in \mathbb{R}^G$ usando sus operadores (Ops. 1--6).
     \item \textbf{SPV convierte} $\mathbf{H}$ en una permutación $\boldsymbol{\pi}$ (Ecuación~\ref{eq:spv}).
     \item \textbf{El decodificador greedy} procesa $\boldsymbol{\pi}$ y produce $\mathbf{x} \in \mathbb{Z}^G_{+}$ (Ecuación~\ref{eq:decoder}).
-    \item \textbf{Se evalúan} $f_1(\mathbf{x})$ y $f_2(\mathbf{x})$ sobre la asignación concreta.
+    \item \textbf{Se evalúan} $f_1(\mathbf{x})$, $f_2(\mathbf{x})$ y $f_3(\mathbf{x})$ sobre la asignación concreta.
     \item \textbf{Se actualiza} el archivo de Pareto con soluciones no dominadas.
 \end{enumerate}
 \end{notebox}
@@ -994,7 +994,7 @@ Ops. 5--6 (Lévy) & Saltos de largo alcance que pueden mover un grupo de alta pr
 
 \subsection{Componentes multiobjetivo (MOHHO)}
 
-Para manejar dos objetivos simultáneamente, MOHHO añade tres mecanismos al HHO base \parencite{heidari2019, kusoglu2020, cerci2022}:
+Para manejar tres objetivos simultáneamente, MOHHO añade tres mecanismos al HHO base \parencite{heidari2019, kusoglu2020, cerci2022}:
 
 \textbf{(1) Archivo externo de Pareto.} En lugar de un único <<conejo>> (mejor solución), se mantiene un archivo de soluciones no dominadas. Una solución $\mathbf{a}$ domina a $\mathbf{b}$ si:
 

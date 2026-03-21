@@ -496,7 +496,7 @@ El algoritmo Multi-Objective Harris Hawks Optimization (MOHHO) extiende el HHO o
 \subsection{Decisiones de diseño relevantes}
 
 \begin{yellowbox}
-\textbf{Factibilidad garantizada.} No se implementan funciones de penalización. El decodificador greedy garantiza que \textbf{toda} solución decodificada satisface las restricciones R1--R6. Los operadores de HHO operan libremente en $\mathbb{R}^{50}$ sin necesidad de reparación; la factibilidad se maneja exclusivamente en la capa de decodificación.
+\textbf{Factibilidad garantizada.} No se implementan funciones de penalización. El decodificador greedy garantiza que \textbf{toda} solución decodificada satisface las restricciones R1--R6. Los operadores de HHO operan libremente en $\mathbb{R}^{105}$ sin necesidad de reparación; la factibilidad se maneja exclusivamente en la capa de decodificación.
 \end{yellowbox}
 
 \begin{yellowbox}
@@ -666,7 +666,7 @@ Coeficiente de variación & 2,40\% \\
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{hv_boxplot.png}
-    \caption{Diagrama de caja del hipervolumen (HV) de las 30 corridas. La mediana (línea central) y la media (rombo) son cercanas, indicando distribución simétrica. El coeficiente de variación de 0{,}76\% confirma la estabilidad del algoritmo.}
+    \caption{Diagrama de caja del hipervolumen (HV) de las 30 corridas. La mediana (línea central) y la media (rombo) son cercanas, indicando distribución simétrica. El coeficiente de variación de 2{,}40\% confirma la estabilidad del algoritmo.}
     \label{fig:hv_box}
 \end{figure}
 

@@ -521,7 +521,6 @@ def compute_allocations() -> dict[str, Any]:
 
 
 @st.cache_data
-@st.cache_data
 def compute_mohho_allocation(
     target_f1: float, target_f2: float, target_f3: float = -1.0,
 ) -> tuple[list[list[int]], tuple[float, float, float], int]:
@@ -844,8 +843,8 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
 
     # f3 hero card
     st.markdown(f"""
-    <div class="metric-card" style="border-color:{t['accent2']}44;margin:1rem 0;">
-        <div style="font-size:0.75rem;color:{t['accent2']} !important;font-weight:700;text-transform:uppercase;">
+    <div class="metric-card" style="border-color:{t['accent3']}44;margin:1rem 0;">
+        <div style="font-size:0.75rem;color:{t['accent3']} !important;font-weight:700;text-transform:uppercase;">
             Objetivo 3 (f\u2083): Desperdicio de Visas</div>
         <div style="display:flex;justify-content:center;gap:3rem;flex-wrap:wrap;margin:10px 0;">
             <div style="text-align:center;">
@@ -887,9 +886,9 @@ def _tab_problem(data: dict, summary: dict, pareto: list, baseline: tuple) -> No
         </div>""", unsafe_allow_html=True)
     with col_f2:
         st.markdown(f"""
-        <div style="background:{t['info_bg']};border:1px solid {t['accent3']}33;
+        <div style="background:{t['info_bg']};border:1px solid {t['accent2']}33;
             border-radius:12px;padding:1.5rem;margin:1rem 0;height:100%;">
-            <div style="font-size:0.95rem;font-weight:700;color:{t['accent3']} !important;margin-bottom:8px;">
+            <div style="font-size:0.95rem;font-weight:700;color:{t['accent2']} !important;margin-bottom:8px;">
                 ¿Qué es la disparidad (f\u2082)?</div>
             <p style="font-size:0.85rem;color:{t['tab_text']} !important;margin:0 0 8px;">
                 Para cada país se calcula <strong>W\u0304<sub>c</sub></strong>: el promedio ponderado
@@ -1021,14 +1020,14 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             </div>
             <div style="text-align:center;">
                 <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">f\u2082 disparidad</div>
-                <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent3']};font-weight:700;">
+                <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent2']};font-weight:700;">
                     {_fmtd(sel_point[1])}</div>
                 <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:140px;line-height:1.3;">
                     brecha m\u00e1x. de espera entre pa\u00edses</div>
             </div>
             <div style="text-align:center;">
                 <div style="font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;">f\u2083 desperdicio</div>
-                <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent2']};font-weight:700;">
+                <div style="font-family:'JetBrains Mono';font-size:1.8rem;color:{t['accent3']};font-weight:700;">
                     {_fmt(int(sel_f3))}</div>
                 <div style="font-size:0.7rem;color:{t['text_subtle']};max-width:140px;line-height:1.3;">
                     visas sin asignar</div>
@@ -2627,8 +2626,8 @@ def _tab_math(data: dict, summary: dict = None) -> None:
 
     with col2:
         st.markdown(f"""
-        <div class="metric-card" style="border-color:{t['accent3']}44;">
-            <div style="font-size:0.8rem;color:{t['accent3']} !important;font-weight:700;
+        <div class="metric-card" style="border-color:{t['accent2']}44;">
+            <div style="font-size:0.8rem;color:{t['accent2']} !important;font-weight:700;
                 text-transform:uppercase;margin-bottom:6px;">
                 Objetivo 2 (f\u2082): Reducir la Desigualdad</div>
             <p style="font-size:0.85rem;color:{t['tab_text']} !important;line-height:1.6;margin:0 0 10px;">
@@ -2651,8 +2650,8 @@ def _tab_math(data: dict, summary: dict = None) -> None:
 
     # f3 objective card
     st.markdown(f"""
-    <div class="metric-card" style="border-color:{t['accent2']}44;margin:1rem 0;">
-        <div style="font-size:0.8rem;color:{t['accent2']} !important;font-weight:700;
+    <div class="metric-card" style="border-color:{t['accent3']}44;margin:1rem 0;">
+        <div style="font-size:0.8rem;color:{t['accent3']} !important;font-weight:700;
             text-transform:uppercase;margin-bottom:6px;">
             Objetivo 3 (f\u2083): Minimizar el Desperdicio de Visas</div>
         <p style="font-size:0.85rem;color:{t['tab_text']} !important;line-height:1.6;margin:0 0 10px;">
@@ -2805,7 +2804,7 @@ def _tab_math(data: dict, summary: dict = None) -> None:
          "No puedes dar más visas de las que existen.",
          f"Solo hay {_fmt(data['total_visas'])} visas EB por año. Ni una más."),
         ("R2", "Limite por país (7%)",
-         "\u03a3 x<sub>g</sub> \u2264 {_fmt(25620)} por país",
+         f"\u03a3 x<sub>g</sub> \u2264 {_fmt(25620)} por país",
          "Ningún país puede acaparar todo.",
          "Cada país recibe máximo 7% del total. Por eso India, con 70% de la demanda, tiene colas de décadas."),
         ("R3", "Límite por categoría",
@@ -2961,7 +2960,7 @@ El algoritmo traduce cada elemento de la caza a un componente del modelo matem\u
         ("\u26a1 Energ\u00eda de escape (E)", "Balance exploraci\u00f3n/explotaci\u00f3n",
          "E = 2\u00b7E\u2080\u00b7(1 \u2212 t/T). Al inicio |E| es grande: los halcones <strong>exploran</strong> posiciones lejanas (b\u00fasqueda global). Conforme avanzan las iteraciones, |E| decrece: los halcones <strong>explotan</strong> la vecindad de la presa (refinamiento local). Esto es lo que hace que HHO converja."),
         ("\U0001f4a8 Vuelo de L\u00e9vy", "Saltos largos ocasionales",
-         "Cuando |E| < 0.5, el halc\u00f3n puede hacer una \u201cpicada r\u00e1pida\u201d con salto de L\u00e9vy: pasos cortos frecuentes + saltos largos raros. Esto evita que el algoritmo se quede atrapado en \u00f3ptimos locales, crucial para encontrar las 371 soluciones diversas del frente."),
+         f"Cuando |E| < 0.5, el halc\u00f3n puede hacer una \u201cpicada r\u00e1pida\u201d con salto de L\u00e9vy: pasos cortos frecuentes + saltos largos raros. Esto evita que el algoritmo se quede atrapado en \u00f3ptimos locales, crucial para encontrar las {summary['combined_pareto_size']} soluciones diversas del frente."),
         ("\U0001f4c2 Archivo externo", "Frente de Pareto",
          "Las mejores soluciones no dominadas se guardan en un archivo de tama\u00f1o 100. Cuando se llena, se eliminan las soluciones en zonas densas (menor crowding distance). Esto garantiza diversidad en el frente final."),
         ("\u2699\ufe0f Decodificador SPV+Greedy", "Factibilidad garantizada",
@@ -3018,7 +3017,7 @@ Calculamos los tres objetivos sobre la asignaci\u00f3n resultante x:<br>
     _bf1 = summary['best_f1'] if summary else [7.186, 10.744, 16280]
     _bf2 = summary['best_f2'] if summary else [7.514, 2.064, 17105]
     _bf3 = summary['best_f3'] if summary else [7.258, 9.390, 0]
-    _bl = summary['baseline'] if summary else {{'f1': 7.214, 'f2': 12.638, 'f3': 17540}}
+    _bl = summary['baseline'] if summary else {'f1': 7.214, 'f2': 12.638, 'f3': 17540}
     st.markdown(f"""<div class="metric-card" style="padding:1.2rem 1.5rem;">
 <div style="font-size:0.95rem;font-weight:700;color:{t['accent2']} !important;margin-bottom:10px;">
 Ejemplo con N\u00fameros Reales</div>
