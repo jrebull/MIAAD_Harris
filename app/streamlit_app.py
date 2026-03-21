@@ -1371,6 +1371,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             gap_f1_pct = ((p[0] - fifo_f1) / fifo_f1) * 100
             gap_f2_pct = ((p[1] - fifo_f2) / fifo_f2) * 100
             # Tag special solutions
+            _bf3p = min(pareto, key=lambda x: x[2])
             tag = ""
             if abs(p[0] - best_f1_point[0]) < 1e-6 and abs(p[1] - best_f1_point[1]) < 1e-6:
                 tag = "Humanitario"
@@ -1378,6 +1379,8 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
                 tag = "Equilibrio"
             elif abs(p[0] - best_f2_point[0]) < 1e-6 and abs(p[1] - best_f2_point[1]) < 1e-6:
                 tag = "Equidad"
+            elif abs(p[0] - _bf3p[0]) < 1e-6 and abs(p[2] - _bf3p[2]) < 1e-6:
+                tag = "M\u00e1x. Utilizaci\u00f3n"
             gap_f3_pct = ((p[2] - fifo_f3) / fifo_f3) * 100 if fifo_f3 > 0 else 0
             rows.append({
                 "#": i + 1,
@@ -1417,31 +1420,33 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             mat_arr = np.array(mat)
             return {c: int(mat_arr[i].sum()) for i, c in enumerate(countries)}
 
-        # Compute all 4 scenarios
+        # Compute all 5 scenarios
+        best_f3_point = min(pareto, key=lambda x: x[2])
         all_scenarios = [
             ("FIFO", data["fifo_matrix"], data["fifo_fit"]),
         ]
         for label, point in [("Humanitario", best_f1_point),
                              ("Equilibrio", knee),
-                             ("Equidad", best_f2_point)]:
+                             ("Equidad", best_f2_point),
+                             ("M\u00e1x. Utilizaci\u00f3n", best_f3_point)]:
             mat, fit, _ = compute_mohho_allocation(point[0], point[1], point[2])
             all_scenarios.append((label, mat, fit))
 
         scenarios_wc = [(n, _wc_from_matrix(m)) for n, m, _ in all_scenarios]
         scenarios_visas = [(n, _visas_from_matrix(m)) for n, m, _ in all_scenarios]
 
-        # Toggle: 2 scenarios (FIFO vs selected) or all 4
-        show_all = st.checkbox("Ver los 4 escenarios", value=True, key="pareto_4scenarios")
+        # Toggle: 2 scenarios (FIFO vs selected) or all 5
+        show_all = st.checkbox("Ver los 5 escenarios", value=True, key="pareto_4scenarios")
 
         if show_all:
-            show_scenarios = list(range(4))
+            show_scenarios = list(range(5))
         else:
             # FIFO + current selected
-            sel_map = {"Humanitario": 1, "Equilibrio (Knee)": 2, "Equidad": 3, "M\u00e1x. Utilizaci\u00f3n": 3, "FIFO": 0}
+            sel_map = {"Humanitario": 1, "Equilibrio (Knee)": 2, "Equidad": 3, "M\u00e1x. Utilizaci\u00f3n": 4, "FIFO": 0}
             sel_idx = sel_map.get(sel_label, 2)
             show_scenarios = [0, sel_idx] if sel_idx != 0 else [0]
 
-        scenario_colors = [t['danger'], t['accent1'], t['accent2'], t['accent3']]
+        scenario_colors = [t['danger'], t['accent1'], t['accent2'], t['accent3'], t['mid_blue']]
 
         # Sort countries by FIFO wait
         fifo_wc = scenarios_wc[0][1]
@@ -1653,15 +1658,15 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
     diff_arr = mohho_arr - fifo_arr
     vabs = max(abs(int(diff_arr.min())), abs(int(diff_arr.max()))) or 1
 
-    # Diverging colorscale: vivid red → white/transparent → vivid green
+    # Diverging colorscale: muted red → neutral → muted teal (theme-friendly)
     diff_colorscale = [
-        [0.0, "#dc2626"],
-        [0.25, "#f87171"],
-        [0.45, "#fecaca"],
-        [0.5, "#f5f5f5"],
-        [0.55, "#bbf7d0"],
-        [0.75, "#4ade80"],
-        [1.0, "#16a34a"],
+        [0.0, "#b45555"],
+        [0.3, "#c98a8a"],
+        [0.45, "#d4b5b5"],
+        [0.5, t['card_bg']],
+        [0.55, "#a8c8b8"],
+        [0.7, "#7aab94"],
+        [1.0, "#4a8f6e"],
     ]
     # Adaptive text color: contrast on saturated cells, muted on neutral
     diff_max = max(abs(diff_arr.min()), abs(diff_arr.max())) or 1
@@ -1727,7 +1732,8 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
 def _tab_country(data: dict, sel_matrix: list, sel_fit: tuple,
                  sel_used: int, sel_label: str,
                  baseline: tuple, knee: tuple,
-                 best_f1: tuple, best_f2: tuple) -> None:
+                 best_f1: tuple, best_f2: tuple,
+                 best_f3: tuple = None) -> None:
     t = _get_theme()
 
     st.markdown('<div class="section-title">Impacto por País</div>',
@@ -1842,23 +1848,27 @@ def _tab_country(data: dict, sel_matrix: list, sel_fit: tuple,
     # ── Comparativa de los 4 escenarios ──
     show_all = st.checkbox("Ver todos los escenarios", key="show_all_scenarios")
     if show_all:
-        _all_scenarios_chart(data, baseline, knee, best_f1, best_f2, countries)
+        _best_f3 = best_f3 if best_f3 is not None else min(
+            [baseline], key=lambda x: x[2])
+        _all_scenarios_chart(data, baseline, knee, best_f1, best_f2, _best_f3, countries)
 
 
 def _all_scenarios_chart(data: dict, baseline: tuple, knee: tuple,
                          best_f1: tuple, best_f2: tuple,
+                         best_f3: tuple,
                          countries: list[str]) -> None:
-    """Grouped bar chart comparing all 4 scenarios side by side."""
+    """Grouped bar chart comparing all 5 scenarios side by side."""
     t = _get_theme()
 
-    st.markdown('<div class="section-title">Comparativa: 4 Escenarios por Pa\u00eds</div>',
+    st.markdown('<div class="section-title">Comparativa: 5 Escenarios por Pa\u00eds</div>',
                 unsafe_allow_html=True)
 
     scenarios = [
         ("FIFO", baseline, data["fifo_matrix"], data["fifo_used"]),
-        ("Humanitario (f\u2081)", best_f1, None, 0),
-        ("Equilibrio (knee)", knee, None, 0),
-        ("Equidad (f\u2082)", best_f2, None, 0),
+        ("Humanitario", best_f1, None, 0),
+        ("Equilibrio", knee, None, 0),
+        ("Equidad", best_f2, None, 0),
+        ("M\u00e1x. Utilizaci\u00f3n", best_f3, None, 0),
     ]
     # Compute allocations for MOHHO scenarios
     resolved = []
@@ -1872,9 +1882,8 @@ def _all_scenarios_chart(data: dict, baseline: tuple, knee: tuple,
             resolved.append((name, fit, by_c, u))
 
     # Summary cards
-    cols = st.columns(4)
+    cols = st.columns(5)
     for col, (name, fit, by_c, used) in zip(cols, resolved):
-        pct = used * 100 // data["total_visas"] if used > 0 else 0
         with col:
             st.markdown(f"""
             <div class="metric-card" style="padding:14px;">
@@ -1891,7 +1900,7 @@ def _all_scenarios_chart(data: dict, baseline: tuple, knee: tuple,
     sorted_idx = sorted(range(len(countries)), key=lambda i: fifo_by_c[i], reverse=True)
     sorted_countries = [f"{_flag(countries[i])} {countries[i]}" for i in sorted_idx]
 
-    scenario_colors = [t['danger'], t['accent1'], t['accent2'], t['accent3']]
+    scenario_colors = [t['danger'], t['accent1'], t['accent2'], t['accent3'], t['mid_blue']]
 
     fig = go.Figure()
     for idx, (name, _, by_c, _) in enumerate(resolved):
@@ -1902,7 +1911,7 @@ def _all_scenarios_chart(data: dict, baseline: tuple, knee: tuple,
             hovertemplate=f'<b>%{{y}}</b><br>{name}: %{{x:,.0f}} visas<extra></extra>',
         ))
 
-    st.markdown(f'<div class="section-title">Visas otorgadas por pa\u00eds — 4 escenarios</div>',
+    st.markdown(f'<div class="section-title">Visas otorgadas por pa\u00eds — 5 escenarios</div>',
                 unsafe_allow_html=True)
     fig.update_layout(**_plotly_layout(
         barmode='group',
@@ -4053,7 +4062,7 @@ def main() -> None:
         _tab_allocation(data, sel_matrix, sel_fit, sel_used, sel_label, baseline)
     with tab4:
         _tab_country(data, sel_matrix, sel_fit, sel_used, sel_label,
-                     baseline, knee, best_f1, best_f2)
+                     baseline, knee, best_f1, best_f2, best_f3_global)
     with tab5:
         _tab_convergence(iters, hv_means, hv_stds, summary, baseline, run_idx)
     with tab6:
