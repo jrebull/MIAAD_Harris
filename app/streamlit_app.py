@@ -814,10 +814,10 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
         ))
 
     # Annotations
-    fig.add_annotation(x=best_f1[0], y=best_f1[1] + 0.5,
+    fig.add_annotation(x=best_f1_point[0], y=best_f1_point[1] + 0.5,
                        text="Zona humanitaria", showarrow=False,
                        font=dict(size=10, color=_rgba(t['accent1'], 0.6)))
-    fig.add_annotation(x=best_f2[0], y=best_f2[1] - 0.5,
+    fig.add_annotation(x=best_f2_point[0], y=best_f2_point[1] - 0.5,
                        text="Zona de equidad", showarrow=False,
                        font=dict(size=10, color=_rgba(t['accent3'], 0.6)))
 
