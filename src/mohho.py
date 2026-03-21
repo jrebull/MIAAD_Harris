@@ -2,7 +2,7 @@
 
 Combines HHO operators with:
     1. External Pareto archive (max size configurable)
-    2. Pareto dominance comparison
+    2. Pareto dominance comparison (3 objectives)
     3. Leader selection via crowding distance (roulette weighted)
     4. Archive update after each evaluation
 
@@ -30,34 +30,38 @@ from src.hho import (
 )
 from src.problem import VisaProblem
 
-# Fixed reference point for hypervolume (worst plausible f1, f2 + margin).
-# f1 theoretical max ~ 8.5, f2 theoretical max ~ 14 (from FIFO baseline).
-HV_REF_POINT: tuple[float, float] = (10.0, 16.0)
+# Fixed reference point for 3D hypervolume (worst plausible f1, f2, f3 + margin).
+# f1 theoretical max ~ 8.5, f2 theoretical max ~ 14, f3 theoretical max ~ 42000.
+HV_REF_POINT: tuple[float, float, float] = (10.0, 16.0, 50_000.0)
 
 # Cap for replacing inf in crowding distance roulette selection
 CD_INF_REPLACEMENT: float = 1e6
 
+# 3-tuple type alias
+Fitness3 = tuple[float, float, float]
 
-def dominates(a: tuple[float, float], b: tuple[float, float]) -> bool:
-    """Check if solution a dominates solution b.
+
+def dominates(a: Fitness3, b: Fitness3) -> bool:
+    """Check if solution a dominates solution b (3 objectives).
 
     a dominates b iff: for all m, f_m(a) <= f_m(b) AND exists m: f_m(a) < f_m(b).
 
     Args:
-        a: Fitness tuple (f1, f2) of solution a.
-        b: Fitness tuple (f1, f2) of solution b.
+        a: Fitness tuple (f1, f2, f3) of solution a.
+        b: Fitness tuple (f1, f2, f3) of solution b.
 
     Returns:
         True if a dominates b.
     """
-    return (a[0] <= b[0] and a[1] <= b[1]) and (a[0] < b[0] or a[1] < b[1])
+    return (a[0] <= b[0] and a[1] <= b[1] and a[2] <= b[2]) and \
+           (a[0] < b[0] or a[1] < b[1] or a[2] < b[2])
 
 
-def crowding_distance(fitnesses: list[tuple[float, float]]) -> list[float]:
-    """Compute crowding distance for a set of fitness values.
+def crowding_distance(fitnesses: list[Fitness3]) -> list[float]:
+    """Compute crowding distance for a set of fitness values (3 objectives).
 
     Args:
-        fitnesses: List of (f1, f2) tuples.
+        fitnesses: List of (f1, f2, f3) tuples.
 
     Returns:
         List of crowding distances, same order as input.
@@ -68,7 +72,7 @@ def crowding_distance(fitnesses: list[tuple[float, float]]) -> list[float]:
 
     distances = [0.0] * n
 
-    for m in range(2):
+    for m in range(3):
         indices = sorted(range(n), key=lambda i: fitnesses[i][m])
         distances[indices[0]] = float("inf")
         distances[indices[-1]] = float("inf")
@@ -88,7 +92,7 @@ def crowding_distance(fitnesses: list[tuple[float, float]]) -> list[float]:
 
 def select_leader(
     archive_positions: list[NDArray[np.float64]],
-    archive_fitnesses: list[tuple[float, float]],
+    archive_fitnesses: list[Fitness3],
     rng: np.random.Generator,
 ) -> NDArray[np.float64]:
     """Select a leader from the Pareto archive using crowding distance roulette.
@@ -114,8 +118,8 @@ def select_leader(
 
 
 def _is_duplicate(
-    new_fit: tuple[float, float],
-    archive_fitnesses: list[tuple[float, float]],
+    new_fit: Fitness3,
+    archive_fitnesses: list[Fitness3],
 ) -> bool:
     """Check if a fitness tuple already exists in the archive.
 
@@ -127,16 +131,18 @@ def _is_duplicate(
         True if a near-duplicate exists.
     """
     for af in archive_fitnesses:
-        if abs(af[0] - new_fit[0]) < 1e-12 and abs(af[1] - new_fit[1]) < 1e-12:
+        if (abs(af[0] - new_fit[0]) < 1e-12 and
+            abs(af[1] - new_fit[1]) < 1e-12 and
+            abs(af[2] - new_fit[2]) < 1e-12):
             return True
     return False
 
 
 def update_archive(
     archive_positions: list[NDArray[np.float64]],
-    archive_fitnesses: list[tuple[float, float]],
+    archive_fitnesses: list[Fitness3],
     new_pos: NDArray[np.float64],
-    new_fit: tuple[float, float],
+    new_fit: Fitness3,
     max_size: int,
 ) -> None:
     """Update the Pareto archive with a new solution (in-place).
@@ -196,7 +202,7 @@ def rng_fallback_idx(n: int) -> int:
 
 def evaluate_hawk(
     hawk: NDArray[np.float64], problem: VisaProblem
-) -> tuple[dict[int, int], tuple[float, float]]:
+) -> tuple[dict[int, int], Fitness3]:
     """Decode a hawk position and evaluate its fitness.
 
     Args:
@@ -215,11 +221,11 @@ def evaluate_hawk(
 
 def _greedy_select_levy(
     xi: NDArray[np.float64],
-    fit_i: tuple[float, float],
+    fit_i: Fitness3,
     y: NDArray[np.float64],
     z: NDArray[np.float64],
     problem: VisaProblem,
-) -> tuple[NDArray[np.float64], tuple[float, float]] | None:
+) -> tuple[NDArray[np.float64], Fitness3] | None:
     """Greedy selection for Lévy operators (Ops 5-6).
 
     Try Y first: adopt if Y dominates X_i.
@@ -250,9 +256,9 @@ def _greedy_select_levy(
 def _step_hawk(
     i: int,
     population: NDArray[np.float64],
-    fitnesses: list[tuple[float, float]],
+    fitnesses: list[Fitness3],
     archive_positions: list[NDArray[np.float64]],
-    archive_fitnesses: list[tuple[float, float]],
+    archive_fitnesses: list[Fitness3],
     x_mean: NDArray[np.float64],
     t: int,
     max_iter: int,
@@ -351,13 +357,13 @@ def _siege_step(
 def _levy_step(
     i: int,
     population: NDArray[np.float64],
-    fitnesses: list[tuple[float, float]],
+    fitnesses: list[Fitness3],
     x_rabbit: NDArray[np.float64],
     x_mean: NDArray[np.float64],
     e: float,
     abs_e: float,
     archive_positions: list[NDArray[np.float64]],
-    archive_fitnesses: list[tuple[float, float]],
+    archive_fitnesses: list[Fitness3],
     archive_size: int,
     problem: VisaProblem,
     rng: np.random.Generator,
@@ -396,9 +402,9 @@ def _accept_and_archive(
     i: int,
     new_pos: NDArray[np.float64],
     population: NDArray[np.float64],
-    fitnesses: list[tuple[float, float]],
+    fitnesses: list[Fitness3],
     archive_positions: list[NDArray[np.float64]],
-    archive_fitnesses: list[tuple[float, float]],
+    archive_fitnesses: list[Fitness3],
     archive_size: int,
     problem: VisaProblem,
 ) -> None:
@@ -428,8 +434,8 @@ def run_mohho(
     pop_size: int = POPULATION_SIZE,
     max_iter: int = MAX_ITERATIONS,
     archive_size: int = ARCHIVE_SIZE,
-    callback: Callable[[int, list[tuple[float, float]]], None] | None = None,
-) -> tuple[list[NDArray[np.float64]], list[tuple[float, float]], list[float]]:
+    callback: Callable[[int, list[Fitness3]], None] | None = None,
+) -> tuple[list[NDArray[np.float64]], list[Fitness3], list[float]]:
     """Run the MOHHO algorithm.
 
     Args:
@@ -447,13 +453,13 @@ def run_mohho(
     dim = NUM_GROUPS
 
     population = rng.uniform(LB, UB, size=(pop_size, dim))
-    fitnesses: list[tuple[float, float]] = []
+    fitnesses: list[Fitness3] = []
     for i in range(pop_size):
         _, fit = evaluate_hawk(population[i], problem)
         fitnesses.append(fit)
 
     archive_positions: list[NDArray[np.float64]] = []
-    archive_fitnesses: list[tuple[float, float]] = []
+    archive_fitnesses: list[Fitness3] = []
     for i in range(pop_size):
         update_archive(archive_positions, archive_fitnesses,
                        population[i], fitnesses[i], archive_size)
@@ -478,14 +484,41 @@ def run_mohho(
     return archive_positions, archive_fitnesses, hv_history
 
 
-def compute_hypervolume(
-    fitnesses: list[tuple[float, float]],
-    ref_point: tuple[float, float] | None = None,
+def _hv_2d(
+    pts: list[tuple[float, float]], ref: tuple[float, float]
 ) -> float:
-    """Compute 2D hypervolume indicator using sweep-line.
+    """2D hypervolume via sweep-line.
 
     Args:
-        fitnesses: List of (f1, f2) non-dominated points.
+        pts: List of (f_a, f_b) points.
+        ref: 2D reference point.
+
+    Returns:
+        2D hypervolume value.
+    """
+    sorted_pts = sorted(pts, key=lambda p: p[0])
+    hv = 0.0
+    prev = ref[1]
+    for fa, fb in sorted_pts:
+        if fa < ref[0] and fb < ref[1]:
+            h = prev - fb
+            if h > 0:
+                hv += (ref[0] - fa) * h
+                prev = fb
+    return hv
+
+
+def compute_hypervolume(
+    fitnesses: list[Fitness3],
+    ref_point: tuple[float, float, float] | None = None,
+) -> float:
+    """Compute 3D hypervolume indicator via slicing.
+
+    Slices the point set along the first objective (f1), and for each slice
+    computes the 2D hypervolume of (f2, f3) contributions.
+
+    Args:
+        fitnesses: List of (f1, f2, f3) non-dominated points.
         ref_point: Reference point. Defaults to HV_REF_POINT (fixed).
 
     Returns:
@@ -497,17 +530,23 @@ def compute_hypervolume(
     if ref_point is None:
         ref_point = HV_REF_POINT
 
-    sorted_pts = sorted(fitnesses, key=lambda p: p[0])
+    # Filter points that are within the reference point bounds
+    pts = [(f1, f2, f3) for f1, f2, f3 in fitnesses
+           if f1 < ref_point[0] and f2 < ref_point[1] and f3 < ref_point[2]]
+    if not pts:
+        return 0.0
+
+    # Sort by f1
+    pts.sort(key=lambda p: p[0])
 
     hv = 0.0
-    prev_f2 = ref_point[1]
-
-    for f1, f2 in sorted_pts:
-        if f1 < ref_point[0] and f2 < ref_point[1]:
-            height = prev_f2 - f2
-            if height > 0:
-                width = ref_point[0] - f1
-                hv += width * height
-                prev_f2 = f2
+    for i, (f1, f2, f3) in enumerate(pts):
+        # Width in f1 dimension
+        f1_next = pts[i + 1][0] if i + 1 < len(pts) else ref_point[0]
+        width_f1 = f1_next - f1
+        # For this f1-slice, compute 2D HV of (f2, f3) of all points with f1' <= current
+        slice_pts = [(p[1], p[2]) for p in pts[:i + 1]]
+        hv_slice = _hv_2d(slice_pts, (ref_point[1], ref_point[2]))
+        hv += width_f1 * hv_slice
 
     return hv

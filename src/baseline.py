@@ -28,14 +28,14 @@ def fifo_permutation(groups: list[dict]) -> list[int]:
     return [g["index"] for g in sorted_groups]
 
 
-def run_baseline(problem: VisaProblem) -> tuple[dict[int, int], tuple[float, float]]:
+def run_baseline(problem: VisaProblem) -> tuple[dict[int, int], tuple[float, float, float]]:
     """Run the FIFO baseline and return allocation + fitness.
 
     Args:
         problem: VisaProblem instance.
 
     Returns:
-        Tuple of (allocation dict, fitness tuple (f1, f2)).
+        Tuple of (allocation dict, fitness tuple (f1, f2, f3)).
     """
     perm = fifo_permutation(problem.groups)
     alloc = decode(perm, problem.groups, problem.total_visas,

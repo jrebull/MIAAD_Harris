@@ -66,5 +66,6 @@ def test_reproducibility():
     for a, b in zip(fit1, fit2):
         assert a[0] == pytest.approx(b[0])
         assert a[1] == pytest.approx(b[1])
+        assert a[2] == pytest.approx(b[2])
     for a, b in zip(hv1, hv2):
         assert a == pytest.approx(b)

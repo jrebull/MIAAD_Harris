@@ -1,7 +1,7 @@
 """Experiment runner: executes NUM_RUNS independent MOHHO runs and saves results.
 
 Outputs:
-    results/pareto_front.csv: Combined non-dominated front.
+    results/pareto_front.csv: Combined non-dominated front (f1, f2, f3).
     results/convergence.csv: HV per iteration, averaged over runs.
     results/run_XX.json: Per-run details.
     results/figures/*.png: Publication-quality plots.
@@ -27,20 +27,19 @@ logger = logging.getLogger(__name__)
 
 
 def _find_knee(
-    front: list[tuple[float, float]],
-    f1s: list[float] | None = None,
-    f2s: list[float] | None = None,
-) -> tuple[float, float]:
-    """Find knee point using max perpendicular distance from extreme-to-extreme line.
+    front: list[tuple[float, float, float]],
+) -> tuple[float, float, float]:
+    """Find knee point using max perpendicular distance in normalized f1-f2 space.
 
-    Normalizes both axes to [0,1] to avoid scale bias.
+    For the knee point we project onto f1-f2 (the two competing objectives).
+    f3 is carried along but does not influence knee selection.
     """
     pts = sorted(front, key=lambda p: p[0])
     if len(pts) <= 2:
         return pts[len(pts) // 2]
 
-    f1_vals = f1s if f1s is not None else [p[0] for p in pts]
-    f2_vals = f2s if f2s is not None else [p[1] for p in pts]
+    f1_vals = [p[0] for p in pts]
+    f2_vals = [p[1] for p in pts]
     f1_min, f1_max = min(f1_vals), max(f1_vals)
     f2_min, f2_max = min(f2_vals), max(f2_vals)
     f1_range = f1_max - f1_min
@@ -102,9 +101,10 @@ def run_all_experiments() -> None:
     problem = VisaProblem()
 
     baseline_alloc, baseline_fit = run_baseline(problem)
-    logger.info("Baseline FIFO: f1=%.4f, f2=%.4f", baseline_fit[0], baseline_fit[1])
+    logger.info("Baseline FIFO: f1=%.4f, f2=%.4f, f3=%.0f",
+                baseline_fit[0], baseline_fit[1], baseline_fit[2])
 
-    all_fronts: list[list[tuple[float, float]]] = []
+    all_fronts: list[list[tuple[float, float, float]]] = []
     all_hv_histories: list[list[float]] = []
 
     for run_idx in range(NUM_RUNS):
@@ -126,7 +126,7 @@ def run_all_experiments() -> None:
             "seed": seed,
             "num_pareto": len(fitnesses),
             "hv_final": hv_history[-1] if hv_history else 0.0,
-            "pareto_front": [{"f1": f[0], "f2": f[1]} for f in fitnesses],
+            "pareto_front": [{"f1": f[0], "f2": f[1], "f3": f[2]} for f in fitnesses],
         }
         run_path = os.path.join(RESULTS_DIR, f"run_{run_idx:02d}.json")
         with open(run_path, "w") as f:
@@ -148,7 +148,7 @@ def run_all_experiments() -> None:
         "pop_size": POPULATION_SIZE,
         "max_iter": MAX_ITERATIONS,
         "archive_size": ARCHIVE_SIZE,
-        "baseline": {"f1": baseline_fit[0], "f2": baseline_fit[1]},
+        "baseline": {"f1": baseline_fit[0], "f2": baseline_fit[1], "f3": baseline_fit[2]},
         "combined_pareto_size": len(combined_front),
         "hv_stats": {
             "mean": float(np.mean([h[-1] for h in all_hv_histories])),
@@ -156,8 +156,9 @@ def run_all_experiments() -> None:
             "min": float(np.min([h[-1] for h in all_hv_histories])),
             "max": float(np.max([h[-1] for h in all_hv_histories])),
         },
-        "best_f1": min(combined_front, key=lambda x: x[0]),
-        "best_f2": min(combined_front, key=lambda x: x[1]),
+        "best_f1": list(min(combined_front, key=lambda x: x[0])),
+        "best_f2": list(min(combined_front, key=lambda x: x[1])),
+        "best_f3": list(min(combined_front, key=lambda x: x[2])),
     }
     with open(os.path.join(RESULTS_DIR, "summary.json"), "w") as f:
         json.dump(summary, f, indent=2)
@@ -171,21 +172,21 @@ def run_all_experiments() -> None:
 
 
 def _merge_fronts(
-    all_fronts: list[list[tuple[float, float]]],
-) -> list[tuple[float, float]]:
+    all_fronts: list[list[tuple[float, float, float]]],
+) -> list[tuple[float, float, float]]:
     """Merge all run fronts into a single non-dominated front.
 
     Args:
         all_fronts: List of per-run Pareto fronts.
 
     Returns:
-        Sorted list of non-dominated (f1, f2) tuples.
+        Sorted list of non-dominated (f1, f2, f3) tuples.
     """
-    combined: list[tuple[float, float]] = []
+    combined: list[tuple[float, float, float]] = []
     for front in all_fronts:
         combined.extend(front)
 
-    non_dominated: list[tuple[float, float]] = []
+    non_dominated: list[tuple[float, float, float]] = []
     for i, fi in enumerate(combined):
         if not any(dominates(fj, fi) for j, fj in enumerate(combined) if i != j):
             non_dominated.append(fi)
@@ -195,7 +196,7 @@ def _merge_fronts(
 
 
 def _save_pareto_csv(
-    front: list[tuple[float, float]], baseline: tuple[float, float]
+    front: list[tuple[float, float, float]], baseline: tuple[float, float, float]
 ) -> None:
     """Save Pareto front and baseline to CSV.
 
@@ -206,10 +207,11 @@ def _save_pareto_csv(
     path = os.path.join(RESULTS_DIR, "pareto_front.csv")
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["f1", "f2", "type"])
-        for f1, f2 in front:
-            writer.writerow([f"{f1:.6f}", f"{f2:.6f}", "pareto"])
-        writer.writerow([f"{baseline[0]:.6f}", f"{baseline[1]:.6f}", "baseline"])
+        writer.writerow(["f1", "f2", "f3", "type"])
+        for f1, f2, f3 in front:
+            writer.writerow([f"{f1:.6f}", f"{f2:.6f}", f"{f3:.0f}", "pareto"])
+        writer.writerow([f"{baseline[0]:.6f}", f"{baseline[1]:.6f}",
+                         f"{baseline[2]:.0f}", "baseline"])
 
 
 def _save_convergence_csv(all_hv: list[list[float]]) -> None:
@@ -236,12 +238,12 @@ def _save_convergence_csv(all_hv: list[list[float]]) -> None:
 # ---------------------------------------------------------------------------
 
 def _generate_figures(
-    combined_front: list[tuple[float, float]],
+    combined_front: list[tuple[float, float, float]],
     all_hv: list[list[float]],
-    baseline: tuple[float, float],
+    baseline: tuple[float, float, float],
     problem: VisaProblem,
 ) -> None:
-    """Orchestrate generation of all 5 publication figures.
+    """Orchestrate generation of all publication figures.
 
     Args:
         combined_front: Merged non-dominated front.
@@ -254,12 +256,15 @@ def _generate_figures(
 
     f1s = [p[0] for p in combined_front]
     f2s = [p[1] for p in combined_front]
+    f3s = [p[2] for p in combined_front]
 
     _plot_pareto_front(combined_front, baseline, f1s, f2s)
+    _plot_pareto_f1_f3(combined_front, baseline, f1s, f3s)
+    _plot_pareto_f2_f3(combined_front, baseline, f2s, f3s)
     _plot_convergence(all_hv)
-    _plot_heatmap(combined_front, problem, f1s, f2s)
+    _plot_heatmap(combined_front, problem)
     _plot_hv_boxplot(all_hv)
-    _plot_comparison_baseline(combined_front, baseline, f1s, f2s)
+    _plot_comparison_baseline(combined_front, baseline)
 
     logger.info("Figures saved to results/figures/ and references/Fase03_Latex/Figures/")
 
@@ -278,41 +283,80 @@ def _save_fig(fig: "matplotlib.figure.Figure", name: str) -> None:
 
 
 def _plot_pareto_front(
-    front: list[tuple[float, float]],
-    baseline: tuple[float, float],
+    front: list[tuple[float, float, float]],
+    baseline: tuple[float, float, float],
     f1s: list[float],
     f2s: list[float],
 ) -> None:
-    """Generate Pareto front scatter plot.
-
-    Args:
-        front: Non-dominated front.
-        baseline: FIFO baseline point.
-        f1s: Pre-extracted f1 values.
-        f2s: Pre-extracted f2 values.
-    """
+    """Generate Pareto front scatter plot (f1 vs f2, colored by f3)."""
     import matplotlib.pyplot as plt
     uacj_blue = "#003CA6"
+    f3s = [p[2] for p in front]
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax.scatter(f1s, f2s, c=uacj_blue, s=30, alpha=0.7, label="Frente de Pareto (MOHHO)")
+    sc = ax.scatter(f1s, f2s, c=f3s, s=30, alpha=0.7, cmap="viridis",
+                    label="Frente de Pareto (MOHHO)")
     ax.scatter(baseline[0], baseline[1], c="red", s=150, marker="*",
-               zorder=5, label=f"FIFO baseline ({baseline[0]:.2f}, {baseline[1]:.2f})")
+               zorder=5, label=f"FIFO ({baseline[0]:.2f}, {baseline[1]:.2f})")
     ax.set_xlabel("f₁ — Carga de espera no atendida (años)", fontsize=11)
     ax.set_ylabel("f₂ — Máxima disparidad entre países (años)", fontsize=11)
-    ax.set_title("Frente de Pareto: MOHHO vs Sistema FIFO", fontsize=13, color=uacj_blue)
+    ax.set_title("Frente de Pareto: f₁ vs f₂ (color = f₃ visas desperdiciadas)",
+                 fontsize=12, color=uacj_blue)
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
+    plt.colorbar(sc, ax=ax, label="f₃ (visas desperdiciadas)")
     fig.tight_layout()
     _save_fig(fig, "pareto_front.png")
 
 
-def _plot_convergence(all_hv: list[list[float]]) -> None:
-    """Generate hypervolume convergence plot.
+def _plot_pareto_f1_f3(
+    front: list[tuple[float, float, float]],
+    baseline: tuple[float, float, float],
+    f1s: list[float],
+    f3s: list[float],
+) -> None:
+    """Generate Pareto projection f1 vs f3."""
+    import matplotlib.pyplot as plt
+    uacj_blue = "#003CA6"
 
-    Args:
-        all_hv: Per-run HV histories.
-    """
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.scatter(f1s, f3s, c=uacj_blue, s=30, alpha=0.7, label="Frente de Pareto")
+    ax.scatter(baseline[0], baseline[2], c="red", s=150, marker="*",
+               zorder=5, label=f"FIFO (f₃={baseline[2]:.0f})")
+    ax.set_xlabel("f₁ — Carga de espera (años)", fontsize=11)
+    ax.set_ylabel("f₃ — Visas desperdiciadas", fontsize=11)
+    ax.set_title("Proyección f₁ vs f₃", fontsize=13, color=uacj_blue)
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+    fig.tight_layout()
+    _save_fig(fig, "pareto_f1_f3.png")
+
+
+def _plot_pareto_f2_f3(
+    front: list[tuple[float, float, float]],
+    baseline: tuple[float, float, float],
+    f2s: list[float],
+    f3s: list[float],
+) -> None:
+    """Generate Pareto projection f2 vs f3."""
+    import matplotlib.pyplot as plt
+    uacj_blue = "#003CA6"
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.scatter(f2s, f3s, c=uacj_blue, s=30, alpha=0.7, label="Frente de Pareto")
+    ax.scatter(baseline[1], baseline[2], c="red", s=150, marker="*",
+               zorder=5, label=f"FIFO (f₃={baseline[2]:.0f})")
+    ax.set_xlabel("f₂ — Disparidad entre países (años)", fontsize=11)
+    ax.set_ylabel("f₃ — Visas desperdiciadas", fontsize=11)
+    ax.set_title("Proyección f₂ vs f₃", fontsize=13, color=uacj_blue)
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+    fig.tight_layout()
+    _save_fig(fig, "pareto_f2_f3.png")
+
+
+def _plot_convergence(all_hv: list[list[float]]) -> None:
+    """Generate hypervolume convergence plot."""
     import matplotlib.pyplot as plt
     uacj_blue = "#003CA6"
 
@@ -327,7 +371,7 @@ def _plot_convergence(all_hv: list[list[float]]) -> None:
     ax.fill_between(iters, mean_hv - std_hv, mean_hv + std_hv,
                      color=uacj_blue, alpha=0.15, label="± 1 σ")
     ax.set_xlabel("Iteración", fontsize=11)
-    ax.set_ylabel("Hipervolumen", fontsize=11)
+    ax.set_ylabel("Hipervolumen (3D)", fontsize=11)
     ax.set_title("Convergencia del hipervolumen (30 corridas)", fontsize=13, color=uacj_blue)
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
@@ -336,23 +380,14 @@ def _plot_convergence(all_hv: list[list[float]]) -> None:
 
 
 def _plot_heatmap(
-    combined_front: list[tuple[float, float]],
+    combined_front: list[tuple[float, float, float]],
     problem: VisaProblem,
-    f1s: list[float],
-    f2s: list[float],
 ) -> None:
-    """Generate assignment heatmap for the equilibrium solution.
-
-    Args:
-        combined_front: Non-dominated front.
-        problem: VisaProblem instance.
-        f1s: Pre-extracted f1 values.
-        f2s: Pre-extracted f2 values.
-    """
+    """Generate assignment heatmap for the equilibrium solution."""
     import matplotlib.pyplot as plt
     uacj_blue = "#003CA6"
 
-    target = _find_knee(combined_front, f1s, f2s)
+    target = _find_knee(combined_front)
 
     rng = np.random.default_rng(42)
     best_pos: dict[int, int] | None = None
@@ -394,11 +429,7 @@ def _plot_heatmap(
 
 
 def _plot_hv_boxplot(all_hv: list[list[float]]) -> None:
-    """Generate boxplot of final HV values across runs.
-
-    Args:
-        all_hv: Per-run HV histories.
-    """
+    """Generate boxplot of final HV values across runs."""
     import matplotlib.pyplot as plt
     uacj_blue, uacj_yellow = "#003CA6", "#FFD600"
 
@@ -409,7 +440,7 @@ def _plot_hv_boxplot(all_hv: list[list[float]]) -> None:
     bp["boxes"][0].set_alpha(0.6)
     bp["medians"][0].set_color(uacj_yellow)
     bp["medians"][0].set_linewidth(2)
-    ax.set_ylabel("Hipervolumen final", fontsize=11)
+    ax.set_ylabel("Hipervolumen final (3D)", fontsize=11)
     ax.set_title("Distribución de HV (30 corridas)", fontsize=13, color=uacj_blue)
     ax.grid(True, alpha=0.3, axis="y")
     fig.tight_layout()
@@ -417,42 +448,46 @@ def _plot_hv_boxplot(all_hv: list[list[float]]) -> None:
 
 
 def _plot_comparison_baseline(
-    combined_front: list[tuple[float, float]],
-    baseline: tuple[float, float],
-    f1s: list[float],
-    f2s: list[float],
+    combined_front: list[tuple[float, float, float]],
+    baseline: tuple[float, float, float],
 ) -> None:
-    """Generate bar chart comparing MOHHO solutions vs FIFO baseline.
-
-    Args:
-        combined_front: Non-dominated front.
-        baseline: FIFO baseline fitness.
-        f1s: Pre-extracted f1 values.
-        f2s: Pre-extracted f2 values.
-    """
+    """Generate bar chart comparing MOHHO solutions vs FIFO baseline."""
     import matplotlib.pyplot as plt
-    uacj_blue, uacj_yellow = "#003CA6", "#FFD600"
+    uacj_blue, uacj_yellow, uacj_green = "#003CA6", "#FFD600", "#00E5A0"
 
     best_f1_sol = min(combined_front, key=lambda x: x[0])
     best_f2_sol = min(combined_front, key=lambda x: x[1])
+    best_f3_sol = min(combined_front, key=lambda x: x[2])
 
-    eq_sol = _find_knee(combined_front, f1s, f2s)
+    eq_sol = _find_knee(combined_front)
 
-    labels = ["Mejor f₁", "Mejor f₂", "Equilibrio", "FIFO"]
-    f1_vals = [best_f1_sol[0], best_f2_sol[0], eq_sol[0], baseline[0]]
-    f2_vals = [best_f1_sol[1], best_f2_sol[1], eq_sol[1], baseline[1]]
+    labels = ["Mejor f₁", "Mejor f₂", "Mejor f₃", "Equilibrio", "FIFO"]
+    f1_vals = [best_f1_sol[0], best_f2_sol[0], best_f3_sol[0], eq_sol[0], baseline[0]]
+    f2_vals = [best_f1_sol[1], best_f2_sol[1], best_f3_sol[1], eq_sol[1], baseline[1]]
+    f3_vals = [best_f1_sol[2], best_f2_sol[2], best_f3_sol[2], eq_sol[2], baseline[2]]
 
     x_pos = np.arange(len(labels))
-    width = 0.35
-    fig, ax = plt.subplots(figsize=(9, 5))
-    ax.bar(x_pos - width / 2, f1_vals, width, label="f₁", color=uacj_blue, alpha=0.8)
-    ax.bar(x_pos + width / 2, f2_vals, width, label="f₂", color=uacj_yellow, alpha=0.8)
-    ax.set_xticks(x_pos)
-    ax.set_xticklabels(labels, fontsize=10)
-    ax.set_ylabel("Valor objetivo (años)", fontsize=11)
-    ax.set_title("Comparación: MOHHO vs FIFO", fontsize=13, color=uacj_blue)
-    ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.3, axis="y")
+    width = 0.25
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+
+    # Left: f1, f2 (years)
+    ax1.bar(x_pos - width / 2, f1_vals, width, label="f₁ (espera)", color=uacj_blue, alpha=0.8)
+    ax1.bar(x_pos + width / 2, f2_vals, width, label="f₂ (brecha)", color=uacj_yellow, alpha=0.8)
+    ax1.set_xticks(x_pos)
+    ax1.set_xticklabels(labels, fontsize=9)
+    ax1.set_ylabel("Valor objetivo (años)", fontsize=11)
+    ax1.set_title("f₁ y f₂: MOHHO vs FIFO", fontsize=12, color=uacj_blue)
+    ax1.legend(fontsize=9)
+    ax1.grid(True, alpha=0.3, axis="y")
+
+    # Right: f3 (visas)
+    ax2.bar(x_pos, f3_vals, width * 2, color=uacj_green, alpha=0.8)
+    ax2.set_xticks(x_pos)
+    ax2.set_xticklabels(labels, fontsize=9)
+    ax2.set_ylabel("f₃ — Visas desperdiciadas", fontsize=11)
+    ax2.set_title("f₃: MOHHO vs FIFO", fontsize=12, color=uacj_blue)
+    ax2.grid(True, alpha=0.3, axis="y")
+
     fig.tight_layout()
     _save_fig(fig, "comparison_baseline.png")
 
