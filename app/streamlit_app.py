@@ -1254,67 +1254,63 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
         Arrastra para rotar, scroll para zoom. El punto rojo es FIFO; el dorado es el equilibrio (knee).
         </div>""", unsafe_allow_html=True)
 
-    # Stats cards with visas
+    # Stats cards with visas — all 5 scenarios
+    best_f3_point = min(pareto, key=lambda x: x[2])
     v_f1 = pareto_visas.get(best_f1_point, total_visas)
     v_knee = pareto_visas.get(knee, total_visas)
     v_f2 = pareto_visas.get(best_f2_point, total_visas)
+    v_f3 = pareto_visas.get(best_f3_point, total_visas)
+    fifo_used = data.get("fifo_used", total_visas) if data else total_visas
+    baseline_pt = data.get("fifo_fit", (0, 0, 0)) if data else (0, 0, 0)
 
     _card_style = (
-        "font-family:'JetBrains Mono';font-weight:700;font-size:1.1rem;"
+        "font-family:'JetBrains Mono';font-weight:700;font-size:1rem;"
     )
     _lbl_style = (
-        f"font-size:0.65rem;color:{t['text_muted']};text-transform:uppercase;"
+        f"font-size:0.6rem;color:{t['text_muted']};text-transform:uppercase;"
     )
 
-    hints = {
-        "Mejor Humanitario": (
-            "Minimiza la carga de espera global (f\u2081): prioriza asignar visas "
-            "a los grupos que llevan más a\u00f1os esperando, aunque aumente la "
-            "diferencia entre países."
-        ),
-        "Equilibrio (Knee Point)": (
-            "Punto de máxima curvatura del frente de Pareto: el mejor compromiso "
-            "entre reducir espera y reducir disparidad sin sacrificar "
-            "desproporcionadamente ninguno de los tres objetivos."
-        ),
-        "Mejor Equidad": (
-            "Minimiza la disparidad entre países (f\u2082): busca que la espera "
-            "ponderada sea lo más parecida posible entre todos los países, "
-            "reduciendo la brecha entre los más y menos favorecidos."
-        ),
-    }
+    scenarios_cards = [
+        ("Humanitario", t['accent1'], best_f1_point, v_f1, "",
+         "Minimiza la espera global (f\u2081): prioriza a quienes llevan m\u00e1s a\u00f1os en la fila."),
+        ("Equilibrio", t['accent2'], knee, v_knee,
+         f"border-color:{t['accent2']}4D;",
+         "Mejor compromiso entre los tres objetivos. Punto de m\u00e1xima curvatura del frente."),
+        ("Equidad", t['accent3'], best_f2_point, v_f2, "",
+         "Minimiza la brecha entre pa\u00edses (f\u2082): todos esperan tiempos similares."),
+        ("M\u00e1x. Utilizaci\u00f3n", t['mid_blue'], best_f3_point, v_f3, "",
+         "Minimiza el desperdicio (f\u2083): usa todas las visas disponibles."),
+        ("FIFO (actual)", t['danger'], baseline_pt, fifo_used, "",
+         "Sistema vigente: orden de llegada. Sin optimizaci\u00f3n."),
+    ]
 
-    col1, col2, col3 = st.columns(3)
-    for col, title, color, pt, v_val, border in [
-        (col1, "Mejor Humanitario", t['accent1'], best_f1_point, v_f1, ""),
-        (col2, "Equilibrio (Knee Point)", t['accent2'], knee, v_knee,
-         f"border-color:{t['accent2']}4D;"),
-        (col3, "Mejor Equidad", t['accent3'], best_f2_point, v_f2, ""),
-    ]:
+    cols = st.columns(len(scenarios_cards))
+    for col, (title, color, pt, v_val, border, hint) in zip(cols, scenarios_cards):
         with col:
+            v_pct = v_val * 100 // total_visas if v_val > 0 else 0
             st.markdown(f"""
-            <div class="metric-card" style="{border}text-align:center;">
-                <div style="font-size:0.7rem;color:{t['text_muted']};text-transform:uppercase;font-weight:600;">
-                    {title}</div>
-                <div style="display:flex;justify-content:center;gap:1rem;margin:8px 0 4px;flex-wrap:wrap;">
+            <div class="metric-card" style="{border}text-align:center;padding:12px 8px;">
+                <div style="font-size:0.65rem;color:{color};text-transform:uppercase;font-weight:700;
+                    margin-bottom:6px;">{title}</div>
+                <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
                     <div>
-                        <div style="{_lbl_style}">f\u2081 espera</div>
-                        <div style="{_card_style}color:{color};">{_fmtd(pt[0])} a\u00f1os</div>
+                        <div style="{_lbl_style}">f\u2081</div>
+                        <div style="{_card_style}color:{color};">{_fmtd(pt[0])}</div>
                     </div>
                     <div>
-                        <div style="{_lbl_style}">f\u2082 disparidad</div>
-                        <div style="{_card_style}color:{color};">{_fmtd(pt[1])} a\u00f1os</div>
+                        <div style="{_lbl_style}">f\u2082</div>
+                        <div style="{_card_style}color:{color};">{_fmtd(pt[1])}</div>
                     </div>
                     <div>
-                        <div style="{_lbl_style}">f\u2083 desperdicio</div>
+                        <div style="{_lbl_style}">f\u2083</div>
                         <div style="{_card_style}color:{color};">{_fmt(int(pt[2]))}</div>
                     </div>
                 </div>
-                <div style="font-size:0.8rem;color:{t['text']};margin-top:4px;">
-                    <strong>{_fmt(v_val)}</strong> visas ({v_val * 100 // total_visas}%)</div>
-                <div style="font-size:0.7rem;color:{t['text_subtle']};margin-top:8px;
-                    font-style:italic;line-height:1.35;padding:0 4px;">
-                    {hints[title]}</div>
+                <div style="font-size:0.75rem;color:{t['text']};margin-top:6px;">
+                    <strong>{_fmt(v_val)}</strong> visas ({v_pct}%)</div>
+                <div style="font-size:0.65rem;color:{t['text_subtle']};margin-top:6px;
+                    font-style:italic;line-height:1.3;padding:0 2px;">
+                    {hint}</div>
             </div>""", unsafe_allow_html=True)
 
     # Visas por solución chart
