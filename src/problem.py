@@ -1,9 +1,10 @@
-"""Problem definition: objective functions f1, f2 and problem setup.
+"""Problem definition: objective functions f1, f2, f3 and problem setup.
 
 References:
-    - HarrisFase02.tex, Section 4 (Equations 3-5)
+    - HarrisFase02.tex, Section 4 (Equations 3-6)
     - f1: Unserved waiting load (minimize)
     - f2: Maximum disparity between countries (minimize)
+    - f3: Visa waste (minimize)
 """
 
 from typing import Protocol, runtime_checkable
@@ -14,7 +15,7 @@ from src.data import build_groups, compute_spillover, compute_country_caps
 
 @runtime_checkable
 class OptimizationProblem(Protocol):
-    """Protocol for bi-objective optimization problems (SOLID-D)."""
+    """Protocol for tri-objective optimization problems (SOLID-D)."""
 
     groups: list[dict]
     total_visas: int
@@ -22,13 +23,14 @@ class OptimizationProblem(Protocol):
     category_caps: dict[str, int]
     total_demand: int
 
-    def evaluate(self, x: dict[int, int]) -> tuple[float, float]: ...
+    def evaluate(self, x: dict[int, int]) -> tuple[float, float, float]: ...
     def f1(self, x: dict[int, int]) -> float: ...
     def f2(self, x: dict[int, int]) -> float: ...
+    def f3(self, x: dict[int, int]) -> float: ...
 
 
 class VisaProblem:
-    """Encapsulates the bi-objective visa allocation problem.
+    """Encapsulates the tri-objective visa allocation problem.
 
     Implements the OptimizationProblem protocol.
 
@@ -55,16 +57,16 @@ class VisaProblem:
         for country, gs in self._groups_by_country.items():
             self._country_w_max[country] = max(g["w"] for g in gs)
 
-    def evaluate(self, x: dict[int, int]) -> tuple[float, float]:
-        """Evaluate both objectives for a given allocation.
+    def evaluate(self, x: dict[int, int]) -> tuple[float, float, float]:
+        """Evaluate all three objectives for a given allocation.
 
         Args:
             x: Dict mapping group index to visas assigned.
 
         Returns:
-            Tuple (f1, f2).
+            Tuple (f1, f2, f3).
         """
-        return self.f1(x), self.f2(x)
+        return self.f1(x), self.f2(x), self.f3(x)
 
     def f1(self, x: dict[int, int]) -> float:
         """Unserved waiting load (Equation 3 of LaTeX).
@@ -94,3 +96,12 @@ class VisaProblem:
 
         w_values = list(w_country.values())
         return max(w_values) - min(w_values)
+
+    def f3(self, x: dict[int, int]) -> float:
+        """Visa waste: visas not assigned (Equation 6 of LaTeX).
+
+        f3(x) = V - sum_g x_g
+
+        Minimizing f3 maximizes visa utilization.
+        """
+        return float(self.total_visas - sum(x[g["index"]] for g in self.groups))
