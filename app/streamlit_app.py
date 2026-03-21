@@ -95,27 +95,27 @@ THEMES: dict[str, dict[str, str]] = {
         "real_tag": "#4FC3F7", "est_tag": "#FFD600", "calc_tag": "#90B4E0",
     },
     "Claro": {
-        "bg1": "#F5F7FA", "bg2": "#E8ECF2", "bg3": "#DCE2EC",
-        "sidebar_bg1": "#E0E5ED", "sidebar_bg2": "#D4DAE5",
-        "text": "#1a1a2e", "text_muted": "rgba(26,26,46,0.6)",
-        "text_subtle": "rgba(26,26,46,0.45)",
-        "card_bg": "rgba(0,0,0,0.03)", "card_border": "rgba(0,0,0,0.08)",
-        "card_hover_shadow": "rgba(0,60,166,0.12)",
-        "accent1": "#003CA6", "accent2": "#B8860B", "accent3": "#00895E",
-        "danger": "#D32F2F", "info_bg": "rgba(0,60,166,0.1)",
-        "tab_bg": "rgba(0,0,0,0.04)", "tab_text": "#2d3748",
+        "bg1": "#F5F7FA", "bg2": "#EDF0F5", "bg3": "#E4E8EF",
+        "sidebar_bg1": "#E8ECF2", "sidebar_bg2": "#DEE3EB",
+        "text": "#1a1a2e", "text_muted": "rgba(26,26,46,0.65)",
+        "text_subtle": "rgba(26,26,46,0.5)",
+        "card_bg": "rgba(255,255,255,0.75)", "card_border": "rgba(0,60,166,0.15)",
+        "card_hover_shadow": "rgba(0,60,166,0.18)",
+        "accent1": "#003CA6", "accent2": "#8B6914", "accent3": "#00895E",
+        "danger": "#C62828", "info_bg": "rgba(0,60,166,0.08)",
+        "tab_bg": "rgba(0,60,166,0.06)", "tab_text": "#3d4a5c",
         "tab_active": "#003CA6", "tab_active_text": "#ffffff",
-        "grid": "rgba(0,0,0,0.06)", "zeroline": "rgba(0,0,0,0.1)",
-        "table_head": "rgba(0,60,166,0.1)", "table_border": "rgba(0,0,0,0.06)",
-        "table_hover": "rgba(0,60,166,0.05)",
-        "gloss_bg": "rgba(0,0,0,0.02)", "gloss_border": "rgba(0,0,0,0.06)",
+        "grid": "rgba(0,0,0,0.08)", "zeroline": "rgba(0,0,0,0.12)",
+        "table_head": "rgba(0,60,166,0.12)", "table_border": "rgba(0,0,0,0.08)",
+        "table_hover": "rgba(0,60,166,0.06)",
+        "gloss_bg": "rgba(255,255,255,0.7)", "gloss_border": "rgba(0,60,166,0.12)",
         "tag_bg": "rgba(0,60,166,0.1)", "tag_text": "#003CA6",
         "scroll_track": "#F5F7FA", "scroll_thumb": "#003CA6",
-        "callout_bg": "rgba(211,47,47,0.08)",
-        "plotly_font": "#1a1a2e", "plotly_bg": "rgba(0,0,0,0)",
+        "callout_bg": "rgba(198,40,40,0.06)",
+        "plotly_font": "#1a1a2e", "plotly_bg": "rgba(255,255,255,0.5)",
         "hero_grad_start": "#7a5600", "hero_grad_end": "#005e3a",
-        "sidebar_metric_bg": "rgba(0,0,0,0.03)",
-        "real_tag": "#00895E", "est_tag": "#B8860B", "calc_tag": "#003CA6",
+        "sidebar_metric_bg": "rgba(0,60,166,0.06)",
+        "real_tag": "#00895E", "est_tag": "#8B6914", "calc_tag": "#003CA6",
     },
 }
 
@@ -179,6 +179,7 @@ def _inject_css() -> None:
         border: 1px solid {t['card_border']};
         border-radius: 16px;
         padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         text-align: center;
     }}
@@ -228,6 +229,7 @@ def _inject_css() -> None:
         background: {t['gloss_bg']};
         border: 1px solid {t['gloss_border']};
         border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.8rem;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.04);
     }}
     .gloss-card h4 {{ color: {t['accent2']} !important; margin: 0 0 4px; font-size: 0.95rem; }}
     .gloss-card p {{ color: {t['tab_text']} !important; margin: 0; font-size: 0.85rem; line-height: 1.5; }}
@@ -252,6 +254,7 @@ def _inject_css() -> None:
     .sidebar-metric {{
         background: {t['sidebar_metric_bg']}; border-radius: 10px;
         padding: 10px 14px; margin: 6px 0; text-align: center;
+        border: 1px solid {t['card_border']};
     }}
     .sidebar-metric .label {{
         font-size: 0.65rem; color: {t['text_muted']} !important;
@@ -273,6 +276,19 @@ def _inject_css() -> None:
     #MainMenu {{ visibility: hidden; }}
     footer {{ visibility: hidden; }}
     [data-testid="stHeader"] {{ background: transparent !important; }}
+    /* Ensure Streamlit native elements respect our theme */
+    [data-testid="stAppViewContainer"] label,
+    [data-testid="stAppViewContainer"] .stMarkdown p,
+    [data-testid="stAppViewContainer"] .stMarkdown li {{ color: {t['text']} !important; }}
+    [data-testid="stAppViewContainer"] h1,
+    [data-testid="stAppViewContainer"] h2,
+    [data-testid="stAppViewContainer"] h3 {{ color: {t['text']} !important; }}
+    /* Tab content panel */
+    [data-testid="stAppViewContainer"] [role="tabpanel"] {{ background: transparent !important; }}
+    /* Plotly chart container bg */
+    .stPlotlyChart {{ background: transparent !important; }}
+    /* Dividers */
+    [data-testid="stAppViewContainer"] hr {{ border-color: {t['card_border']} !important; }}
     ::-webkit-scrollbar {{ width: 6px; }}
     ::-webkit-scrollbar-track {{ background: {t['scroll_track']}; }}
     ::-webkit-scrollbar-thumb {{ background: {t['scroll_thumb']}; border-radius: 3px; }}
@@ -857,7 +873,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
                     bgcolor="rgba(0,0,0,0.3)", font=dict(size=10)),
         height=550,
     ))
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # Stats cards with visas
     v_f1 = pareto_visas.get(best_f1_point, total_visas)
@@ -949,7 +965,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
         height=350,
         margin=dict(l=60, r=30, t=40, b=50),
     ))
-    st.plotly_chart(fig_v, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig_v, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # ── Tabla de las 88 soluciones Pareto ──
     with st.expander("Ver las 88 soluciones del frente de Pareto"):
@@ -1052,7 +1068,7 @@ def _tab_pareto(pareto: list, baseline: tuple, knee: tuple,
             height=max(600, len(countries) * 45),
             margin=dict(l=160, r=30, t=60, b=50),
         ))
-        st.plotly_chart(fig_wc, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_wc, use_container_width=True, theme=None, config={"displayModeBar": False})
 
 
 # ── Tab 3: Asignacion ────────────────────────────────────────
@@ -1136,7 +1152,7 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
                 title=dict(text=title, font=dict(size=13, color=t['accent2'])),
                 height=650, margin=dict(l=110, r=20, t=50, b=80),
             ))
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+            st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # Difference heatmap
     st.markdown(f'<div class="section-title">Diferencias ({sel_label} \u2212 FIFO)</div>',
@@ -1155,7 +1171,7 @@ def _tab_allocation(data: dict, sel_matrix: list, sel_fit: tuple,
     fig_diff.update_layout(**_plotly_layout(
         height=600, margin=dict(l=110, r=60, t=30, b=80),
     ))
-    st.plotly_chart(fig_diff, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig_diff, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # Data tables in expander
     with st.expander("Ver tablas numericas completas"):
@@ -1231,7 +1247,7 @@ def _tab_country(data: dict, sel_matrix: list, sel_fit: tuple,
                     bgcolor="rgba(0,0,0,0.3)"),
         height=max(500, len(countries) * 35),
     ))
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # Delta bars
     st.markdown(f'<div class="section-title">Cambio {sel_label} \u2212 FIFO por Pais</div>',
@@ -1255,7 +1271,7 @@ def _tab_country(data: dict, sel_matrix: list, sel_fit: tuple,
         height=max(450, len(countries) * 30),
         margin=dict(l=140, r=80, t=30, b=50),
     ))
-    st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig2, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # Wait times lollipop
     st.markdown('<div class="section-title">Tiempo de Espera Maximo por Pais</div>',
@@ -1287,7 +1303,7 @@ def _tab_country(data: dict, sel_matrix: list, sel_fit: tuple,
         height=max(500, len(w_countries) * 30),
         margin=dict(l=140, r=80, t=30, b=50),
     ))
-    st.plotly_chart(fig3, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig3, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # ── Comparativa de los 4 escenarios ──
     show_all = st.checkbox("Ver todos los escenarios", key="show_all_scenarios")
@@ -1363,7 +1379,7 @@ def _all_scenarios_chart(data: dict, baseline: tuple, knee: tuple,
         height=max(600, len(countries) * 45),
         margin=dict(l=140, r=30, t=60, b=50),
     ))
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # Delta table: each scenario vs FIFO
     st.markdown('<div class="section-title">Diferencia vs FIFO por Pa\u00eds</div>',
@@ -1390,7 +1406,7 @@ def _all_scenarios_chart(data: dict, baseline: tuple, knee: tuple,
         height=max(600, len(countries) * 45),
         margin=dict(l=140, r=30, t=60, b=50),
     ))
-    st.plotly_chart(fig_delta, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig_delta, use_container_width=True, theme=None, config={"displayModeBar": False})
 
 
 # ── Tab 5: Convergencia ─────────────────────────────────────
@@ -1440,7 +1456,7 @@ def _tab_convergence(
                     bgcolor="rgba(0,0,0,0.3)"),
         height=450,
     ))
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # HV distribution & per-run bars
     final_hvs = [load_run(i)["hv_final"] for i in range(summary["num_runs"])]
@@ -1458,7 +1474,7 @@ def _tab_convergence(
         fig_box.update_layout(**_plotly_layout(
             yaxis=dict(title="Hipervolumen", **_grid()), height=350,
         ))
-        st.plotly_chart(fig_box, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_box, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     with col2:
         st.markdown('<div class="section-title" style="font-size:1.1rem;">HV por Corrida</div>',
@@ -1475,7 +1491,7 @@ def _tab_convergence(
         fig_bar.update_layout(**_plotly_layout(
             yaxis=dict(title="Hipervolumen", **_grid()), height=350,
         ))
-        st.plotly_chart(fig_bar, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_bar, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # Individual run explorer
     st.markdown('<div class="section-title">Explorador de Corrida Individual</div>',
@@ -1505,7 +1521,7 @@ def _tab_convergence(
         yaxis=dict(title="f\u2082 \u2014 Disparidad entre paises (a\u00f1os)", **_grid()),
         legend=dict(bgcolor="rgba(0,0,0,0.3)"), height=400,
     ))
-    st.plotly_chart(fig_run, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig_run, use_container_width=True, theme=None, config={"displayModeBar": False})
 
 
 # ── Tab 6: Datos y Fuentes ───────────────────────────────────
@@ -1601,7 +1617,7 @@ def _tab_data_sources(data: dict) -> None:
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5,
                     bgcolor="rgba(0,0,0,0.3)", font=dict(size=11)),
     ))
-    st.plotly_chart(fig_prov, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig_prov, use_container_width=True, theme=None, config={"displayModeBar": False})
 
     # ── Full data table with source tags ──
     st.markdown(f'<div class="section-title" style="font-size:1.1rem;">Tabla Completa de Datos de Entrada</div>',
@@ -1800,9 +1816,11 @@ def _tab_about(summary: dict, data: dict) -> None:
         ("f\u2082 \u2014 Disparidad entre paises", "Objetivo",
          "Maxima diferencia de espera promedio entre cualquier par de paises. "
          "f\u2082 = max|W_c1 - W_c2|. Minimizar busca equidad."),
-        ("f\u2083 \u2014 Visas desperdiciadas", "Objetivo",
-         f"f\u2083 = V - \u03a3x_g. FIFO desperdicia ~{_fmt(data['total_visas'] - data['fifo_used'])} "
-         "visas por interacciones entre limites. MOHHO puede lograr 100% utilizacion."),
+        ("f\u2083 \u2014 Visas desperdiciadas", "M\u00e9trica observada",
+         f"f\u2083 = V - \u03a3x_g. No es un objetivo de optimizaci\u00f3n (fue eliminado por redundancia). "
+         f"FIFO desperdicia ~{_fmt(data['total_visas'] - data['fifo_used'])} "
+         "visas por interacciones entre l\u00edmites. MOHHO puede lograr 100% utilizaci\u00f3n "
+         "como efecto secundario de reordenar el procesamiento."),
         ("Hipervolumen (HV)", "Metrica",
          "Indicador de calidad del frente de Pareto. Mide el volumen del espacio objetivo dominado. "
          "Mayor = mejor."),
