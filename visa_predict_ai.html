@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Visa Predict AI: optimizaci&oacute;n triobjetivo de Green Cards con MOHHO (Harris Hawks Optimization). Modelo matem&aacute;tico, restricciones y resultados.">
+<title>Visa Predict AI — Modelo MOHHO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg1: #0a0a1a; --bg2: #0d1b2a; --bg3: #1b2838;
+    --text: #E8E8E8; --text-muted: rgba(255,255,255,0.6);
+    --text-subtle: rgba(255,255,255,0.55);
+    --card-bg: rgba(255,255,255,0.04); --card-border: rgba(255,255,255,0.08);
+    --accent1: #003CA6; --accent1-text: #5b9aff;
+    --accent2: #FFD600; --accent3: #00E5A0;
+    --danger: #FF3366; --info-bg: rgba(0,60,166,0.1);
+    --tab-text: #B0B8C8;
+    --gloss-bg: rgba(255,255,255,0.03); --gloss-border: rgba(255,255,255,0.06);
+    --tag-bg: rgba(0,60,166,0.2); --tag-text: #70A0FF;
+    --mid-blue: #60a5fa;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 50%, var(--bg3) 100%);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* Navigation */
+.nav-bar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,26,0.92);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border);
+    padding: 12px 0; margin-bottom: 2rem;
+}
+.nav-inner {
+    max-width: 1100px; margin: 0 auto; padding: 0 2rem;
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+}
+.nav-brand {
+    font-weight: 900; font-size: 1.1rem; letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--accent2), var(--accent3));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+}
+.nav-link {
+    color: var(--tab-text); text-decoration: none; font-size: 0.82rem;
+    font-weight: 600; padding: 6px 12px; border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+}
+.nav-link:hover, .nav-link:focus-visible { background: var(--info-bg); color: var(--accent2); }
+
+/* Focus indicators */
+:focus-visible {
+    outline: 2px solid var(--accent2);
+    outline-offset: 2px;
+}
+
+/* Section title (h2) */
+h2.section-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.5rem; font-weight: 700;
+    color: var(--accent2); letter-spacing: -0.02em;
+    border-left: 4px solid var(--accent1);
+    padding-left: 16px; margin: 2.5rem 0 1rem;
+}
+
+/* Cards */
+.metric-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px; padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,60,166,0.25);
+}
+
+/* Info box */
+.info-box {
+    background: var(--info-bg);
+    border-left: 4px solid var(--accent1);
+    padding: 12px 16px; border-radius: 0 8px 8px 0;
+    margin: 0.8rem 0; font-size: 0.84rem; color: var(--tab-text);
+}
+.info-box strong { color: var(--accent2); }
+
+/* Glossary */
+.gloss-card {
+    background: var(--gloss-bg);
+    border: 1px solid var(--gloss-border);
+    border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.8rem;
+}
+.gloss-card h3 { color: var(--accent2); margin: 0 0 4px; font-size: 0.95rem; font-weight: 700; }
+.gloss-card p { color: var(--tab-text); margin: 0; font-size: 0.85rem; line-height: 1.5; }
+.gloss-tag {
+    display: inline-block; background: var(--tag-bg); color: var(--tag-text);
+    font-size: 0.65rem; padding: 2px 8px; border-radius: 10px;
+    font-weight: 600; margin-bottom: 4px;
+}
+
+/* Grid helpers */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+
+/* Equation box */
+.eq-box {
+    background: var(--info-bg); border-radius: 10px;
+    padding: 12px 16px; margin: 8px 0;
+}
+.eq-text {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent2); text-align: center; font-size: 0.95rem;
+}
+
+/* Constraint row */
+.constraint-row {
+    display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px;
+    padding: 12px 16px; background: var(--card-bg); border-radius: 12px;
+    border: 1px solid var(--card-border); border-left: 4px solid var(--accent1);
+}
+
+/* Spillover flow */
+.flow-container {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    flex-wrap: wrap; padding: 1.2rem; background: var(--card-bg);
+    border-radius: 16px; border: 1px solid var(--card-border); margin-bottom: 12px;
+}
+.flow-step {
+    text-align: center; padding: 10px 14px;
+    background: var(--info-bg); border-radius: 10px;
+}
+.flow-arrow { color: var(--accent2); font-size: 1.2rem; }
+
+/* HHO mapping row */
+.hho-row {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 14px 16px; margin: 8px 0;
+    display: flex; gap: 14px; align-items: flex-start;
+}
+
+/* Table */
+.results-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.results-table th { text-align: left; padding: 6px; }
+.results-table td { padding: 6px; font-family: 'JetBrains Mono', monospace; }
+
+/* Native details/summary for expanders */
+details { margin: 0.8rem 0; }
+details summary {
+    cursor: pointer; color: var(--accent2); font-weight: 600;
+    font-size: 0.85rem; padding: 8px 0; list-style: none;
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::before { content: "\25b6\00a0"; }
+details[open] summary::before { content: "\25bc\00a0"; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .grid-5 { grid-template-columns: 1fr 1fr; }
+    .nav-inner { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .nav-link { padding: 10px 14px; }
+    .container { padding: 1rem; }
+    h2.section-title { font-size: 1.2rem; }
+    .hho-row { flex-direction: column; }
+    .param-header { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+    .grid-5 { grid-template-columns: 1fr; }
+}
+
+/* Divider */
+.divider { border: none; border-top: 1px solid var(--card-border); margin: 3rem 0; }
+
+/* Param row */
+.param-row {
+    margin-bottom: 8px; padding: 12px 16px; background: var(--card-bg);
+    border-radius: 12px; border: 1px solid var(--card-border);
+    border-left: 4px solid var(--accent1);
+}
+.param-header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.param-justify {
+    font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;
+    line-height: 1.55; padding-left: 4px;
+    border-top: 1px solid var(--card-border); padding-top: 6px;
+}
+
+/* Accent text helpers for readability on dark bg */
+.a1 { color: var(--accent1-text); }
+.a2 { color: var(--accent2); }
+.a3 { color: var(--accent3); }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav-bar" aria-label="Navegaci&oacute;n principal">
+<div class="nav-inner">
+    <span class="nav-brand">Visa Predict AI</span>
+    <a href="#about" class="nav-link">Acerca del Modelo</a>
+    <a href="#math" class="nav-link">Modelo Matem&aacute;tico</a>
+    <a href="#glossary" class="nav-link">Glosario</a>
+</div>
+</nav>
+
+<main class="container">
+
+<h1 style="font-size:2rem;font-weight:900;text-align:center;margin:0 0 0.5rem;background:linear-gradient(135deg,var(--accent2),var(--accent3));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;">Visa Predict AI</h1>
+<p style="text-align:center;font-size:0.9rem;color:var(--text-muted);margin-bottom:2rem;">Optimizaci&oacute;n triobjetivo de Green Cards con MOHHO</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PART 1: ACERCA DEL MODELO                                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="about" aria-labelledby="h-about">
+
+<h2 class="section-title" id="h-about">&iquest;Qu&eacute; es Visa Predict AI?</h2>
+<div class="info-box" style="font-size:0.9rem;line-height:1.8;">
+    <strong>Visa Predict AI</strong> es un proyecto de investigaci&oacute;n que aplica inteligencia artificial
+    para repensar c&oacute;mo se reparten las <strong>140,000</strong> Green Cards de empleo
+    que Estados Unidos otorga cada a&ntilde;o.
+    <br><br>
+    <strong style="color:var(--danger);">El problema:</strong> El sistema actual (FIFO) atiende por orden
+    de llegada, pero no considera la demanda real. Un ingeniero de India puede esperar
+    <strong style="color:var(--danger);">m&aacute;s de una d&eacute;cada</strong>, mientras pa&iacute;ses con poca demanda
+    reciben visas en meses. Adem&aacute;s, el FIFO desperdicia
+    <strong style="color:var(--danger);">17,540</strong> visas que quedan
+    sin asignar porque ning&uacute;n pa&iacute;s elegible tiene solicitantes suficientes en esa categor&iacute;a.
+    <br><br>
+    <strong class="a1">Nuestra propuesta:</strong> Usamos un algoritmo bio-inspirado
+    llamado <strong>MOHHO</strong> (Multi-Objective Harris Hawks Optimization) que busca optimizar
+    <strong>tres objetivos simult&aacute;neamente</strong>:
+    <br>
+    <span class="a1">&#9656; f&#8321;</span> Reducir la espera promedio ponderada
+    &nbsp;&nbsp;
+    <span class="a2">&#9656; f&#8322;</span> Tratar a todos los pa&iacute;ses con equidad
+    &nbsp;&nbsp;
+    <span class="a3">&#9656; f&#8323;</span> Maximizar la utilizaci&oacute;n (cero visas desperdiciadas)
+    <br><br>
+    El resultado: <strong>406 escenarios alternativos</strong> de reparto,
+    cada uno con un balance diferente entre estos tres objetivos. Ninguno es "el mejor" en todo
+    &mdash; el tomador de decisiones elige seg&uacute;n sus prioridades.
+</div>
+
+<!-- How MOHHO works -->
+<h2 class="section-title">&iquest;C&oacute;mo Funciona MOHHO?</h2>
+<div class="info-box" style="font-size:0.85rem;line-height:1.7;border-left:4px solid var(--accent1);">
+    Los <strong>halcones de Harris</strong> son las &uacute;nicas aves rapaces que cazan en grupo de forma
+    cooperativa. Rodean a su presa, la acorralan y atacan desde m&uacute;ltiples &aacute;ngulos.
+    <br><br>
+    El algoritmo HHO imita esta estrategia: un grupo de "halcones virtuales" explora
+    el espacio de posibles repartos de visas. Cada halc&oacute;n representa una forma diferente
+    de distribuir las 140,000 visas. Comparten informaci&oacute;n y convergen
+    hacia las mejores soluciones.
+</div>
+
+<!-- La Caza Multiobjetivo -->
+<h2 class="section-title">La Caza Multiobjetivo</h2>
+<div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;">
+    En la naturaleza, los halcones de Harris tienen un solo objetivo: atrapar a la presa.
+    En nuestro problema, la "presa" tiene <strong class="a1">tres dimensiones</strong>
+    &mdash; hay que perseguirla en tres direcciones a la vez.
+</div>
+
+<div class="grid-3">
+    <div class="metric-card" style="text-align:center;border-top:3px solid var(--accent1);padding:16px 12px;">
+        <div style="font-size:2rem;margin-bottom:6px;">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none"
+                 stroke="var(--accent1-text)" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+            </svg>
+        </div>
+        <div style="font-size:0.85rem;font-weight:700;color:var(--accent1-text);margin-bottom:6px;">f&#8321; Reducir espera</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            Un grupo de halcones persigue soluciones que
+            minimicen la espera promedio. Priorizan a India y
+            China, que llevan m&aacute;s a&ntilde;os en la fila.</div>
+    </div>
+    <div class="metric-card" style="text-align:center;border-top:3px solid var(--accent2);padding:16px 12px;">
+        <div style="font-size:2rem;margin-bottom:6px;">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none"
+                 stroke="var(--accent2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3v18"/><path d="M5 9l7-3 7 3"/><circle cx="5" cy="14" r="3"/><circle cx="19" cy="14" r="3"/>
+            </svg>
+        </div>
+        <div style="font-size:0.85rem;font-weight:700;color:var(--accent2);margin-bottom:6px;">f&#8322; Igualar pa&iacute;ses</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            Otro flanco ataca la disparidad: buscan repartos
+            donde ning&uacute;n pa&iacute;s espere mucho m&aacute;s que otro.
+            Sacrifican velocidad por justicia.</div>
+    </div>
+    <div class="metric-card" style="text-align:center;border-top:3px solid var(--accent3);padding:16px 12px;">
+        <div style="font-size:2rem;margin-bottom:6px;">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none"
+                 stroke="var(--accent3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/>
+            </svg>
+        </div>
+        <div style="font-size:0.85rem;font-weight:700;color:var(--accent3);margin-bottom:6px;">f&#8323; Cero desperdicio</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            El tercer &aacute;ngulo busca usar todas las visas.
+            Reasignan visas que el FIFO dejar&iacute;a vacantes por
+            topes de pa&iacute;s o categor&iacute;a.</div>
+    </div>
+</div>
+
+<div class="info-box" style="font-size:0.82rem;margin-top:12px;">
+    <strong>El dilema:</strong> Ning&uacute;n halc&oacute;n puede "atrapar" los tres objetivos a la vez.
+    Reducir la espera (f&#8321;) puede aumentar la disparidad (f&#8322;) o desperdiciar visas (f&#8323;).
+    Por eso el algoritmo no busca <em>una</em> soluci&oacute;n perfecta, sino un
+    <strong>frente de Pareto</strong> &mdash; 406 compromisos diferentes
+    donde mejorar un objetivo inevitablemente empeora otro.
+</div>
+
+<!-- Pipeline flow -->
+<h2 class="section-title">Pipeline del Algoritmo</h2>
+<div class="grid-5">
+    <div class="metric-card" style="text-align:center;padding:14px 10px;">
+        <div style="display:flex;justify-content:center;margin-bottom:4px;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--accent1-text)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M8 12l3 3 5-5"/></svg>
+        </div>
+        <div style="font-size:0.8rem;color:var(--accent1-text);font-weight:700;margin:4px 0;">Halc&oacute;n</div>
+        <div style="font-size:0.68rem;color:var(--tab-text);line-height:1.4;">50 halcones con vectores de 105 n&uacute;meros entre 0 y 1</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;font-style:italic;">Cada halc&oacute;n es una propuesta de reparto</div>
+    </div>
+    <div class="metric-card" style="text-align:center;padding:14px 10px;">
+        <div style="display:flex;justify-content:center;margin-bottom:4px;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--accent2)" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 6h7M3 12h5M3 18h3M16 6v12M13 15l3 3 3-3"/></svg>
+        </div>
+        <div style="font-size:0.8rem;color:var(--accent2);font-weight:700;margin:4px 0;">SPV</div>
+        <div style="font-size:0.68rem;color:var(--tab-text);line-height:1.4;">Convertir n&uacute;meros decimales a un orden de prioridad</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;font-style:italic;">Qui&eacute;n va primero en la fila de visas</div>
+    </div>
+    <div class="metric-card" style="text-align:center;padding:14px 10px;">
+        <div style="display:flex;justify-content:center;margin-bottom:4px;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--accent3)" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </div>
+        <div style="font-size:0.8rem;color:var(--accent3);font-weight:700;margin:4px 0;">Decoder</div>
+        <div style="font-size:0.68rem;color:var(--tab-text);line-height:1.4;">Repartir visas respetando las 6 reglas legales</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;font-style:italic;">Asignaci&oacute;n factible garantizada</div>
+    </div>
+    <div class="metric-card" style="text-align:center;padding:14px 10px;">
+        <div style="display:flex;justify-content:center;margin-bottom:4px;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--accent1-text)" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        </div>
+        <div style="font-size:0.8rem;color:var(--accent1-text);font-weight:700;margin:4px 0;">Evaluar</div>
+        <div style="font-size:0.68rem;color:var(--tab-text);line-height:1.4;">Calcular f&#8321; (espera), f&#8322; (brecha) y f&#8323; (desperdicio)</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;font-style:italic;">Qu&eacute; tan buena es esta soluci&oacute;n</div>
+    </div>
+    <div class="metric-card" style="text-align:center;padding:14px 10px;">
+        <div style="display:flex;justify-content:center;margin-bottom:4px;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--accent3)" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <div style="font-size:0.8rem;color:var(--accent3);font-weight:700;margin:4px 0;">Pareto</div>
+        <div style="font-size:0.68rem;color:var(--tab-text);line-height:1.4;">Guardar las soluciones que nadie puede superar</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;font-style:italic;">406 compromisos &oacute;ptimos</div>
+    </div>
+</div>
+
+<div style="text-align:center;font-size:0.8rem;color:var(--text-muted);margin:1rem 0 1.5rem;">
+    Este ciclo se repite <strong>500 veces</strong> por corrida,
+    y se ejecuta <strong>30 corridas</strong> con semillas diferentes
+    para verificar consistencia.
+</div>
+
+<!-- 6 strategies -->
+<h2 class="section-title">Las 6 Estrategias de los Halcones</h2>
+<div class="grid-3">
+    <div class="metric-card" style="border-left:3px solid var(--accent1-text);margin-bottom:10px;">
+        <div style="font-size:0.75rem;color:var(--accent1-text);font-weight:700;text-transform:uppercase;">Exploraci&oacute;n</div>
+        <div class="mono" style="font-size:0.65rem;color:var(--text-muted);margin:2px 0 6px;">|E| &ge; 1</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            Buscar en zonas nuevas del espacio. Los halcones vuelan lejos del grupo,
+            como <em>scouts</em> que exploran territorio desconocido.</div>
+    </div>
+    <div class="metric-card" style="border-left:3px solid var(--accent2);margin-bottom:10px;">
+        <div style="font-size:0.75rem;color:var(--accent2);font-weight:700;text-transform:uppercase;">Asedio suave</div>
+        <div class="mono" style="font-size:0.65rem;color:var(--text-muted);margin:2px 0 6px;">|E| &lt; 1, |E| &ge; 0.5, r &ge; 0.5</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            Rodear la presa desde lejos. Los halcones ajustan su posici&oacute;n gradualmente
+            hacia la mejor soluci&oacute;n conocida.</div>
+    </div>
+    <div class="metric-card" style="border-left:3px solid var(--accent3);margin-bottom:10px;">
+        <div style="font-size:0.75rem;color:var(--accent3);font-weight:700;text-transform:uppercase;">Asedio duro</div>
+        <div class="mono" style="font-size:0.65rem;color:var(--text-muted);margin:2px 0 6px;">|E| &lt; 1, |E| &lt; 0.5, r &ge; 0.5</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            Acercarse r&aacute;pidamente a la presa. Movimientos m&aacute;s agresivos hacia la soluci&oacute;n l&iacute;der.</div>
+    </div>
+    <div class="metric-card" style="border-left:3px solid var(--danger);margin-bottom:10px;">
+        <div style="font-size:0.75rem;color:var(--danger);font-weight:700;text-transform:uppercase;">Picada suave con L&eacute;vy</div>
+        <div class="mono" style="font-size:0.65rem;color:var(--text-muted);margin:2px 0 6px;">|E| &lt; 1, |E| &ge; 0.5, r &lt; 0.5</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            Simular que la presa escapa y recalcular. Incluye vuelos de L&eacute;vy
+            para dar saltos largos y evitar quedarse atrapado.</div>
+    </div>
+    <div class="metric-card" style="border-left:3px solid var(--mid-blue);margin-bottom:10px;">
+        <div style="font-size:0.75rem;color:var(--mid-blue);font-weight:700;text-transform:uppercase;">Picada dura con L&eacute;vy</div>
+        <div class="mono" style="font-size:0.65rem;color:var(--text-muted);margin:2px 0 6px;">|E| &lt; 1, |E| &lt; 0.5, r &lt; 0.5</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            Ataque final: movimiento preciso con vuelo de L&eacute;vy hacia la posici&oacute;n &oacute;ptima.</div>
+    </div>
+    <div class="metric-card" style="border-left:3px solid var(--accent2);margin-bottom:10px;">
+        <div style="font-size:0.75rem;color:var(--accent2);font-weight:700;text-transform:uppercase;">Vuelo de L&eacute;vy</div>
+        <div class="mono" style="font-size:0.65rem;color:var(--text-muted);margin:2px 0 6px;">Componente especial</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            Patr&oacute;n de movimiento con pasos largos ocasionales &mdash; como un halc&oacute;n que de repente
+            vuela lejos del grupo para cubrir m&aacute;s terreno.</div>
+    </div>
+</div>
+
+<div class="info-box" style="font-size:0.82rem;">
+    La <strong>Energ&iacute;a de Escape (E)</strong> controla la transici&oacute;n.
+    E = 2&middot;E&#8320;&middot;(1 &minus; t/T), donde E&#8320; &isin; [&minus;1, 1] es aleatorio.
+    Al inicio, |E| puede alcanzar hasta 2 (exploraci&oacute;n amplia);
+    conforme avanzan las iteraciones, la amplitud decrece hasta 0 (explotaci&oacute;n pura).
+    Esto permite al algoritmo primero explorar ampliamente y luego refinar las mejores soluciones.
+</div>
+
+<!-- Parameters -->
+<h2 class="section-title">Par&aacute;metros del Experimento</h2>
+
+<div class="param-row">
+    <div class="param-header">
+        <div style="min-width:160px;font-weight:600;font-size:0.85rem;color:var(--text);">Poblaci&oacute;n</div>
+        <div class="mono" style="min-width:70px;color:var(--accent2);font-weight:700;font-size:1rem;">50</div>
+        <div style="font-size:0.82rem;color:var(--tab-text);flex:1;">Cu&aacute;ntos halcones buscan simult&aacute;neamente.</div>
+    </div>
+    <div class="param-justify">
+        <strong style="color:var(--accent3);">&iquest;Por qu&eacute; este valor?</strong>
+        Heidari et al. (2019) recomiendan N=30-50 para problemas de dimensi&oacute;n media.
+        Con dim=105 (nuestros 105 grupos), 50 halcones dan suficiente diversidad sin
+        desperdicio computacional. Regla emp&iacute;rica: N &asymp; 0.5&times;dim.</div>
+</div>
+
+<div class="param-row">
+    <div class="param-header">
+        <div style="min-width:160px;font-weight:600;font-size:0.85rem;color:var(--text);">Iteraciones</div>
+        <div class="mono" style="min-width:70px;color:var(--accent2);font-weight:700;font-size:1rem;">500</div>
+        <div style="font-size:0.82rem;color:var(--tab-text);flex:1;">Rondas de caza que completa cada corrida.</div>
+    </div>
+    <div class="param-justify">
+        <strong style="color:var(--accent3);">&iquest;Por qu&eacute; este valor?</strong>
+        500 iteraciones garantizan convergencia: nuestras curvas de hipervolumen se estabilizan
+        al 95% del valor final antes de la iteraci&oacute;n 100. Las 400 restantes permiten
+        explotaci&oacute;n fina (Ops 3-6 de HHO). En metaheur&iacute;sticas, T=500 es est&aacute;ndar
+        para asegurar que el resultado no dependa de parar demasiado pronto.</div>
+</div>
+
+<div class="param-row">
+    <div class="param-header">
+        <div style="min-width:160px;font-weight:600;font-size:0.85rem;color:var(--text);">Archivo Pareto</div>
+        <div class="mono" style="min-width:70px;color:var(--accent2);font-weight:700;font-size:1rem;">100</div>
+        <div style="font-size:0.82rem;color:var(--tab-text);flex:1;">Capacidad m&aacute;xima de soluciones no dominadas.</div>
+    </div>
+    <div class="param-justify">
+        <strong style="color:var(--accent3);">&iquest;Por qu&eacute; este valor?</strong>
+        100 es el valor can&oacute;nico en MOEA/D y NSGA-II (Deb et al., 2002).
+        Suficiente para representar un frente triobjetivo con buena diversidad.
+        Si se llena, se poda por <em>crowding distance</em> &mdash; se eliminan las soluciones
+        m&aacute;s apretadas, conservando los extremos y el <em>knee</em> (punto de equilibrio).</div>
+</div>
+
+<div class="param-row">
+    <div class="param-header">
+        <div style="min-width:160px;font-weight:600;font-size:0.85rem;color:var(--text);">Corridas independientes</div>
+        <div class="mono" style="min-width:70px;color:var(--accent2);font-weight:700;font-size:1rem;">30</div>
+        <div style="font-size:0.82rem;color:var(--tab-text);flex:1;">Repeticiones con diferentes semillas aleatorias.</div>
+    </div>
+    <div class="param-justify">
+        <strong style="color:var(--accent3);">&iquest;Por qu&eacute; este valor?</strong>
+        30 corridas es el m&iacute;nimo recomendado por Derrac et al. (2011) para aplicar
+        pruebas estad&iacute;sticas no param&eacute;tricas (Wilcoxon, Mann-Whitney).
+        Con 30 muestras el Teorema Central del L&iacute;mite justifica intervalos de confianza
+        sobre la media del hipervolumen. Semillas consecutivas: 42, 43, ..., 71.</div>
+</div>
+
+<div class="param-row">
+    <div class="param-header">
+        <div style="min-width:160px;font-weight:600;font-size:0.85rem;color:var(--text);">Visas disponibles (V)</div>
+        <div class="mono" style="min-width:70px;color:var(--accent2);font-weight:700;font-size:1rem;">140,000</div>
+        <div style="font-size:0.82rem;color:var(--tab-text);flex:1;">Total de visas EB por a&ntilde;o fiscal.</div>
+    </div>
+    <div class="param-justify">
+        <strong style="color:var(--accent3);">&iquest;Por qu&eacute; este valor?</strong>
+        Establecido por la Ley de Inmigraci&oacute;n y Nacionalidad (INA) &sect;201(d).
+        No es un par&aacute;metro libre &mdash; es un dato fijo del gobierno de EE.UU.
+        Se mantiene en 140,000 desde 1990. Es la restricci&oacute;n R1 del modelo.</div>
+</div>
+
+<div class="param-row">
+    <div class="param-header">
+        <div style="min-width:160px;font-weight:600;font-size:0.85rem;color:var(--text);">Grupos (G)</div>
+        <div class="mono" style="min-width:70px;color:var(--accent2);font-weight:700;font-size:1rem;">105</div>
+        <div style="font-size:0.82rem;color:var(--tab-text);flex:1;">21 pa&iacute;ses &times; 5 categor&iacute;as EB.</div>
+    </div>
+    <div class="param-justify">
+        <strong style="color:var(--accent3);">&iquest;Por qu&eacute; este valor?</strong>
+        Cada combinaci&oacute;n pa&iacute;s-categor&iacute;a es una variable de decisi&oacute;n (x&#8321; a x&#8321;&#8320;&#8325;).
+        El halc&oacute;n genera un vector de 105 valores continuos en [0,1], que el SPV
+        convierte en permutaci&oacute;n y el decoder traduce a asignaci&oacute;n factible.
+        dim=105 define el tama&ntilde;o del espacio de b&uacute;squeda.</div>
+</div>
+
+<div class="param-row">
+    <div class="param-header">
+        <div style="min-width:160px;font-weight:600;font-size:0.85rem;color:var(--text);">Pa&iacute;ses analizados</div>
+        <div class="mono" style="min-width:70px;color:var(--accent2);font-weight:700;font-size:1rem;">21</div>
+        <div style="font-size:0.82rem;color:var(--tab-text);flex:1;">20 pa&iacute;ses con mayor demanda + 'Resto del Mundo'.</div>
+    </div>
+    <div class="param-justify">
+        <strong style="color:var(--accent3);">&iquest;Por qu&eacute; este valor?</strong>
+        Se seleccionaron los 20 pa&iacute;ses con mayor backlog documentado por USCIS (Visa Bulletin).
+        El bloque 'Resto del Mundo' agrupa ~175 pa&iacute;ses con demanda individual peque&ntilde;a.
+        Estos 21 bloques representan &gt;99% de la demanda total de visas EB.</div>
+</div>
+
+<div class="param-row">
+    <div class="param-header">
+        <div style="min-width:160px;font-weight:600;font-size:0.85rem;color:var(--text);">L&iacute;mite por pa&iacute;s</div>
+        <div class="mono" style="min-width:70px;color:var(--accent2);font-weight:700;font-size:1rem;">25,620</div>
+        <div style="font-size:0.82rem;color:var(--tab-text);flex:1;">7% del total de visas de inmigraci&oacute;n (366,000).</div>
+    </div>
+    <div class="param-justify">
+        <strong style="color:var(--accent3);">&iquest;Por qu&eacute; este valor?</strong>
+        INA &sect;202(a)(2): ning&uacute;n pa&iacute;s puede recibir m&aacute;s del 7% del total de visas de inmigraci&oacute;n
+        (familiares + empleo = 366,000). 366,000 &times; 0.07 = 25,620.
+        Es la causa estructural del problema: India genera m&aacute;s de la mitad de la demanda EB
+        pero recibe m&aacute;ximo 7%. Esto crea colas de d&eacute;cadas.</div>
+</div>
+
+<!-- Team -->
+<h2 class="section-title">Equipo y Cr&eacute;ditos</h2>
+<div class="grid-2" style="margin-bottom:1rem;">
+    <div class="metric-card" style="text-align:center;">
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">
+            Investigadores</div>
+        <div style="font-size:1rem;color:var(--text);font-weight:700;margin:8px 0;">
+            Yazm&iacute;n Flores</div>
+        <div style="font-size:0.85rem;color:var(--text);">
+            Javier Rebull</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">
+            Maestr&iacute;a en Inteligencia Artificial<br>Aplicada a Datos (MIAAD)</div>
+    </div>
+    <div class="metric-card" style="text-align:center;">
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">
+            Direcci&oacute;n acad&eacute;mica</div>
+        <div style="font-size:1rem;color:var(--text);font-weight:700;margin:8px 0;">
+            Mtro. Ra&uacute;l Gibr&aacute;n Porras Alaniz</div>
+        <div style="font-size:0.85rem;color:var(--text);">
+            Optimizaci&oacute;n Inteligente</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">
+            Universidad Aut&oacute;noma de<br>Ciudad Ju&aacute;rez (UACJ)</div>
+    </div>
+</div>
+
+<div class="metric-card" style="text-align:center;padding:1rem;">
+    <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">
+        Stack tecnol&oacute;gico</div>
+    <div style="display:flex;justify-content:center;gap:20px;margin:10px 0;flex-wrap:wrap;">
+        <div style="font-size:0.8rem;color:var(--tab-text);">
+            <strong class="a1">Python</strong> + NumPy</div>
+        <div style="font-size:0.8rem;color:var(--tab-text);">
+            <strong class="a2">Streamlit</strong> + Plotly</div>
+        <div style="font-size:0.8rem;color:var(--tab-text);">
+            <strong class="a3">MOHHO</strong> (implementaci&oacute;n propia)</div>
+    </div>
+    <div style="font-size:0.72rem;color:var(--text-muted);margin-top:6px;">
+        C&oacute;digo fuente: Python 3.12 | Visualizaci&oacute;n 100% Plotly (zero matplotlib) | Dark-first UI</div>
+</div>
+
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PART 2: MODELO MATEMATICO                                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="math" aria-labelledby="h-math">
+
+<h2 class="section-title" id="h-math">El Problema en Palabras Simples</h2>
+<div class="info-box" style="font-size:0.9rem;line-height:1.8;">
+    Imagina un hospital con <strong style="color:var(--accent2);">140,000 camas</strong>
+    y <strong style="color:var(--accent2);">868,098 pacientes</strong> de
+    <strong style="color:var(--accent2);">21 ciudades</strong> esperando ingresar.
+    Algunos llevan <strong style="color:var(--danger);">13 a&ntilde;os en lista de espera</strong>.
+    <br><br>
+    <strong>Regla actual (FIFO):</strong> se atiende por orden de llegada. Suena justo, pero hay una restricci&oacute;n:
+    <em>ning&uacute;n barrio puede ocupar m&aacute;s del 7% de las camas</em>.
+    El resultado: los pacientes de las dos ciudades m&aacute;s grandes (India y China, que suman m&aacute;s del 60% de la demanda)
+    llenan su cuota en minutos, y <strong>sus miles de pacientes restantes siguen esperando</strong>.
+    Mientras tanto, camas asignadas a ciudades peque&ntilde;as quedan vac&iacute;as &mdash;
+    <strong style="color:var(--danger);">17,540 camas desperdiciadas</strong>.
+    <br><br>
+    <strong>El dilema tiene tres dimensiones:</strong>
+    <br>
+    &nbsp;&nbsp;&bull; <strong class="a1">Urgencia (f&#8321;):</strong>
+    &iquest;Damos camas a los que m&aacute;s tiempo llevan esperando? Eso favorece a India y China, pero concentra todos los recursos en dos ciudades.
+    <br>
+    &nbsp;&nbsp;&bull; <strong class="a2">Equidad (f&#8322;):</strong>
+    &iquest;Repartimos para que todas las ciudades esperen lo mismo? Eso reduce la brecha, pero deja sin atender a los m&aacute;s urgentes.
+    <br>
+    &nbsp;&nbsp;&bull; <strong class="a3">Eficiencia (f&#8323;):</strong>
+    &iquest;Llenamos todas las camas? El orden de procesamiento importa: si llenas la cuota de India primero, quedan camas de EB-1 vac&iacute;as que nadie puede usar.
+    <br><br>
+    <strong>No existe una soluci&oacute;n perfecta</strong> que gane en las tres dimensiones a la vez.
+    Lo que s&iacute; existe es un <strong>mapa de 406 compromisos &oacute;ptimos</strong>:
+    cada uno prioriza de forma diferente, y ninguno puede mejorar una dimensi&oacute;n sin empeorar otra.
+    Eso es el frente de Pareto &mdash; y es lo que el algoritmo calcula.
+</div>
+
+<!-- Decision variable -->
+<h2 class="section-title">&iquest;Qu&eacute; Decidimos? (Variable de Decisi&oacute;n)</h2>
+<div class="grid-2">
+    <div class="metric-card">
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">
+            En lenguaje cotidiano</div>
+        <p style="font-size:0.85rem;color:var(--tab-text);margin:8px 0;line-height:1.6;">
+            Para cada combinaci&oacute;n de pa&iacute;s + categor&iacute;a (ej. "India EB-2"),
+            decidimos <strong>cu&aacute;ntas visas le damos</strong> este a&ntilde;o.
+            <br><br>
+            Hay 21 pa&iacute;ses y 5 categor&iacute;as = <strong>105 grupos</strong>.
+            Cada grupo tiene un n&uacute;mero diferente: India EB-2 podr&iacute;a recibir 5,000 visas,
+            Canad&aacute; EB-1 podr&iacute;a recibir 200, etc.</p>
+    </div>
+    <div class="metric-card">
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">
+            En lenguaje matem&aacute;tico</div>
+        <div class="eq-box">
+            <div class="eq-text" style="font-size:1rem;">
+                x<sub>g</sub> &isin; &#8484;&#8314;&#8320; &nbsp;:&nbsp; visas asignadas al grupo g</div>
+        </div>
+        <p style="font-size:0.82rem;color:var(--tab-text);margin:6px 0;line-height:1.5;">
+            El vector <strong>x</strong> = (x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>105</sub>)
+            tiene 105 n&uacute;meros enteros no negativos.<br>
+            Cada x<sub>g</sub> dice cu&aacute;ntas visas recibe el grupo g.</p>
+    </div>
+</div>
+
+<!-- Three objectives -->
+<h2 class="section-title">Los Tres Objetivos (&iquest;Qu&eacute; Queremos Lograr?)</h2>
+<div class="info-box" style="font-size:0.85rem;">
+    Queremos tres cosas a la vez, pero est&aacute;n en conflicto: si priorizas a India (que espera m&aacute;s),
+    otros pa&iacute;ses se quedan sin visas y la desigualdad crece. Si repartes equitativamente,
+    India sigue esperando d&eacute;cadas y se desperdician visas al chocar con l&iacute;mites por pa&iacute;s.
+    No hay soluci&oacute;n perfecta &mdash; hay <strong>406 compromisos</strong>.
+</div>
+
+<div class="grid-2">
+    <div class="metric-card" style="border-color:rgba(91,154,255,0.27);">
+        <div style="font-size:0.8rem;color:var(--accent1-text);font-weight:700;text-transform:uppercase;margin-bottom:6px;">
+            Objetivo 1 (f&#8321;): Reducir la Espera</div>
+        <p style="font-size:0.85rem;color:var(--tab-text);line-height:1.6;margin:0 0 10px;">
+            <strong>En simple:</strong> darle visas a la gente que lleva <em>m&aacute;s a&ntilde;os esperando</em>.
+            Si India lleva 13 a&ntilde;os y Canad&aacute; 4, priorizamos a India.</p>
+        <div class="eq-box">
+            <div class="eq-text" style="font-size:0.95rem;">
+                f&#8321;(x) = &Sigma;<sub>g</sub>
+                (n<sub>g</sub> &minus; x<sub>g</sub>) &middot; w<sub>g</sub>
+                &nbsp;/&nbsp; &Sigma;<sub>g</sub> n<sub>g</sub></div>
+        </div>
+        <div style="font-size:0.8rem;color:var(--tab-text);line-height:1.6;">
+            <strong>n<sub>g</sub></strong> = cu&aacute;ntas personas esperan en el grupo g<br>
+            <strong>x<sub>g</sub></strong> = cu&aacute;ntas visas le damos al grupo g<br>
+            <strong>w<sub>g</sub></strong> = a&ntilde;os que llevan esperando<br>
+            <strong>(n<sub>g</sub> &minus; x<sub>g</sub>)</strong> = personas que se <em>quedan sin visa</em><br><br>
+            La f&oacute;rmula dice: de los que no recibieron visa, &iquest;cu&aacute;ntos a&ntilde;os de espera acumulan?
+            Dividimos entre el total para normalizar. <strong>Queremos que sea lo m&aacute;s bajo posible.</strong></div>
+    </div>
+    <div class="metric-card" style="border-color:rgba(255,214,0,0.27);">
+        <div style="font-size:0.8rem;color:var(--accent2);font-weight:700;text-transform:uppercase;margin-bottom:6px;">
+            Objetivo 2 (f&#8322;): Reducir la Desigualdad</div>
+        <p style="font-size:0.85rem;color:var(--tab-text);line-height:1.6;margin:0 0 10px;">
+            <strong>En simple:</strong> que la espera sea <em>parecida</em> entre pa&iacute;ses.
+            Si India espera 13 a&ntilde;os y Canad&aacute; 1, la brecha es 12 &mdash; queremos reducirla.</p>
+        <div class="eq-box">
+            <div class="eq-text" style="font-size:0.95rem;">
+                W&#772;<sub>c</sub> = &Sigma; x<sub>g</sub>&middot;w<sub>g</sub>
+                &nbsp;/&nbsp; &Sigma; x<sub>g</sub>
+                &nbsp;&nbsp; (por pa&iacute;s c)</div>
+            <div class="eq-text" style="font-size:0.95rem;margin-top:6px;">
+                f&#8322;(x) = max |W&#772;<sub>c1</sub> &minus; W&#772;<sub>c2</sub>|</div>
+        </div>
+        <div style="font-size:0.8rem;color:var(--tab-text);line-height:1.6;">
+            <strong>W&#772;<sub>c</sub></strong> = espera promedio de las visas que le dimos al pa&iacute;s c<br>
+            Si un pa&iacute;s <strong>no recibe visas</strong>: W&#772;<sub>c</sub> = su espera m&aacute;xima (castigo)<br><br>
+            La f&oacute;rmula busca el par de pa&iacute;ses con la <strong>mayor diferencia</strong> de espera.
+            Esa brecha m&aacute;xima es f&#8322;. <strong>Queremos que sea lo m&aacute;s baja posible.</strong></div>
+    </div>
+</div>
+
+<!-- f3 card -->
+<div class="metric-card" style="border-color:rgba(0,229,160,0.27);margin:1rem 0;">
+    <div style="font-size:0.8rem;color:var(--accent3);font-weight:700;text-transform:uppercase;margin-bottom:6px;">
+        Objetivo 3 (f&#8323;): Minimizar el Desperdicio de Visas</div>
+    <p style="font-size:0.85rem;color:var(--tab-text);line-height:1.6;margin:0 0 10px;">
+        <strong>En simple:</strong> usar la mayor cantidad posible de las 140,000 visas disponibles.
+        Cada visa no asignada es una oportunidad perdida.</p>
+    <div class="eq-box">
+        <div class="eq-text" style="font-size:0.95rem;">
+            f&#8323;(x) = V &minus; &Sigma;<sub>g</sub> x<sub>g</sub></div>
+    </div>
+    <div style="font-size:0.8rem;color:var(--tab-text);line-height:1.6;">
+        <strong>V</strong> = 140,000 visas disponibles por a&ntilde;o<br>
+        <strong>&Sigma; x<sub>g</sub></strong> = total de visas efectivamente asignadas<br><br>
+        FIFO desperdicia <strong style="color:var(--danger);">17,540</strong> visas
+        porque choca con l&iacute;mites por pa&iacute;s antes de agotar el presupuesto.
+        <strong>Queremos que f&#8323; sea lo m&aacute;s bajo posible.</strong></div>
+</div>
+
+<!-- Why conflict -->
+<h2 class="section-title">&iquest;Por qu&eacute; No se Puede Ganar en los Tres?</h2>
+<div class="grid-2">
+    <div class="metric-card" style="border-color:rgba(91,154,255,0.27);">
+        <div style="font-size:0.75rem;color:var(--accent1-text);font-weight:700;text-transform:uppercase;">
+            Estrategia A: "Ayudar a los que m&aacute;s esperan"</div>
+        <p style="font-size:0.82rem;color:var(--tab-text);margin:8px 0;line-height:1.5;">
+            Damos todas las visas posibles a India y China primero.
+            Se reduce mucho la espera global, pero Canad&aacute;, Alemania y otros
+            con poca espera se quedan sin nada.</p>
+        <div style="display:flex;gap:1rem;margin-top:8px;">
+            <div style="text-align:center;flex:1;padding:8px;background:var(--info-bg);border-radius:8px;">
+                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">f&#8321; espera</div>
+                <div class="mono" style="font-size:1rem;color:var(--accent3);">Baja</div>
+            </div>
+            <div style="text-align:center;flex:1;padding:8px;background:var(--info-bg);border-radius:8px;">
+                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">f&#8322; brecha</div>
+                <div class="mono" style="font-size:1rem;color:var(--danger);">Alta</div>
+            </div>
+        </div>
+    </div>
+    <div class="metric-card" style="border-color:rgba(0,229,160,0.27);">
+        <div style="font-size:0.75rem;color:var(--accent3);font-weight:700;text-transform:uppercase;">
+            Estrategia B: "Tratar a todos igual"</div>
+        <p style="font-size:0.82rem;color:var(--tab-text);margin:8px 0;line-height:1.5;">
+            Repartimos visas para que todos los pa&iacute;ses tengan esperas similares.
+            Muy equitativo, pero India sigue con colas de d&eacute;cadas porque no recibe suficientes.</p>
+        <div style="display:flex;gap:1rem;margin-top:8px;">
+            <div style="text-align:center;flex:1;padding:8px;background:var(--info-bg);border-radius:8px;">
+                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">f&#8321; espera</div>
+                <div class="mono" style="font-size:1rem;color:var(--danger);">Alta</div>
+            </div>
+            <div style="text-align:center;flex:1;padding:8px;background:var(--info-bg);border-radius:8px;">
+                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">f&#8322; brecha</div>
+                <div class="mono" style="font-size:1rem;color:var(--accent3);">Baja</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="info-box" style="border-left:4px solid var(--accent2);font-size:0.85rem;margin-top:12px;">
+    <strong>Ninguna estrategia gana en los tres:</strong> A es mejor en f&#8321; pero peor en f&#8322;;
+    B es mejor en f&#8322; pero peor en f&#8321;; y las soluciones que maximizan utilizaci&oacute;n (f&#8323; bajo)
+    no siempre minimizan espera o disparidad. Esto se llama <strong>conflicto estructural</strong>
+    y es la raz&oacute;n por la que no hay UNA soluci&oacute;n &oacute;ptima, sino un <strong>frente de 406 compromisos</strong>.
+</div>
+
+<!-- Why 3 objectives -->
+<h2 class="section-title">&iquest;Por qu&eacute; 3 Objetivos?</h2>
+<div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+    El tercer objetivo <strong>f&#8323; = V &minus; &Sigma;x<sub>g</sub></strong> mide las visas desperdiciadas.
+    Los datos emp&iacute;ricos muestran que f&#8323; var&iacute;a significativamente entre soluciones:
+</div>
+
+<div class="grid-3" style="margin:12px 0;">
+    <div class="metric-card" style="border-color:rgba(255,51,102,0.27);text-align:center;">
+        <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">
+            FIFO (sistema actual)</div>
+        <div class="mono" style="font-size:1.3rem;color:var(--danger);margin:6px 0;">
+            f&#8323; = 17,540</div>
+        <div style="font-size:0.75rem;color:var(--tab-text);">
+            Desperdicia <strong style="color:var(--danger);">17,540</strong>
+            visas por chocar con l&iacute;mites por pa&iacute;s</div>
+    </div>
+    <div class="metric-card" style="border-color:rgba(255,214,0,0.27);text-align:center;">
+        <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">
+            MOHHO (406 soluciones Pareto)</div>
+        <div class="mono" style="font-size:1.3rem;color:var(--accent2);margin:6px 0;">
+            f&#8323;: 0 a 23,048</div>
+        <div style="font-size:0.75rem;color:var(--tab-text);">
+            Visas usadas: 116,952 a 140,000<br>
+            Promedio: 133,036 visas (95%)</div>
+    </div>
+    <div class="metric-card" style="border-color:rgba(0,229,160,0.27);text-align:center;">
+        <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">
+            Mejor utilizaci&oacute;n (f&#8323; m&iacute;nimo)</div>
+        <div class="mono" style="font-size:1.3rem;color:var(--accent3);margin:6px 0;">
+            f&#8323; = 0</div>
+        <div style="font-size:0.75rem;color:var(--tab-text);">
+            140,000 visas asignadas<br>
+            (100% utilizaci&oacute;n)</div>
+    </div>
+</div>
+
+<div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+    <strong>&iquest;Por qu&eacute; restaurar f&#8323; como objetivo?</strong><br><br>
+    f&#8323; (visas no usadas) <em>var&iacute;a significativamente</em> entre soluciones &mdash; de 0 a 23,048.
+    Las soluciones que priorizan equidad (f&#8322; bajo) tienden a usar menos visas porque
+    reparten entre m&aacute;s pa&iacute;ses y chocan con m&aacute;s l&iacute;mites. Esto convierte a f&#8323; en un
+    objetivo genuinamente en conflicto con f&#8322;.<br><br>
+    <strong>Decisi&oacute;n:</strong> se modela como <strong>triobjetivo min{f&#8321;, f&#8322;, f&#8323;}</strong>.
+    El frente de Pareto pasa de ser una curva 2D a una <strong>superficie 3D</strong>
+    con 406 soluciones no dominadas. El presupuesto total de 140,000 visas
+    se sigue respetando como <strong>restricci&oacute;n R1</strong> (&Sigma;x<sub>g</sub> &le; V),
+    mientras que f&#8323; mide cu&aacute;nto de ese presupuesto se logra asignar efectivamente.
+</div>
+
+<!-- Constraints -->
+<h2 class="section-title">Las 6 Reglas del Juego (Restricciones)</h2>
+<p style="font-size:0.85rem;color:var(--tab-text);margin-bottom:12px;">
+    No podemos repartir visas como se nos antoje. La ley de inmigraci&oacute;n de EE.UU.
+    impone reglas estrictas. El decoder garantiza R1&ndash;R5 por construcci&oacute;n;
+    R6 es una regla operativa post-optimizaci&oacute;n.</p>
+
+<div class="constraint-row">
+    <div style="min-width:36px;text-align:center;">
+        <div class="mono" style="font-weight:700;font-size:0.9rem;color:var(--accent1-text);">R1</div>
+    </div>
+    <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.85rem;color:var(--text);">Presupuesto anual:
+            <span style="font-weight:400;color:var(--tab-text);">No puedes dar m&aacute;s visas de las que existen.</span></div>
+        <div style="font-size:0.78rem;color:var(--text-subtle);margin-top:4px;">Solo hay 140,000 visas EB por a&ntilde;o. Ni una m&aacute;s.</div>
+        <div class="mono" style="font-size:0.75rem;color:var(--accent2);margin-top:4px;opacity:0.8;">&Sigma; x<sub>g</sub> &le; 140,000</div>
+    </div>
+</div>
+
+<div class="constraint-row">
+    <div style="min-width:36px;text-align:center;">
+        <div class="mono" style="font-weight:700;font-size:0.9rem;color:var(--accent1-text);">R2</div>
+    </div>
+    <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.85rem;color:var(--text);">L&iacute;mite por pa&iacute;s (7%):
+            <span style="font-weight:400;color:var(--tab-text);">Ning&uacute;n pa&iacute;s puede acaparar todo.</span></div>
+        <div style="font-size:0.78rem;color:var(--text-subtle);margin-top:4px;">Cada pa&iacute;s recibe m&aacute;ximo 7% del total (25,620). Excepci&oacute;n: "Resto del Mundo" (bloque agregado) puede recibir m&aacute;s si las visas no se agotan en los 20 pa&iacute;ses individuales. India, con m&aacute;s de la mitad de la demanda, tiene colas de d&eacute;cadas.</div>
+        <div class="mono" style="font-size:0.75rem;color:var(--accent2);margin-top:4px;opacity:0.8;">&Sigma; x<sub>g</sub> &le; 25,620 por pa&iacute;s (excepto RdM)</div>
+    </div>
+</div>
+
+<div class="constraint-row">
+    <div style="min-width:36px;text-align:center;">
+        <div class="mono" style="font-weight:700;font-size:0.9rem;color:var(--accent1-text);">R3</div>
+    </div>
+    <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.85rem;color:var(--text);">L&iacute;mite por categor&iacute;a:
+            <span style="font-weight:400;color:var(--tab-text);">Cada tipo de visa tiene su tope.</span></div>
+        <div style="font-size:0.78rem;color:var(--text-subtle);margin-top:4px;">EB-1 (extraordinarios), EB-2 (profesionales), etc. tienen cupos propios, ajustados por spillover.</div>
+        <div class="mono" style="font-size:0.75rem;color:var(--accent2);margin-top:4px;opacity:0.8;">&Sigma; x<sub>g</sub> &le; K<sub>j</sub><sup>eff</sup> por categor&iacute;a</div>
+    </div>
+</div>
+
+<div class="constraint-row">
+    <div style="min-width:36px;text-align:center;">
+        <div class="mono" style="font-weight:700;font-size:0.9rem;color:var(--accent1-text);">R4</div>
+    </div>
+    <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.85rem;color:var(--text);">No dar de m&aacute;s:
+            <span style="font-weight:400;color:var(--tab-text);">No puedes dar m&aacute;s visas de las que piden.</span></div>
+        <div style="font-size:0.78rem;color:var(--text-subtle);margin-top:4px;">Si Canad&aacute; EB-5 pide 100, no puedes darle 200.</div>
+        <div class="mono" style="font-size:0.75rem;color:var(--accent2);margin-top:4px;opacity:0.8;">x<sub>g</sub> &le; n<sub>g</sub></div>
+    </div>
+</div>
+
+<div class="constraint-row">
+    <div style="min-width:36px;text-align:center;">
+        <div class="mono" style="font-weight:700;font-size:0.9rem;color:var(--accent1-text);">R5</div>
+    </div>
+    <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.85rem;color:var(--text);">Enteros:
+            <span style="font-weight:400;color:var(--tab-text);">No hay media visa.</span></div>
+        <div style="font-size:0.78rem;color:var(--text-subtle);margin-top:4px;">Cada visa es un permiso real &mdash; no se puede fraccionar.</div>
+        <div class="mono" style="font-size:0.75rem;color:var(--accent2);margin-top:4px;opacity:0.8;">x<sub>g</sub> &isin; enteros &ge; 0</div>
+    </div>
+</div>
+
+<div class="constraint-row">
+    <div style="min-width:36px;text-align:center;">
+        <div class="mono" style="font-weight:700;font-size:0.9rem;color:var(--accent1-text);">R6</div>
+    </div>
+    <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.85rem;color:var(--text);">FIFO interno:
+            <span style="font-weight:400;color:var(--tab-text);">Dentro de cada grupo, los m&aacute;s antiguos primero.</span></div>
+        <div style="font-size:0.78rem;color:var(--text-subtle);margin-top:4px;">Aunque reordenamos ENTRE grupos, DENTRO de cada grupo se respeta el orden de llegada. Esta regla es operativa &mdash; no la impone el optimizador sino la implementaci&oacute;n posterior.</div>
+        <div class="mono" style="font-size:0.75rem;color:var(--accent2);margin-top:4px;opacity:0.8;">Orden por fecha de prioridad</div>
+    </div>
+</div>
+
+<!-- Spillover -->
+<h2 class="section-title">Spillover: Las Visas que Sobran se Pasan</h2>
+<div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+    <strong>Ejemplo:</strong> EB-4 (visas especiales) y EB-5 (inversores) tienen poca demanda.
+    Sus visas sobrantes <strong>suben</strong> a EB-1. Si a EB-1 le sobran, <strong>bajan</strong>
+    a EB-2, y de EB-2 a EB-3. As&iacute; las visas no se desperdician.
+</div>
+
+<div class="flow-container">
+    <div class="flow-step">
+        <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;">EB-4, EB-5</div>
+        <div class="mono" style="font-size:0.8rem;color:var(--accent3);">Sobran visas</div>
+    </div>
+    <div class="flow-arrow" aria-hidden="true">&rarr;</div>
+    <div class="flow-step">
+        <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;">EB-1</div>
+        <div class="mono" style="font-size:0.8rem;color:var(--accent2);">Recibe excedente</div>
+    </div>
+    <div class="flow-arrow" aria-hidden="true">&rarr;</div>
+    <div class="flow-step">
+        <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;">EB-2</div>
+        <div class="mono" style="font-size:0.8rem;color:var(--accent2);">Recibe sobrante de EB-1</div>
+    </div>
+    <div class="flow-arrow" aria-hidden="true">&rarr;</div>
+    <div class="flow-step">
+        <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;">EB-3</div>
+        <div class="mono" style="font-size:0.8rem;color:var(--accent2);">Recibe sobrante de EB-2</div>
+    </div>
+</div>
+
+<details>
+    <summary>Ver f&oacute;rmulas de spillover</summary>
+    <div class="eq-box">
+        <div class="eq-text" style="font-size:0.85rem;line-height:2;">
+            S&#8324; = max(0, K&#8324; &minus; D&#8324;), &nbsp;
+            S&#8325; = max(0, K&#8325; &minus; D&#8325;)<br>
+            K&#8321;<sup>eff</sup> = K&#8321; + S&#8324; + S&#8325;<br>
+            S&#8321; = max(0, K&#8321;<sup>eff</sup> &minus; D&#8321;)<br>
+            K&#8322;<sup>eff</sup> = K&#8322; + S&#8321;, &nbsp;
+            S&#8322; = max(0, K&#8322;<sup>eff</sup> &minus; D&#8322;)<br>
+            K&#8323;<sup>eff</sup> = K&#8323; + S&#8322;
+        </div>
+    </div>
+</details>
+
+<!-- 3-layer encoding -->
+<h2 class="section-title">&iquest;C&oacute;mo Encuentra las Soluciones? (Codificaci&oacute;n en 3 Capas)</h2>
+<div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+    El algoritmo HHO est&aacute; inspirado en <strong>halcones de Harris</strong> que cazan en grupo.
+    Cada halc&oacute;n representa una posible forma de repartir visas. Pero los halcones
+    "piensan" en n&uacute;meros decimales, y nosotros necesitamos decisiones enteras.
+    Aqu&iacute; est&aacute; el truco en 3 pasos:
+</div>
+
+<div class="grid-3">
+    <div class="metric-card" style="text-align:center;">
+        <div style="margin-bottom:6px;display:flex;justify-content:center;">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--accent1-text)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M8 12l3 3 5-5"/></svg>
+        </div>
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">
+            Paso 1: El Halc&oacute;n Vuela</div>
+        <div class="mono" style="font-size:0.85rem;color:var(--accent1-text);margin:8px 0;">
+            H = (0.72, 0.15, 0.91, ...)</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            El halc&oacute;n tiene 105 n&uacute;meros entre 0 y 1.
+            Los mueve usando 6 estrategias de caza
+            (exploraci&oacute;n, asedio, picada, vuelo de L&eacute;vy...).</div>
+    </div>
+    <div class="metric-card" style="text-align:center;">
+        <div style="margin-bottom:6px;display:flex;justify-content:center;">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--accent2)" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 6h7M3 12h5M3 18h3M16 6v12M13 15l3 3 3-3"/></svg>
+        </div>
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">
+            Paso 2: Convertir a Orden (SPV)</div>
+        <div class="mono" style="font-size:0.85rem;color:var(--accent2);margin:8px 0;">
+            &pi; = argsort(H) &rarr; (2, 1, 3, ...)</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            Ordenamos los grupos de menor a mayor valor.
+            El grupo con el n&uacute;mero m&aacute;s chico va primero
+            en la fila de las visas.</div>
+    </div>
+    <div class="metric-card" style="text-align:center;">
+        <div style="margin-bottom:6px;display:flex;justify-content:center;">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--accent3)" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </div>
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">
+            Paso 3: Repartir (Decoder Greedy)</div>
+        <div class="mono" style="font-size:0.8rem;color:var(--accent3);margin:8px 0;">
+            x<sub>g</sub> = min(n<sub>g</sub>, V<sub>rest</sub>, cap<sub>pa&iacute;s</sub>, cap<sub>cat</sub>)</div>
+        <div style="font-size:0.78rem;color:var(--tab-text);line-height:1.5;">
+            Recorremos la fila y damos visas hasta agotar.
+            Cada grupo recibe el m&iacute;nimo entre su demanda,
+            visas restantes, cupo de pa&iacute;s y cupo de categor&iacute;a.</div>
+    </div>
+</div>
+
+<!-- HHO Math mapping -->
+<h2 class="section-title">Conexi&oacute;n: Modelo Matem&aacute;tico &harr; Metaheur&iacute;stica HHO</h2>
+<div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+    En la naturaleza, los halcones de Harris cazan conejos en equipo usando distintas estrategias.
+    El algoritmo traduce cada elemento de la caza a un componente del modelo matem&aacute;tico:
+</div>
+
+<div class="hho-row">
+    <div style="min-width:140px;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--accent1-text);"><span aria-hidden="true">&#129413;</span> Halc&oacute;n (posici&oacute;n H)</div>
+        <div style="font-size:0.7rem;color:var(--accent2);font-weight:600;margin-top:2px;">&rarr; Vector continuo</div>
+    </div>
+    <div style="font-size:0.82rem;color:var(--tab-text);line-height:1.6;">
+        Cada halc&oacute;n es un vector H &isin; &#8477;&sup1;&#8304;&#8309; (un n&uacute;mero real por cada uno de los 105 grupos pa&iacute;s-categor&iacute;a).
+        No es una soluci&oacute;n directamente &mdash; es un c&oacute;digo que el decodificador SPV+Greedy traduce a una asignaci&oacute;n factible.</div>
+</div>
+
+<div class="hho-row">
+    <div style="min-width:140px;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--accent1-text);"><span aria-hidden="true">&#128007;</span> Presa (l&iacute;der)</div>
+        <div style="font-size:0.7rem;color:var(--accent2);font-weight:600;margin-top:2px;">&rarr; Soluci&oacute;n no dominada</div>
+    </div>
+    <div style="font-size:0.82rem;color:var(--tab-text);line-height:1.6;">
+        En HHO mono-objetivo, la presa es el mejor individuo. En MOHHO, la presa se elige
+        <strong>aleatoriamente del archivo de Pareto</strong>, con preferencia por soluciones en zonas
+        poco densas (<em>crowding distance</em>). As&iacute; los halcones exploran todo el frente, no solo un extremo.</div>
+</div>
+
+<div class="hho-row">
+    <div style="min-width:140px;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--accent1-text);"><span aria-hidden="true">&#9889;</span> Energ&iacute;a de escape (E)</div>
+        <div style="font-size:0.7rem;color:var(--accent2);font-weight:600;margin-top:2px;">&rarr; Balance exploraci&oacute;n/explotaci&oacute;n</div>
+    </div>
+    <div style="font-size:0.82rem;color:var(--tab-text);line-height:1.6;">
+        E = 2&middot;E&#8320;&middot;(1 &minus; t/T), con E&#8320; aleatorio en [&minus;1, 1].
+        Al inicio |E| puede alcanzar hasta 2: los halcones <strong>exploran</strong>
+        posiciones lejanas (b&uacute;squeda global). Conforme avanzan las iteraciones, la amplitud de |E| decrece:
+        los halcones <strong>explotan</strong> la vecindad de la presa (refinamiento local).
+        Esto es lo que hace que HHO converja.</div>
+</div>
+
+<div class="hho-row">
+    <div style="min-width:140px;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--accent1-text);"><span aria-hidden="true">&#128168;</span> Vuelo de L&eacute;vy</div>
+        <div style="font-size:0.7rem;color:var(--accent2);font-weight:600;margin-top:2px;">&rarr; Saltos largos ocasionales</div>
+    </div>
+    <div style="font-size:0.82rem;color:var(--tab-text);line-height:1.6;">
+        Cuando |E| &lt; 1 y r &lt; 0.5, el halc&oacute;n puede hacer una &ldquo;picada r&aacute;pida&rdquo; con salto de L&eacute;vy:
+        pasos cortos frecuentes + saltos largos raros. Esto evita que el algoritmo se quede atrapado
+        en &oacute;ptimos locales, crucial para encontrar las 406 soluciones diversas del frente.</div>
+</div>
+
+<div class="hho-row">
+    <div style="min-width:140px;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--accent1-text);"><span aria-hidden="true">&#128194;</span> Archivo externo</div>
+        <div style="font-size:0.7rem;color:var(--accent2);font-weight:600;margin-top:2px;">&rarr; Frente de Pareto</div>
+    </div>
+    <div style="font-size:0.82rem;color:var(--tab-text);line-height:1.6;">
+        Las mejores soluciones no dominadas se guardan en un archivo de tama&ntilde;o 100. Cuando se llena,
+        se eliminan las soluciones en zonas densas (menor <em>crowding distance</em>). Esto garantiza diversidad en el frente final.</div>
+</div>
+
+<div class="hho-row">
+    <div style="min-width:140px;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--accent1-text);"><span aria-hidden="true">&#9881;&#65039;</span> Decodificador SPV+Greedy</div>
+        <div style="font-size:0.7rem;color:var(--accent2);font-weight:600;margin-top:2px;">&rarr; Factibilidad garantizada</div>
+    </div>
+    <div style="font-size:0.82rem;color:var(--tab-text);line-height:1.6;">
+        El halc&oacute;n vuela libremente en &#8477;&sup1;&#8304;&#8309; sin preocuparse por restricciones.
+        La regla SPV (Smallest Position Value) convierte esos n&uacute;meros en un orden de prioridad,
+        y el decoder greedy reparte visas respetando R1&ndash;R5 por construcci&oacute;n.
+        <strong>No hay soluciones inv&aacute;lidas.</strong></div>
+</div>
+
+<!-- Worked example -->
+<h2 class="section-title">Ejemplo Paso a Paso</h2>
+<div class="metric-card" style="padding:1.2rem 1.5rem;">
+<div style="font-size:0.85rem;color:var(--tab-text);line-height:1.8;">
+<strong class="a1">Paso 1:</strong>
+El halc&oacute;n genera: H = (<span class="mono a2">0.72</span>,
+<span class="mono a2">0.15</span>,
+<span class="mono a2">0.91</span>,
+<span class="mono a2">0.03</span>,
+<span class="mono a2">0.58</span>)<br>
+<strong class="a2">Paso 2 (SPV):</strong>
+Ordenamos de menor a mayor &rarr; &pi; = (4, 2, 5, 1, 3)<br>
+<span style="color:var(--text-muted);">El grupo 4 (valor 0.03) va primero,
+luego el 2 (0.15), etc.</span><br>
+<strong class="a3">Paso 3 (Decoder):</strong>
+Recorremos &pi; y repartimos:<br>
+<span style="color:var(--text-muted);">
+&nbsp;&nbsp;&bull; Grupo 4: pide 8,000 &rarr; le damos min(8000, V<sub>rest</sub>, cupo_pa&iacute;s, cupo_cat)<br>
+&nbsp;&nbsp;&bull; Grupo 2: pide 15,000 &rarr; le damos lo que se pueda sin violar R1-R5<br>
+&nbsp;&nbsp;&bull; ... y as&iacute; hasta agotar las 140,000 visas.
+</span><br><br>
+<strong>Propiedad clave:</strong> <em>cualquier</em> orden que genere el halc&oacute;n produce una asignaci&oacute;n
+factible (satisface R1-R5). No se necesitan penalizaciones &mdash; la factibilidad est&aacute; garantizada por dise&ntilde;o.<br><br>
+<strong class="a1">Paso 4 (Evaluar):</strong>
+Calculamos los tres objetivos sobre la asignaci&oacute;n resultante x:<br>
+<span style="color:var(--text-muted);">
+&nbsp;&nbsp;&bull; f&#8321; = &Sigma;(n<sub>g</sub> &minus; x<sub>g</sub>) &middot; w<sub>g</sub> / &Sigma; n<sub>g</sub><br>
+&nbsp;&nbsp;&bull; f&#8322; = max|W&#772;<sub>c1</sub> &minus; W&#772;<sub>c2</sub>| entre todos los pares de pa&iacute;ses<br>
+&nbsp;&nbsp;&bull; f&#8323; = V &minus; &Sigma; x<sub>g</sub> (visas sin asignar)
+</span>
+</div>
+</div>
+
+<!-- Numerical example -->
+<div class="metric-card" style="padding:1.2rem 1.5rem;margin-top:1rem;">
+<div style="font-size:0.95rem;font-weight:700;color:var(--accent2);margin-bottom:10px;">
+Ejemplo con N&uacute;meros Reales</div>
+<div style="font-size:0.85rem;color:var(--tab-text);line-height:1.9;">
+El algoritmo evalu&oacute; las tres funciones objetivo para cada soluci&oacute;n. Estos son los resultados
+de cuatro soluciones reales del experimento:<br><br>
+<div style="overflow-x:auto;">
+<table class="results-table" style="width:100%;border-collapse:collapse;">
+<caption style="text-align:left;font-size:0.78rem;color:var(--text-muted);margin-bottom:6px;">Comparaci&oacute;n de soluciones extremas del frente de Pareto vs. FIFO</caption>
+<thead>
+<tr style="border-bottom:2px solid var(--card-border);">
+<th scope="col" style="text-align:left;padding:6px;color:var(--text);">Soluci&oacute;n</th>
+<th scope="col" style="text-align:right;padding:6px;color:var(--accent1-text);">f&#8321; (espera)</th>
+<th scope="col" style="text-align:right;padding:6px;color:var(--accent2);">f&#8322; (disparidad)</th>
+<th scope="col" style="text-align:right;padding:6px;color:var(--accent3);">f&#8323; (desperdicio)</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-bottom:1px solid var(--card-border);">
+<td style="padding:6px;color:var(--text);font-family:'Inter',sans-serif;">Mejor f&#8321;</td>
+<td style="text-align:right;padding:6px;color:var(--accent1-text);font-weight:700;">7.186 a&ntilde;os</td>
+<td style="text-align:right;padding:6px;">10.744 a&ntilde;os</td>
+<td style="text-align:right;padding:6px;">16,280</td>
+</tr>
+<tr style="border-bottom:1px solid var(--card-border);background:var(--info-bg);">
+<td style="padding:6px;color:var(--text);font-family:'Inter',sans-serif;">Mejor f&#8322;</td>
+<td style="text-align:right;padding:6px;">7.507 a&ntilde;os</td>
+<td style="text-align:right;padding:6px;color:var(--accent2);font-weight:700;">2.379 a&ntilde;os</td>
+<td style="text-align:right;padding:6px;">8,664</td>
+</tr>
+<tr style="border-bottom:1px solid var(--card-border);">
+<td style="padding:6px;color:var(--text);font-family:'Inter',sans-serif;">Mejor f&#8323;</td>
+<td style="text-align:right;padding:6px;">7.257 a&ntilde;os</td>
+<td style="text-align:right;padding:6px;">9.361 a&ntilde;os</td>
+<td style="text-align:right;padding:6px;color:var(--accent3);font-weight:700;">0</td>
+</tr>
+<tr style="background:var(--info-bg);">
+<td style="padding:6px;color:var(--danger);font-weight:600;font-family:'Inter',sans-serif;">FIFO (actual)</td>
+<td style="text-align:right;padding:6px;color:var(--danger);">7.214 a&ntilde;os</td>
+<td style="text-align:right;padding:6px;color:var(--danger);">12.638 a&ntilde;os</td>
+<td style="text-align:right;padding:6px;color:var(--danger);">17,540</td>
+</tr>
+</tbody>
+</table>
+</div>
+<br>
+<strong class="a1">&iquest;Por qu&eacute; ninguna es la &ldquo;mejor&rdquo;?</strong>
+Mejor-f&#8321; tiene la menor espera (7.186) pero desperdicia 16,280 visas.
+Mejor-f&#8323; no desperdicia ninguna visa pero su espera es 7.257.
+Mejor-f&#8322; tiene la menor brecha (2.379) pero la peor espera (7.507).
+<strong>Las tres son &oacute;ptimas</strong> &mdash; cada una gana en un objetivo y pierde en otro.
+Eso es el frente de Pareto.
+</div>
+</div>
+
+<!-- Pareto dominance -->
+<h2 class="section-title">&iquest;Qu&eacute; es el Frente de Pareto?</h2>
+<div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+    Imagina que comparas dos repartos de visas, <strong>A</strong> y <strong>B</strong>:<br><br>
+    &bull; Si A tiene <strong>menor espera, menor brecha Y menos desperdicio</strong> que B &rarr; A es claramente mejor.
+    Decimos que A <em>domina</em> a B.<br>
+    &bull; Si A tiene <strong>menor espera PERO mayor brecha o m&aacute;s desperdicio</strong> &rarr; ninguno domina al otro.
+    Ambos son v&aacute;lidos, solo son compromisos diferentes.<br><br>
+    El <strong>frente de Pareto</strong> es el grupo de soluciones que nadie puede superar en los tres
+    objetivos a la vez. Son las "mejores opciones disponibles" &mdash; 406
+    en nuestro caso.
+</div>
+
+<details>
+    <summary>Ver definici&oacute;n formal de dominancia</summary>
+    <div class="eq-box">
+        <div class="eq-text" style="font-size:0.9rem;">
+            a &#8827; b &nbsp;&#10234;&nbsp;
+            &forall;m &isin; {1,2,3}: f<sub>m</sub>(a) &le; f<sub>m</sub>(b)
+            &nbsp;&and;&nbsp; &exist;m: f<sub>m</sub>(a) &lt; f<sub>m</sub>(b)</div>
+    </div>
+    <p style="font-size:0.82rem;color:var(--tab-text);margin:8px 0;">
+        a domina a b si es al menos igual en los tres objetivos y estrictamente mejor en al menos uno.</p>
+    <div class="eq-box">
+        <div class="eq-text" style="font-size:0.9rem;">
+            Frente de Pareto = { x | no existe x' que domine a x }</div>
+    </div>
+</details>
+
+<!-- Hypervolume -->
+<h2 class="section-title">&iquest;C&oacute;mo Sabemos si las Soluciones son Buenas? (Hipervolumen)</h2>
+<div class="info-box" style="font-size:0.85rem;line-height:1.7;">
+    El <strong>hipervolumen (HV)</strong> es como medir el "volumen" que cubre el frente de Pareto
+    en el espacio tridimensional de f&#8321; &times; f&#8322; &times; f&#8323;. Si el frente se expande (mejores soluciones),
+    el volumen crece.<br><br>
+    &bull; <strong>Mayor HV = mejor:</strong> las soluciones cubren m&aacute;s espacio de opciones.<br>
+    &bull; Lo calculamos para cada una de las 30 corridas del algoritmo para verificar que es
+    <strong>consistente</strong> (no fue suerte de una sola vez).<br>
+    &bull; HV medio de nuestro modelo: <strong style="color:var(--accent2);">1,785,802.75</strong>
+    con desviaci&oacute;n est&aacute;ndar de solo <strong>27,830.57</strong> &mdash; muy estable.
+</div>
+
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- GLOSSARY                                                    -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="glossary" aria-labelledby="h-glossary">
+<h2 class="section-title" id="h-glossary">Glosario</h2>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Inmigraci&oacute;n</div>
+    <h3>Green Card (Tarjeta de Residencia)</h3>
+    <p>Permiso de residencia permanente en EE.UU. Se emiten 140,000 visas de empleo al a&ntilde;o
+    en 5 categor&iacute;as (EB-1 a EB-5). Es lo que reparte nuestro modelo.</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Sistema actual</div>
+    <h3>FIFO (First In, First Out)</h3>
+    <p>El sistema vigente: quien lleg&oacute; primero se atiende primero. Simple pero injusto &mdash;
+    ignora cu&aacute;nto llevas esperando y genera colas de d&eacute;cadas para India y China.</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Nuestro algoritmo</div>
+    <h3>MOHHO</h3>
+    <p>Multi-Objective Harris Hawks Optimization. Algoritmo de IA inspirado en la caza cooperativa
+    de halcones de Harris. Encuentra 406 formas alternativas de repartir visas, cada una
+    con un balance diferente entre espera (f&#8321;), equidad (f&#8322;) y utilizaci&oacute;n (f&#8323;).</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Objetivo 1</div>
+    <h3>f&#8321; &mdash; Carga de espera</h3>
+    <p>Mide cu&aacute;ntos a&ntilde;os de espera quedan sin resolver. Minimizarlo prioriza dar visas
+    a la gente que lleva m&aacute;s tiempo en la fila (India, China).</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Objetivo 2</div>
+    <h3>f&#8322; &mdash; Brecha entre pa&iacute;ses</h3>
+    <p>Mide la mayor diferencia de espera entre cualquier par de pa&iacute;ses.
+    Minimizarlo busca que todos los pa&iacute;ses esperen tiempos similares &mdash; equidad pura.</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Objetivo 3</div>
+    <h3>f&#8323; &mdash; Desperdicio de visas</h3>
+    <p>Mide cu&aacute;ntas de las 140,000 visas quedan sin asignar (f&#8323; = V &minus; &Sigma;x).
+    Minimizarlo maximiza la utilizaci&oacute;n del presupuesto anual. FIFO desperdicia
+    17,540 visas; MOHHO puede llegar hasta f&#8323; = 0.</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Concepto clave</div>
+    <h3>Frente de Pareto</h3>
+    <p>El grupo de soluciones que nadie puede superar en los tres objetivos a la vez.
+    Si una soluci&oacute;n tiene menos espera, otra tendr&aacute; menos brecha o menos desperdicio &mdash;
+    no se puede ganar en todo. Nuestro frente tiene 406 puntos.</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Punto especial</div>
+    <h3>Knee Point (Equilibrio)</h3>
+    <p>El punto del frente de Pareto donde un poquito m&aacute;s de espera produce mucha m&aacute;s equidad
+    (o viceversa). Es el compromiso m&aacute;s eficiente entre los tres objetivos.</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Inmigraci&oacute;n</div>
+    <h3>Categor&iacute;as EB</h3>
+    <p>EB-1: personas extraordinarias (premios Nobel, etc).
+    EB-2: profesionales con maestr&iacute;a. EB-3: trabajadores calificados.
+    EB-4: inmigrantes especiales (religiosos, traductores militares).
+    EB-5: inversores ($800k+).</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Ley migratoria</div>
+    <h3>Spillover</h3>
+    <p>Si una categor&iacute;a no usa todas sus visas, el sobrante pasa a otra.
+    EB-4/5 tienen poca demanda, as&iacute; que sus visas extras suben a EB-1,
+    luego bajan a EB-2 y EB-3.</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Ley migratoria</div>
+    <h3>L&iacute;mite del 7%</h3>
+    <p>Ning&uacute;n pa&iacute;s puede recibir m&aacute;s del 7% del total (25,620 visas/a&ntilde;o).
+    India tiene m&aacute;s de la mitad de la demanda pero recibe m&aacute;ximo 7%.
+    Esta es la causa principal del problema.</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">M&eacute;trica</div>
+    <h3>Hipervolumen (HV)</h3>
+    <p>Mide qu&eacute; tan buenas son las soluciones: el 'volumen' del espacio triobjetivo cubierto por el frente de Pareto.
+    Mayor volumen = mejores soluciones. Lo usamos para comparar las 30 corridas del algoritmo.</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">T&eacute;cnica</div>
+    <h3>SPV</h3>
+    <p>Smallest Position Value (Bean, 1994). Truco matem&aacute;tico para convertir n&uacute;meros
+    decimales (que maneja el halc&oacute;n) en un orden de prioridad (que necesita el decoder).</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Componente</div>
+    <h3>Decodificador Greedy</h3>
+    <p>Recibe un orden de prioridad y reparte visas uno por uno, tomando el m&iacute;nimo entre demanda,
+    visas restantes, cupo de pa&iacute;s y cupo de categor&iacute;a. Cualquier orden produce un reparto v&aacute;lido (R1-R5).</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">T&eacute;cnica HHO</div>
+    <h3>Vuelo de L&eacute;vy</h3>
+    <p>Patr&oacute;n de movimiento con pasos cortos frecuentes y saltos largos ocasionales.
+    Evita que los halcones se queden atrapados en soluciones mediocres.</p>
+</div>
+
+<div class="gloss-card">
+    <div class="gloss-tag">Experimento</div>
+    <h3>Convergencia</h3>
+    <p>C&oacute;mo mejora el algoritmo con el tiempo. Al inicio explora mucho (HV sube r&aacute;pido),
+    luego se estabiliza (encontr&oacute; las mejores soluciones).
+    Nuestro MOHHO converge al 95% en las primeras ~100 iteraciones.</p>
+</div>
+
+</section>
+
+<!-- Footer -->
+<footer style="text-align:center;margin-top:3rem;padding:2rem 0;border-top:1px solid var(--card-border);">
+    <div style="font-size:0.85rem;color:var(--text-muted);">
+        Visa Predict AI &mdash; Maestr&iacute;a en Inteligencia Artificial Aplicada a Datos (MIAAD)
+    </div>
+    <div style="font-size:0.75rem;color:var(--text-subtle);margin-top:4px;">
+        Yazm&iacute;n Flores &middot; Javier Rebull &middot; Mtro. Ra&uacute;l Gibr&aacute;n Porras Alaniz &middot; UACJ
+    </div>
+    <div style="margin-top:12px;">
+        <a href="#about" class="nav-link" style="font-size:0.75rem;">&uarr; Volver al inicio</a>
+    </div>
+</footer>
+
+</main>
+</body>
+</html>
